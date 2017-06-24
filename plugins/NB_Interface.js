@@ -235,6 +235,10 @@ NB_Interface.prototype.createBackground = function() {
     
     this._pergamen = new Sprite();
     this._pergamen.bitmap = ImageManager.loadInterfaceElement('menu_1/', '13', 0);
+    
+    this.addChild(this._backgroundSprite);
+    this.addChild(this._backgroundTint);
+    this.addChild(this._pergamen);
 };
 
 NB_Interface.prototype.start = function() {
@@ -242,8 +246,33 @@ NB_Interface.prototype.start = function() {
 };
 
 NB_Interface.prototype.update = function() {
+    this.updateOpacity();
+    this.updateInput();
+    this.updateElements();
+    this.updateTransitions();
     this.updateMouse();
     Scene_Base.prototype.update.call(this);
+};
+
+NB_Interface.prototype.updateOpacity = function() {
+    // Override!
+    // Update the visibility of the menu elements.
+    // Make the scene "enter complete" if all elements are visible.
+};
+
+NB_Interface.prototype.updateInput = function() {
+    // Override!
+    // Update user input.
+};
+
+NB_Interface.prototype.updateTransitions = function() {
+    // Override!
+    // Update transitions to other scenes.
+};
+
+NB_Interface.prototype.updateElements = function() {
+    // Override!
+    // Update other interface embedded into this scene.
 };
 
 NB_Interface.prototype.stop = function() {
@@ -398,6 +427,10 @@ NB_ButtonGroup.prototype.addToContainer = function(container) {
 
 NB_ButtonGroup.prototype.getActiveID = function() {
     return this._active;  
+};
+
+NB_ButtonGroup.prototype.setActive = function(id) {
+    
 };
 
 NB_ButtonGroup.prototype.trigger = function(enlarge) {
