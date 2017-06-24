@@ -29,6 +29,7 @@
         this._pergamen = null;
         this._buttonGroup = null;
         this._exit = false;
+        this._exitToTitle = false;
         this._enterSubmenu = null;
     };
     
@@ -49,6 +50,9 @@
         this._pergamenMark = new Sprite();
         this._pergamenMark.bitmap = ImageManager.loadInterfaceElement('menu_1/', '0', 0);
         this._pergamenMark.opacity = 0;
+        
+        // We will create this later to preserve memory!
+        this._black = null;
         
         // Add them to this scene!
         this.addChild(this._backgroundSprite);
@@ -77,18 +81,21 @@
     
     NB_Interface_MainMenu.prototype._controlOpacity = function() {
         if (!this._exit) {
-            if (this._backgroundTint.opacity < 130) {
-                this._backgroundTint.opacity += 10;
-            }
-            if (this._backgroundTint.opacity > 75) {
-                if (this._pergamen.opacity < 255) {
-                    this._pergamen.opacity += 15;
-                    this._pergamenMark.opacity += 15;
-                } else if (!this._ready) {
-                    this._ready = true;
+            if (!this._ready) {
+                if (this._backgroundTint.opacity < 130) {
+                    this._backgroundTint.opacity += 10;
                 }
-            }
-            if (this._ready && this._enterSubmenu != null && this._enterSubmenu < 4) {
+                if (this._backgroundTint.opacity > 75) {
+                    if (this._pergamen.opacity < 255) {
+                        this._pergamen.opacity += 15;
+                        this._pergamenMark.opacity += 15;
+                    } else if (!this._ready) {
+                        this._ready = true;
+                    }
+                }
+            } else if (this._ready && this._exitToTitle) {
+                this._black.opacity += 15;
+            } else if (this._ready && this._enterSubmenu != null && this._enterSubmenu < 4) {
                 this._pergamenMark.opacity -= 15;
             }
         } else {
@@ -100,15 +107,29 @@
     };
     
     NB_Interface_MainMenu.prototype._controlInput = function() {
-        if (this._ready && !this._exit && this._enterSubmenu == null) {
+        if (this._ready && !this._exit && !this._exitToTitle && this._enterSubmenu == null) {
             this._buttonGroup.updateInput(this.isMouseActive());
             
             // Go into submenu
-            if (Input.isTriggered('ok') && !this._exit) {
+            if ((Input.isTriggered('ok') || this._buttonGroup.clickedOnActive()) && !this._exit) {
                 this._enterSubmenu = this._buttonGroup.trigger(true);
                 if (this._enterSubmenu == 4) {
+                    SoundManager.playCancel();
                     this._exit = true;
                     this._enterSubmenu = null;
+                } else if (this._enterSubmenu == 5) {
+                    SoundManager.playOk();
+                    
+                    // Create the fade out sprite
+                    this._black = new Sprite();
+                    this._black.bitmap = new Bitmap(Graphics.width, Graphics.height);
+                    this._black.bitmap.fillAll('#000000');
+                    this._black.opacity = 0;
+                    this.addChild(this._black);
+                    
+                    this._exitToTitle = true;
+                    this._enterSubmenu = null;
+                    this._buttonGroup.fade(false);
                 } else {
                     this._buttonGroup.fade(false);
                 }
@@ -116,6 +137,7 @@
             
             // Exit menu
             if (Input.isTriggered('menu') && !this._exit) {
+                SoundManager.playCancel();
                 this._exit = true;
             }
         }
@@ -139,6 +161,9 @@
         this._buttonGroup.update();
         if (this._exit && this._pergamen.opacity == 0) {
             SceneManager.goto(Scene_Map);
+        }
+        if (this._exitToTitle && this._black != null && this._black.opacity == 255) {
+            SceneManager.goto(Scene_Title);
         }
         if (this._enterSubmenu != null) {
             if (this._buttonGroup.completelyFaded()) {

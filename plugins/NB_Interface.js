@@ -379,6 +379,10 @@ NB_ButtonGroup.prototype.trigger = function(enlarge) {
     return this._active;
 };
 
+NB_ButtonGroup.prototype.clickedOnActive = function() {
+    return (this._buttons[this._active].mouseInside() && TouchInput.isTriggered());
+};
+
 NB_ButtonGroup.prototype.fade = function() {
     for (i = 0; i < this._buttons.length; i++) {
         this._buttons[i].fade(false);
