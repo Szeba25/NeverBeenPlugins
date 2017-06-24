@@ -24,9 +24,6 @@
     NB_Interface_MainMenu.prototype.initialize = function() {
         NB_Interface.prototype.initialize.call(this);
         this._ready = false;
-        this._backgroundSprite = null;
-        this._backgroundTint = null;
-        this._pergamen = null;
         this._buttonGroup = null;
         this._exit = false;
         this._exitToTitle = false;
@@ -34,25 +31,14 @@
     };
     
     NB_Interface_MainMenu.prototype._createGraphics = function() {
-        // Create all the graphics
-        this._backgroundSprite = new Sprite();
-        this._backgroundSprite.bitmap = SceneManager.backgroundBitmap();
-        
-        this._backgroundTint = new Sprite();
-        this._backgroundTint.bitmap = new Bitmap(Graphics.width, Graphics.height);
-        this._backgroundTint.bitmap.fillAll('#240F00');
         this._backgroundTint.opacity = 0;
-        
-        this._pergamen = new Sprite();
-        this._pergamen.bitmap = ImageManager.loadInterfaceElement('menu_1/', '13', 0);
         this._pergamen.opacity = 0;
-        
         this._pergamenMark = new Sprite();
         this._pergamenMark.bitmap = ImageManager.loadInterfaceElement('menu_1/', '0', 0);
         this._pergamenMark.opacity = 0;
         
         // We will create this later to preserve memory!
-        this._black = null;
+        this._fadeOut = null;
         
         // Add them to this scene!
         this.addChild(this._backgroundSprite);
@@ -74,6 +60,9 @@
     
     // Expanded!
     NB_Interface_MainMenu.prototype.create = function() {
+        // Create generic background
+        this.createBackground();
+        // Create additional graphics
         this._createGraphics();
         this._createButtons();
         NB_Interface.prototype.create.call(this);
@@ -94,7 +83,7 @@
                     }
                 }
             } else if (this._ready && this._exitToTitle) {
-                this._black.opacity += 15;
+                this._fadeOut.opacity += 15;
             } else if (this._ready && this._enterSubmenu != null && this._enterSubmenu < 4) {
                 this._pergamenMark.opacity -= 15;
             }
@@ -104,6 +93,15 @@
             if (this._backgroundTint.opacity > 0) this._backgroundTint.opacity -= 10;
         }
         this._buttonGroup.setMasterOpactiy(this._pergamen.opacity);
+    };
+    
+    NB_Interface_MainMenu.prototype._createFadeOut = function() {
+        // Create the fade out sprite
+        this._fadeOut = new Sprite();
+        this._fadeOut.bitmap = new Bitmap(Graphics.width, Graphics.height);
+        this._fadeOut.bitmap.fillAll('#000000');
+        this._fadeOut.opacity = 0;
+        this.addChild(this._fadeOut);
     };
     
     NB_Interface_MainMenu.prototype._controlInput = function() {
@@ -119,18 +117,12 @@
                     this._enterSubmenu = null;
                 } else if (this._enterSubmenu == 5) {
                     SoundManager.playOk();
-                    
-                    // Create the fade out sprite
-                    this._black = new Sprite();
-                    this._black.bitmap = new Bitmap(Graphics.width, Graphics.height);
-                    this._black.bitmap.fillAll('#000000');
-                    this._black.opacity = 0;
-                    this.addChild(this._black);
-                    
+                    this._createFadeOut();
                     this._exitToTitle = true;
                     this._enterSubmenu = null;
                     this._buttonGroup.fade(false);
                 } else {
+                    SoundManager.playOk();
                     this._buttonGroup.fade(false);
                 }
             }
@@ -145,9 +137,6 @@
     
     NB_Interface_MainMenu.prototype.enterSubmenu = function() {
         switch(this._enterSubmenu) {
-            case 4:
-                console.log('submenu 4 shall never happen!');
-                break;
             default:
                 SceneManager.goto(Scene_Map);
                 break;
@@ -162,7 +151,7 @@
         if (this._exit && this._pergamen.opacity == 0) {
             SceneManager.goto(Scene_Map);
         }
-        if (this._exitToTitle && this._black != null && this._black.opacity == 255) {
+        if (this._exitToTitle && this._fadeOut != null && this._fadeOut.opacity == 255) {
             SceneManager.goto(Scene_Title);
         }
         if (this._enterSubmenu != null) {

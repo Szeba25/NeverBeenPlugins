@@ -212,11 +212,29 @@ NB_Interface.prototype.constructor = NB_Interface;
 
 NB_Interface.prototype.initialize = function() {
     Scene_Base.prototype.initialize.call(this);
+    
+    this._backgroundSprite = null;
+    this._backgroundTint = null;
+    this._pergamen = null;
 };
 
 NB_Interface.prototype.create = function() {
     this.addMouse();
     Scene_Base.prototype.create.call(this);
+};
+
+NB_Interface.prototype.createBackground = function() {
+    // Create all the background graphics
+    this._backgroundSprite = new Sprite();
+    this._backgroundSprite.bitmap = SceneManager.backgroundBitmap();
+    
+    this._backgroundTint = new Sprite();
+    this._backgroundTint.bitmap = new Bitmap(Graphics.width, Graphics.height);
+    this._backgroundTint.bitmap.fillAll('#240F00');
+    this._backgroundTint.opacity = 130;
+    
+    this._pergamen = new Sprite();
+    this._pergamen.bitmap = ImageManager.loadInterfaceElement('menu_1/', '13', 0);
 };
 
 NB_Interface.prototype.start = function() {
