@@ -31,9 +31,9 @@
         configurable: true
     });
     
-    aliases.TouchInput_onMouseMove = TouchInput._onMouseMove;
+    aliases.TouchInput_static_onMouseMove = TouchInput._onMouseMove;
     TouchInput._onMouseMove = function(event) {
-        aliases.TouchInput_onMouseMove.call(event);
+        aliases.TouchInput_static_onMouseMove.call(event);
         TouchInput._ncx = event.pageX;
         TouchInput._ncy = event.pageY;
     };
@@ -76,42 +76,89 @@
      *********************************************/
     
     var mouseActive = false;
-    var mouse = new Sprite();
-    mouse.bitmap = ImageManager.loadInterfaceElement('', 'cursor', 0);
-    mouse.visible = false;
-    mouse.x = TouchInput.ncx;
-    mouse.y = TouchInput.ncy;
+    var mouseX = TouchInput.ncx;
+    var mouseY = TouchInput.ncy;
+    
+    aliases.Scene_Base_initialize = Scene_Base.prototype.initialize;
+    Scene_Base.prototype.initialize = function() {
+        aliases.Scene_Base_initialize.call(this);
+        this._mouseAvailable = false;
+        this._mouse = null;
+        this._mouseLight = null;
+    }
     
     Scene_Base.prototype.addMouse = function() {
-        this.addChild(mouse);
+        this._mouseAvailable = true;
+        this._mouse = new Sprite();
+        this._mouse.bitmap = ImageManager.loadInterfaceElement('', 'cursor', 0);
+        this._mouseLight = new Sprite();
+        this._mouseLight.bitmap = ImageManager.loadInterfaceElement('', 'cursor_light', 0);
+        
+        mouseX = TouchInput.ncx;
+        mouseY = TouchInput.ncy;
+        this._mouse.x = mouseX;
+        this._mouse.y = mouseY;
+        this._mouseLight.x = mouseX;
+        this._mouseLight.y = mouseY;
+        
+        if (mouseActive) {
+            this._mouse.visible = true;
+            this._mouseLight.visible = true;
+            this._mouseLight.opacity = 0;
+        } else {
+            this._mouse.visible = false;
+            this._mouseLight.visible = false;
+            this._mouseLight.opacity = 0;
+        }
+        
+        this.addChild(this._mouse);
+        this.addChild(this._mouseLight);
     };
     
     Scene_Base.prototype.updateMouse = function() {
         if (Input.isTriggered('up') || Input.isTriggered('down')) {
             mouseActive = false;
-            mouse.visible = false;
+            this._mouse.visible = false;
+            this._mouseLight.visible = false;
+            this._mouseLight.opacity = 0;
         } else {
-            if (mouse.x != TouchInput.ncx || mouse.y != TouchInput.ncy) {
-                mouse.x = TouchInput.ncx;
-                mouse.y = TouchInput.ncy;
+            if (mouseX != TouchInput.ncx || mouseY != TouchInput.ncy) {
                 mouseActive = true;
-                mouse.visible = true;
+                mouseX = TouchInput.ncx;
+                mouseY = TouchInput.ncy;
+                this._mouse.x = mouseX;
+                this._mouse.y = mouseY;
+                this._mouseLight.x = mouseX;
+                this._mouseLight.y = mouseY;
+                this._mouse.visible = true;
+                this._mouseLight.visible = true;
             }
+        }
+        if (TouchInput.isPressed()) {
+            this._mouseLight.opacity = 255;
+        } else {
+            if (this._mouseLight.opacity > 0) this._mouseLight.opacity -= 15;
         }
     };
     
     Scene_Base.prototype.isMouseActive = function() {
-        return mouseActive;  
+        return mouseActive;
     };
     
     Scene_Base.prototype.deactivateMouse = function() {
-        mouseActive = false;
-        mouse.visible = false;
+        if (this._mouseAvailable) {
+            mouseActive = false;
+            this._mouse.visible = false;
+            this._mouseLight.visible = false;
+        }
     };
     
     Scene_Base.prototype.activateMouse = function() {
-        mouseActive = true;
-        mouse.visible = true;
+        if (this._mouseAvailable) {
+            mouseActive = true;
+            this._mouse.visible = true;
+            this._mouseLight.visible = true;
+        }
     };
     
     aliases.Scene_Map_createDisplayObjects = Scene_Map.prototype.createDisplayObjects;
@@ -191,9 +238,15 @@ NB_Button.prototype.initialize = function(bkgPath, bkg, lightPath, light, text, 
     this._lightOpacity = 0;
     this._active = false;
     this._masterOpacity = masterOpacity;
+    this._scalePoint = new PIXI.Point(1, 1);
+    this._disposed = false;
     
     this.updateOpacity();
     this._syncPosition();
+};
+
+NB_Button.prototype.dispose = function() {
+    this._disposed = true;
 };
 
 NB_Button.prototype._syncPosition = function() {
@@ -226,10 +279,15 @@ NB_Button.prototype.mouseInside = function() {
 };
 
 NB_Button.prototype.update = function() {
-    if (this._active) {
-        if (this._lightOpacity < 255) this._lightOpacity += 15;
+    if (this._disposed) {
+        this._scalePoint.x += 0.01;
+        this._graphics.scale = this._scalePoint;
     } else {
-        if (this._lightOpacity > 0) this._lightOpacity -= 15;
+        if (this._active) {
+            if (this._lightOpacity < 255) this._lightOpacity += 15;
+        } else {
+            if (this._lightOpacity > 0) this._lightOpacity -= 15;
+        }
     }
     this.updateOpacity();
 };
@@ -243,6 +301,65 @@ function NB_ButtonGroup() {
 }
 
 NB_ButtonGroup.prototype.initialize = function() {
-    
+    this._buttons = [];
+    this._active = 0;
 };
 
+NB_ButtonGroup.prototype.add = function(button, activate) {
+    this._buttons.push(button);
+    if (activate) this._buttons[this._buttons.length-1].activate();
+};
+
+NB_ButtonGroup.prototype.setMasterOpactiy = function(value) {
+    for (i = 0; i < this._buttons.length; i++) {
+        this._buttons[i].setMasterOpacity(value);
+    }
+};
+
+NB_ButtonGroup.prototype.addToContainer = function(container) {
+    for (i = 0; i < this._buttons.length; i++) {
+        container.addChild(this._buttons[i]._graphics);
+        container.addChild(this._buttons[i]._light);
+    }  
+};
+
+NB_ButtonGroup.prototype.getActiveID = function() {
+    return this._active;  
+};
+
+NB_ButtonGroup.prototype.update = function(mouseActive) {
+    // Control keyboard input
+    if (Input.isTriggered('up')) {
+        SoundManager.playCursor();
+        if (this._active == 0) {
+            this._active = this._buttons.length-1;
+        } else {
+            this._active--;
+        }
+    }
+    if (Input.isTriggered('down')) {
+        SoundManager.playCursor();
+        if (this._active == this._buttons.length-1) {
+            this._active = 0;
+        } else {
+            this._active++;
+        }
+    }
+    // Control mouse input
+    for (i = 0; i < this._buttons.length; i++) {
+        if (mouseActive) {
+            if (this._buttons[i].mouseInside()) {
+                this._active = i;
+            }
+        }
+    }
+    // Control button opacity
+    for (i = 0; i < this._buttons.length; i++) {
+        if (this._active == i) {
+            this._buttons[i].activate();
+        } else {
+            this._buttons[i].deactivate();
+        }
+        this._buttons[i].update();
+    }
+};

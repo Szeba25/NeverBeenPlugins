@@ -27,7 +27,7 @@
         this._backgroundSprite = null;
         this._backgroundTint = null;
         this._pergamen = null;
-        this._buttons = null;
+        this._buttonGroup = null;
         this._exit = false;
     };
     
@@ -52,18 +52,14 @@
     };
     
     NB_Interface_MainMenu.prototype._createButtons = function() {
-        this._buttons = [];
-        this._buttons.push(new NB_Button('menu_1/', '11', 'menu_1/', '12', '', 440, 113, 255));
-        this._buttons.push(new NB_Button('menu_1/', '9', 'menu_1/', '10', '', 464, 113+55, 255));
-        this._buttons.push(new NB_Button('menu_1/', '7', 'menu_1/', '8', '', 445, 113+(55*2), 255));
-        this._buttons.push(new NB_Button('menu_1/', '5', 'menu_1/', '6', '', 412, 113+(55*3), 255));
-        this._buttons.push(new NB_Button('menu_1/', '3', 'menu_1/', '4', '', 402, 113+(55*4), 255));
-        this._buttons.push(new NB_Button('menu_1/', '1', 'menu_1/', '2', '', 382, 113+(55*5), 255));
-        for (i = 0; i < this._buttons.length; i++) {
-            this.addChild(this._buttons[i]._graphics);
-            this.addChild(this._buttons[i]._light);
-        }
-        this._buttons[0].activate();
+        this._buttonGroup = new NB_ButtonGroup();
+        this._buttonGroup.add(new NB_Button('menu_1/', '11', 'menu_1/', '12', '', 440, 113, 255), true);
+        this._buttonGroup.add(new NB_Button('menu_1/', '9', 'menu_1/', '10', '', 464, 113+55, 255), false);
+        this._buttonGroup.add(new NB_Button('menu_1/', '7', 'menu_1/', '8', '', 445, 113+(55*2), 255), false);
+        this._buttonGroup.add(new NB_Button('menu_1/', '5', 'menu_1/', '6', '', 412, 113+(55*3), 255), false);
+        this._buttonGroup.add(new NB_Button('menu_1/', '3', 'menu_1/', '4', '', 402, 113+(55*4), 255), false);
+        this._buttonGroup.add(new NB_Button('menu_1/', '1', 'menu_1/', '2', '', 382, 113+(55*5), 255), false);
+        this._buttonGroup.addToContainer(this);
     };
     
     // Expanded!
@@ -87,45 +83,12 @@
             this._pergamen.opacity -= 15;
             if (this._backgroundTint.opacity > 0) this._backgroundTint.opacity -= 10;
         }
+        this._buttonGroup.setMasterOpactiy(this._pergamen.opacity);
     };
     
     NB_Interface_MainMenu.prototype._controlInput = function() {
-        // Control mouse input
-        for (i = 0; i < this._buttons.length; i++) {
-            this._buttons[i].setMasterOpacity(this._pergamen.opacity);
-            if (this.isMouseActive()) {
-                if (this._buttons[i].mouseInside()) {
-                    this._cursor = i;
-                }
-            }
-        }
-        
-        // Control keyboard input
-        if (Input.isTriggered('up')) {
-            if (this._cursor == 0) {
-                this._cursor = 5;
-            } else {
-                this._cursor--;
-            }
-        }
-        if (Input.isTriggered('down')) {
-            if (this._cursor == 5) {
-                this._cursor = 0;
-            } else {
-                this._cursor++;
-            }
-        }
-        
-        // Control button opacity
-        for (i = 0; i < this._buttons.length; i++) {
-            if (this._cursor == i) {
-                this._buttons[i].activate();
-            } else {
-                this._buttons[i].deactivate();
-            }
-            this._buttons[i].update();
-        }
-        
+        this._buttonGroup.update(this.isMouseActive());
+        this._cursor = this._buttonGroup.getActiveID();
         // Exit menu
         if (Input.isTriggered('menu') && !this._exit) {
             this._exit = true;
@@ -150,7 +113,7 @@
     
     // Override!
     Scene_Map.prototype.callMenu = function() {
-        SoundManager.playOk();
+        SoundManager.playCancel();
         SceneManager.goto(NB_Interface_MainMenu);
         Window_MenuCommand.initCommandPosition();
         $gameTemp.clearDestination();

@@ -139,14 +139,17 @@
         aliases.Spriteset_Map_createLowerLayer.call(this);
         
         this._parallaxMapTop = new Sprite();
+        this._baseSprite.removeChild(this._weather);
+        this._baseSprite.addChild(this._parallaxMapTop);
+        this._baseSprite.addChild(this._weather);
+    };
+    
+    Spriteset_Map.prototype.createUpperLayer = function() {
+        Spriteset_Base.prototype.createUpperLayer.call(this);
         
         this._fog = new TilingSprite();
         this._fog.move(0, 0, Graphics.width, Graphics.height);
-        
-        this._baseSprite.removeChild(this._weather);
-        this._baseSprite.addChild(this._parallaxMapTop);
-        this._baseSprite.addChild(this._fog);
-        this._baseSprite.addChild(this._weather);
+        this._pictureContainer.addChildAt(this._fog, 30);
     };
     
     aliases.Spriteset_Map_update = Spriteset_Map.prototype.update;
