@@ -44,6 +44,30 @@
     };
 
     /*********************************************
+     * Better destination
+     *********************************************/
+    
+    // Override!
+    Sprite_Destination.prototype.createBitmap = function() {
+        var tileWidth = $gameMap.tileWidth();
+        var tileHeight = $gameMap.tileHeight();
+        this.bitmap = new Bitmap(tileWidth, tileHeight);
+        this.bitmap.drawCircle(tileWidth/2, tileHeight/2, 15,'white');
+        this.anchor.x = 0.5;
+        this.anchor.y = 0.5;
+        this.blendMode = Graphics.BLEND_ADD;
+    };
+    
+    // Override!
+    Sprite_Destination.prototype.updateAnimation = function() {
+        this._frameCount++;
+        this._frameCount %= 40;
+        this.opacity = (40 - this._frameCount) * 2;
+        this.scale.x = 1 + this._frameCount / 40;
+        this.scale.y = this.scale.x;
+    };
+    
+    /*********************************************
      * Interface graphics loader
      *********************************************/
     
@@ -231,34 +255,44 @@ function NB_Button() {
 NB_Button.prototype.initialize = function(bkgPath, bkg, lightPath, light, text, x, y, masterOpacity) {
     this._graphics = new Sprite();
     this._graphics.bitmap = ImageManager.loadInterfaceElement(bkgPath, bkg, 0);
+    this._graphics.anchor.x = 0.5;
+    this._graphics.anchor.y = 0.5;
     this._light = new Sprite();
     this._light.bitmap = ImageManager.loadInterfaceElement(lightPath, light, 0);
+    this._light.anchor.x = 0.5;
+    this._light.anchor.y = 0.5;
     this._x = x;
     this._y = y;
     this._lightOpacity = 0;
     this._active = false;
     this._masterOpacity = masterOpacity;
-    this._scalePoint = new PIXI.Point(1, 1);
-    this._disposed = false;
-    
+    this._faded = false;
+    this._fadedOpacity = 255;
+    this._completelyFaded = false;
+    this._enlargeIfFaded = false;
     this.updateOpacity();
-    this._syncPosition();
 };
 
-NB_Button.prototype.dispose = function() {
-    this._disposed = true;
+NB_Button.prototype.fade = function(enlarge) {
+    if (!this._faded) {
+        this._faded = true;
+        this._enlargeIfFaded = enlarge;
+    }
 };
+
+NB_Button.prototype.completelyFaded = function() {
+    return this._completelyFaded;
+}
 
 NB_Button.prototype._syncPosition = function() {
-    this._graphics.x = this._x;
-    this._graphics.y = this._y;
-    this._light.x = this._x;
-    this._light.y = this._y;
+    this._graphics.x = this._x + this._graphics.width / 2;
+    this._graphics.y = this._y + this._graphics.height / 2;
+    this._light.x = this._x + this._light.width / 2;
+    this._light.y = this._y + this._light.height / 2;
 };
 
 NB_Button.prototype.setMasterOpacity = function(opc) {
     this._masterOpacity = opc;
-    this.updateOpacity();
 };
 
 NB_Button.prototype.activate = function() {
@@ -270,8 +304,8 @@ NB_Button.prototype.deactivate = function() {
 };
 
 NB_Button.prototype.updateOpacity = function() {
-    this._graphics.opacity = this._masterOpacity;
-    this._light.opacity = Math.round(this._lightOpacity * (this._masterOpacity / 255));
+    this._graphics.opacity = this._masterOpacity * (this._fadedOpacity / 255);
+    this._light.opacity = Math.round(this._lightOpacity * (this._masterOpacity / 255) * (this._fadedOpacity / 255));
 };
 
 NB_Button.prototype.mouseInside = function() {
@@ -279,9 +313,21 @@ NB_Button.prototype.mouseInside = function() {
 };
 
 NB_Button.prototype.update = function() {
-    if (this._disposed) {
-        this._scalePoint.x += 0.01;
-        this._graphics.scale = this._scalePoint;
+    this._syncPosition();
+    if (this._faded) {
+        if (this._enlargeIfFaded) {
+            this._graphics.scale.x += 0.005;
+            this._graphics.scale.y += 0.005;
+            this._light.scale.x += 0.005;
+            this._light.scale.y += 0.005;
+        }
+        this._fadedOpacity -= 12;
+        if (this._fadedOpacity <= 0) {
+            this._fadedOpacity = 0;
+            this._graphics.visible = false;
+            this._light.visible = false;
+            this._completelyFaded = true;
+        }
     } else {
         if (this._active) {
             if (this._lightOpacity < 255) this._lightOpacity += 15;
@@ -303,6 +349,7 @@ function NB_ButtonGroup() {
 NB_ButtonGroup.prototype.initialize = function() {
     this._buttons = [];
     this._active = 0;
+    this._faded = false;
 };
 
 NB_ButtonGroup.prototype.add = function(button, activate) {
@@ -327,7 +374,38 @@ NB_ButtonGroup.prototype.getActiveID = function() {
     return this._active;  
 };
 
-NB_ButtonGroup.prototype.update = function(mouseActive) {
+NB_ButtonGroup.prototype.trigger = function(enlarge) {
+    this._buttons[this._active].fade(enlarge);
+    return this._active;
+};
+
+NB_ButtonGroup.prototype.fade = function() {
+    for (i = 0; i < this._buttons.length; i++) {
+        this._buttons[i].fade(false);
+    }
+    this._faded = true;
+}
+
+NB_ButtonGroup.prototype.completelyFaded = function() {
+    for (i = 0; i < this._buttons.length; i++) {
+        if (this._buttons[i].completelyFaded()) return true;
+    }
+    return false;
+}
+
+NB_ButtonGroup.prototype.update = function() {
+    // Control button opacity
+    for (i = 0; i < this._buttons.length; i++) {
+        if (this._active == i) {
+            this._buttons[i].activate();
+        } else {
+            this._buttons[i].deactivate();
+        }
+        this._buttons[i].update();
+    }
+};
+
+NB_ButtonGroup.prototype.updateInput = function(mouseActive) {
     // Control keyboard input
     if (Input.isTriggered('up')) {
         SoundManager.playCursor();
@@ -353,13 +431,4 @@ NB_ButtonGroup.prototype.update = function(mouseActive) {
             }
         }
     }
-    // Control button opacity
-    for (i = 0; i < this._buttons.length; i++) {
-        if (this._active == i) {
-            this._buttons[i].activate();
-        } else {
-            this._buttons[i].deactivate();
-        }
-        this._buttons[i].update();
-    }
-};
+}

@@ -23,12 +23,13 @@
     // Expanded!
     NB_Interface_MainMenu.prototype.initialize = function() {
         NB_Interface.prototype.initialize.call(this);
-        this._cursor = 0;
+        this._ready = false;
         this._backgroundSprite = null;
         this._backgroundTint = null;
         this._pergamen = null;
         this._buttonGroup = null;
         this._exit = false;
+        this._enterSubmenu = null;
     };
     
     NB_Interface_MainMenu.prototype._createGraphics = function() {
@@ -45,10 +46,15 @@
         this._pergamen.bitmap = ImageManager.loadInterfaceElement('menu_1/', '13', 0);
         this._pergamen.opacity = 0;
         
+        this._pergamenMark = new Sprite();
+        this._pergamenMark.bitmap = ImageManager.loadInterfaceElement('menu_1/', '0', 0);
+        this._pergamenMark.opacity = 0;
+        
         // Add them to this scene!
         this.addChild(this._backgroundSprite);
         this.addChild(this._backgroundTint);
         this.addChild(this._pergamen);
+        this.addChild(this._pergamenMark);
     };
     
     NB_Interface_MainMenu.prototype._createButtons = function() {
@@ -77,21 +83,52 @@
             if (this._backgroundTint.opacity > 75) {
                 if (this._pergamen.opacity < 255) {
                     this._pergamen.opacity += 15;
+                    this._pergamenMark.opacity += 15;
+                } else if (!this._ready) {
+                    this._ready = true;
                 }
+            }
+            if (this._ready && this._enterSubmenu != null && this._enterSubmenu < 4) {
+                this._pergamenMark.opacity -= 15;
             }
         } else {
             this._pergamen.opacity -= 15;
+            this._pergamenMark.opacity -= 15;
             if (this._backgroundTint.opacity > 0) this._backgroundTint.opacity -= 10;
         }
         this._buttonGroup.setMasterOpactiy(this._pergamen.opacity);
     };
     
     NB_Interface_MainMenu.prototype._controlInput = function() {
-        this._buttonGroup.update(this.isMouseActive());
-        this._cursor = this._buttonGroup.getActiveID();
-        // Exit menu
-        if (Input.isTriggered('menu') && !this._exit) {
-            this._exit = true;
+        if (this._ready && !this._exit && this._enterSubmenu == null) {
+            this._buttonGroup.updateInput(this.isMouseActive());
+            
+            // Go into submenu
+            if (Input.isTriggered('ok') && !this._exit) {
+                this._enterSubmenu = this._buttonGroup.trigger(true);
+                if (this._enterSubmenu == 4) {
+                    this._exit = true;
+                    this._enterSubmenu = null;
+                } else {
+                    this._buttonGroup.fade(false);
+                }
+            }
+            
+            // Exit menu
+            if (Input.isTriggered('menu') && !this._exit) {
+                this._exit = true;
+            }
+        }
+    };
+    
+    NB_Interface_MainMenu.prototype.enterSubmenu = function() {
+        switch(this._enterSubmenu) {
+            case 4:
+                console.log('submenu 4 shall never happen!');
+                break;
+            default:
+                SceneManager.goto(Scene_Map);
+                break;
         }
     };
     
@@ -99,11 +136,15 @@
     NB_Interface_MainMenu.prototype.update = function() {
         this._controlOpacity();
         this._controlInput();
-        
+        this._buttonGroup.update();
         if (this._exit && this._pergamen.opacity == 0) {
             SceneManager.goto(Scene_Map);
         }
-        
+        if (this._enterSubmenu != null) {
+            if (this._buttonGroup.completelyFaded()) {
+                this.enterSubmenu();
+            }
+        }
         NB_Interface.prototype.update.call(this);
     };
     
