@@ -238,9 +238,15 @@ NB_Button.prototype.initialize = function(bkgPath, bkg, lightPath, light, text, 
     this._lightOpacity = 0;
     this._active = false;
     this._masterOpacity = masterOpacity;
+    this._scalePoint = new PIXI.Point(1, 1);
+    this._disposed = false;
     
     this.updateOpacity();
     this._syncPosition();
+};
+
+NB_Button.prototype.dispose = function() {
+    this._disposed = true;
 };
 
 NB_Button.prototype._syncPosition = function() {
@@ -273,10 +279,15 @@ NB_Button.prototype.mouseInside = function() {
 };
 
 NB_Button.prototype.update = function() {
-    if (this._active) {
-        if (this._lightOpacity < 255) this._lightOpacity += 15;
+    if (this._disposed) {
+        this._scalePoint.x += 0.01;
+        this._graphics.scale = this._scalePoint;
     } else {
-        if (this._lightOpacity > 0) this._lightOpacity -= 15;
+        if (this._active) {
+            if (this._lightOpacity < 255) this._lightOpacity += 15;
+        } else {
+            if (this._lightOpacity > 0) this._lightOpacity -= 15;
+        }
     }
     this.updateOpacity();
 };
