@@ -10,7 +10,7 @@
 (function() {
     
     /****************************************************************
-     * MainMenu (the in game main menu)
+     * Main Menu (the in game main menu)
      ****************************************************************/
     
     function NB_Interface_MainMenu() {
@@ -23,7 +23,6 @@
     // Expanded!
     NB_Interface_MainMenu.prototype.initialize = function() {
         NB_Interface.prototype.initialize.call(this);
-        this._ready = false;
         this._buttonGroup = null;
         this._exit = false;
         this._exitToTitle = false;
@@ -70,7 +69,7 @@
     
     NB_Interface_MainMenu.prototype._controlOpacity = function() {
         if (!this._exit) {
-            if (!this._ready) {
+            if (!this.isEnterComplete()) {
                 if (this._backgroundTint.opacity < 130) {
                     this._backgroundTint.opacity += 10;
                 }
@@ -78,13 +77,13 @@
                     if (this._pergamen.opacity < 255) {
                         this._pergamen.opacity += 15;
                         this._pergamenMark.opacity += 15;
-                    } else if (!this._ready) {
-                        this._ready = true;
+                    } else if (!this.isEnterComplete()) {
+                        this.makeEnterComplete();
                     }
                 }
-            } else if (this._ready && this._exitToTitle) {
+            } else if (this.isEnterComplete() && this._exitToTitle) {
                 this._fadeOut.opacity += 15;
-            } else if (this._ready && this._enterSubmenu != null && this._enterSubmenu < 4) {
+            } else if (this.isEnterComplete() && this._enterSubmenu != null && this._enterSubmenu < 4) {
                 this._pergamenMark.opacity -= 15;
             }
         } else {
@@ -105,9 +104,9 @@
     };
     
     NB_Interface_MainMenu.prototype._controlInput = function() {
-        if (this._ready && !this._exit && !this._exitToTitle && this._enterSubmenu == null) {
+        if (this.isEnterComplete() && !this._exit && !this._exitToTitle && this._enterSubmenu == null) {
+            // Update buttons input
             this._buttonGroup.updateInput(this.isMouseActive());
-            
             // Go into submenu
             if ((Input.isTriggered('ok') || this._buttonGroup.clickedOnActive()) && !this._exit) {
                 this._enterSubmenu = this._buttonGroup.trigger(true);
@@ -126,7 +125,6 @@
                     this._buttonGroup.fade(false);
                 }
             }
-            
             // Exit menu
             if (Input.isTriggered('menu') && !this._exit) {
                 SoundManager.playCancel();
@@ -160,6 +158,21 @@
             }
         }
         NB_Interface.prototype.update.call(this);
+    };
+    
+    /****************************************************************
+     * Character Menu
+     ****************************************************************/
+    
+    function NB_Interface_CharMenu() {
+        this.initialize.apply(this, arguments);
+    }
+    
+    NB_Interface_CharMenu.prototype = Object.create(NB_Interface.prototype);
+    NB_Interface_CharMenu.prototype.constructor = NB_Interface_CharMenu;
+    
+    NB_Interface_CharMenu.prototype.initialize = function() {
+        NB_Interface.prototype.initialize.call(this);
     };
     
     /****************************************************************

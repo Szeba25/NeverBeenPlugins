@@ -212,7 +212,7 @@ NB_Interface.prototype.constructor = NB_Interface;
 
 NB_Interface.prototype.initialize = function() {
     Scene_Base.prototype.initialize.call(this);
-    
+    this._enterComplete = false;
     this._backgroundSprite = null;
     this._backgroundTint = null;
     this._pergamen = null;
@@ -261,6 +261,14 @@ NB_Interface.prototype.isBusy = function() {
 NB_Interface.prototype.isReady = function() {
     return Scene_Base.prototype.isReady.call(this);
 };
+
+NB_Interface.prototype.isEnterComplete = function() {
+    return this._enterComplete;
+};
+
+NB_Interface.prototype.makeEnterComplete = function() {
+    this._enterComplete = true;
+}
 
 /****************************************************************
  * General button interface element.
