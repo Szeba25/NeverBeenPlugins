@@ -6,18 +6,16 @@
  * @plugindesc Interface base objects
  * All other UI scripts will be based on this plugin.
  * @author Scalytank
- * 
  */
 
 (function() {
  
     var aliases = {};
-
     document.body.style.cursor = 'none';
     
-    /*
+    /*********************************************
      * Mouse position getters
-     */
+     *********************************************/
     
     Object.defineProperty(TouchInput, 'ncx', {
         get: function() {
@@ -45,17 +43,17 @@
                 TouchInput.ncy > y && TouchInput.ncy < y + h);
     };
 
-    /*
+    /*********************************************
      * Interface graphics loader
-     */
+     *********************************************/
     
     ImageManager.loadInterfaceElement = function(subpath, filename, hue) {
         return this.loadBitmap('img/interface/' + subpath, filename, hue, true);
     };
     
-    /*
-     * Hide mouse when taking snapshots + remove blur from them
-     */
+    /*********************************************
+     * Hide mouse and remove blur from snapshots
+     *********************************************/
     
     // Override!
     SceneManager.snap = function() {
@@ -73,9 +71,9 @@
         this._backgroundBitmap = this.snap();
     };
     
-    /*
+    /*********************************************
      * Mouse stuff
-     */
+     *********************************************/
     
     var mouseActive = false;
     var mouse = new Sprite();
@@ -130,9 +128,9 @@
 
 })();
 
-/*
+/****************************************************************
  * The base of all never been interface scenes!
- */
+ ****************************************************************/
 
 function NB_Interface() {
     this.initialize.apply(this, arguments);
@@ -175,9 +173,9 @@ NB_Interface.prototype.isReady = function() {
     return Scene_Base.prototype.isReady.call(this);
 };
 
-/*
+/****************************************************************
  * General button interface element.
- */
+ ****************************************************************/
 
 function NB_Button() {
     this.initialize.apply(this, arguments);
@@ -235,3 +233,16 @@ NB_Button.prototype.update = function() {
     }
     this.updateOpacity();
 };
+
+/****************************************************************
+ * Button group
+ ****************************************************************/
+
+function NB_ButtonGroup() {
+    this.initialize.apply(this, arguments);
+}
+
+NB_ButtonGroup.prototype.initialize = function() {
+    
+};
+

@@ -9,9 +9,9 @@
 
 (function() {
     
-    /*
+    /****************************************************************
      * MainMenu (the in game main menu)
-     */
+     ****************************************************************/
     
     function NB_Interface_MainMenu() {
         this.initialize.apply(this, arguments);
@@ -144,9 +144,9 @@
         NB_Interface.prototype.update.call(this);
     };
     
-    /*
+    /****************************************************************
      * Menu trigger
-     */
+     ****************************************************************/
     
     // Override!
     Scene_Map.prototype.callMenu = function() {
