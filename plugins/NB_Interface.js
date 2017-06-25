@@ -439,13 +439,13 @@ NB_ButtonGroup.prototype.add = function(button, activate) {
 };
 
 NB_ButtonGroup.prototype.setMasterOpactiy = function(value) {
-    for (i = 0; i < this._buttons.length; i++) {
+    for (var i = 0; i < this._buttons.length; i++) {
         this._buttons[i].setMasterOpacity(value);
     }
 };
 
 NB_ButtonGroup.prototype.addToContainer = function(container) {
-    for (i = 0; i < this._buttons.length; i++) {
+    for (var i = 0; i < this._buttons.length; i++) {
         container.addChild(this._buttons[i]._graphics);
         container.addChild(this._buttons[i]._light);
     }  
@@ -469,14 +469,14 @@ NB_ButtonGroup.prototype.clickedOnActive = function() {
 };
 
 NB_ButtonGroup.prototype.fade = function() {
-    for (i = 0; i < this._buttons.length; i++) {
+    for (var i = 0; i < this._buttons.length; i++) {
         this._buttons[i].fade(false);
     }
     this._faded = true;
 }
 
 NB_ButtonGroup.prototype.completelyFaded = function() {
-    for (i = 0; i < this._buttons.length; i++) {
+    for (var i = 0; i < this._buttons.length; i++) {
         if (this._buttons[i].completelyFaded()) return true;
     }
     return false;
@@ -484,7 +484,7 @@ NB_ButtonGroup.prototype.completelyFaded = function() {
 
 NB_ButtonGroup.prototype.update = function() {
     // Control button opacity
-    for (i = 0; i < this._buttons.length; i++) {
+    for (var i = 0; i < this._buttons.length; i++) {
         if (this._active == i) {
             this._buttons[i].activate();
         } else {
@@ -513,7 +513,7 @@ NB_ButtonGroup.prototype.updateInput = function(mouseActive) {
         }
     }
     // Control mouse input
-    for (i = 0; i < this._buttons.length; i++) {
+    for (var i = 0; i < this._buttons.length; i++) {
         if (mouseActive) {
             if ((this._onlyActiveMouse && TouchInput.isTriggered() && this._buttons[i].mouseInside()) 
                 || (!this._onlyActiveMouse && this._buttons[i].mouseInside())) {

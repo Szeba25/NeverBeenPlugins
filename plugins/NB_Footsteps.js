@@ -23,7 +23,7 @@
     var generateFootstep = false;
     var generateFootstepGraphics = [];
     
-    for (i = 1; i <= 7; i++) {
+    for (var i = 1; i <= 7; i++) {
         var fts = {};
         fts["name"] = "FootstepA" + i;
         fts["volume"] = parseInt(parameters['volume']);
@@ -57,7 +57,7 @@
         
         this._footstepsData = [];
         this._footsteps = [];
-        for (i = 0; i < footstepsCount; i++) {
+        for (var i = 0; i < footstepsCount; i++) {
             this._footstepsData[i] = {};
             this._footstepsData[i]['x'] = 0;
             this._footstepsData[i]['y'] = 0;
@@ -79,7 +79,7 @@
         
         // Generate footsteps
         if (generateFootstep) {
-            for (i = 0; i < footstepsCount; i++) {
+            for (var i = 0; i < footstepsCount; i++) {
                 if (this._footstepsData[i].opacity == 0) {
                     this._footstepsData[i].x = $gamePlayer._realX * $gameMap.tileWidth();
                     this._footstepsData[i].y = $gamePlayer._realY * $gameMap.tileHeight();
@@ -106,7 +106,7 @@
         }
         
         // Scroll footsteps
-        for (i = 0; i < footstepsCount; i++) {
+        for (var i = 0; i < footstepsCount; i++) {
             this._footsteps[i].x = this._footstepsData[i].x - Math.round($gameMap.displayX()*$gameMap.tileWidth());
             this._footsteps[i].y = this._footstepsData[i].y - Math.round($gameMap.displayY()*$gameMap.tileHeight());
             if (this._footstepsData[i].opacity > 0) {
