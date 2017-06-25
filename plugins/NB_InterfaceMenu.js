@@ -229,7 +229,7 @@
                                     NB_Interface.fontColor, 610, 465, 255));
         this._equipmentButtons.push(new NB_Button(null, null, null, null, 'Egyéb:', 
                                     NB_Interface.fontColor, 610, 485, 255));
-        for (i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
             this.addChild(this._equipmentButtons[i]._graphics);
             this.addChild(this._equipmentButtons[i]._light);
         }
@@ -259,7 +259,7 @@
     };
     
     NB_Interface_CharMenu.prototype._drawEquipment = function(actor, bmp) {
-        for (i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
             var equip = actor.equips()[i];
             if (equip != null) {
                 bmp.drawText(equip.name, 290, 345 + i*20, null, NB_Interface.lineHeight, 'left');
@@ -283,7 +283,7 @@
             // Draw!
             bmp.clear();
             bmp.drawText('Név: ' + actor.name(), 0, 0, null, NB_Interface.lineHeight, 'left');
-            for (i = 0; i < bio.length; i++) {
+            for (var i = 0; i < bio.length; i++) {
                 bmp.drawText(bio[i], 185, (i*20), null, NB_Interface.lineHeight, 'left');
             }
             bmp.drawText('Életerő:', 185, 180, null, NB_Interface.lineHeight, 'left');
@@ -300,7 +300,7 @@
     NB_Interface_CharMenu.prototype._setupActors = function() {
         this._party = $gameParty.allMembers();
         this._actorButtons = new NB_ButtonGroup(true);
-        for (i = 0; i < this._party.length; i++) {
+        for (var i = 0; i < this._party.length; i++) {
             this._actorButtons.add(new NB_Button('menu_1/chars/', 'name'+this._party[i].actorId(), 
                                                  'menu_1/chars/', 'name'+this._party[i].actorId()+'sh',
                                                  null, null, 210, 140+(i*46)));
@@ -366,14 +366,14 @@
     NB_Interface_CharMenu.prototype.updateOpacity = function() {
         if (this._exit) {
             if (this._masterOpacity > 0) {
-                for (i = 0; i < this._graphicsSet.length; i++) {
+                for (var i = 0; i < this._graphicsSet.length; i++) {
                     this._graphicsSet[i].opacity -= 15;
                 }
                 this._masterOpacity -= 15;
             }
         } else {
             if (this._masterOpacity < 255) {
-                for (i = 0; i < this._graphicsSet.length; i++) {
+                for (var i = 0; i < this._graphicsSet.length; i++) {
                     this._graphicsSet[i].opacity += 15;
                 }
                 this._masterOpacity += 15;
@@ -400,7 +400,7 @@
         if (this._characterFaceFadeOpacity < 255) {
             this._characterFace.x += (255-this._characterFaceFadeOpacity)/60;
         }
-        for (i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
             this._equipmentButtons[i].update();
             if (this._equipmentButtons[i].mouseInside()) {
                 this._equipmentButtons[i].activate();
