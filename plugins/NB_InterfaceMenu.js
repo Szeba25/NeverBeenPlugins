@@ -58,13 +58,13 @@
     };
     
     NB_Interface_MainMenu.prototype._createButtons = function() {
-        this._buttonGroup = new NB_ButtonGroup();
-        this._buttonGroup.add(new NB_Button('menu_1/', '11', 'menu_1/', '12', '', 440, 113, 255), true);
-        this._buttonGroup.add(new NB_Button('menu_1/', '9', 'menu_1/', '10', '', 464, 113+55, 255), false);
-        this._buttonGroup.add(new NB_Button('menu_1/', '7', 'menu_1/', '8', '', 445, 113+(55*2), 255), false);
-        this._buttonGroup.add(new NB_Button('menu_1/', '5', 'menu_1/', '6', '', 412, 113+(55*3), 255), false);
-        this._buttonGroup.add(new NB_Button('menu_1/', '3', 'menu_1/', '4', '', 402, 113+(55*4), 255), false);
-        this._buttonGroup.add(new NB_Button('menu_1/', '1', 'menu_1/', '2', '', 382, 113+(55*5), 255), false);
+        this._buttonGroup = new NB_ButtonGroup(false);
+        this._buttonGroup.add(new NB_Button('menu_1/', '11', 'menu_1/', '12', null, null, 440, 113, 255), true);
+        this._buttonGroup.add(new NB_Button('menu_1/', '9', 'menu_1/', '10', null, null, 464, 113+55, 255), false);
+        this._buttonGroup.add(new NB_Button('menu_1/', '7', 'menu_1/', '8', null, null, 445, 113+(55*2), 255), false);
+        this._buttonGroup.add(new NB_Button('menu_1/', '5', 'menu_1/', '6', null, null, 412, 113+(55*3), 255), false);
+        this._buttonGroup.add(new NB_Button('menu_1/', '3', 'menu_1/', '4', null, null, 402, 113+(55*4), 255), false);
+        this._buttonGroup.add(new NB_Button('menu_1/', '1', 'menu_1/', '2', null, null, 382, 113+(55*5), 255), false);
         this._buttonGroup.setActive(returnFrom || 0);
         returnFrom = null;
         this._buttonGroup.addToContainer(this);
@@ -200,6 +200,13 @@
         this._actorButtons = null;
         this._currentChar = 0;
         this._currentCharUpdated = null;
+        this._equipmentButtons = [];
+        // Interface graphics
+        this.bar = ImageManager.loadInterfaceElement('menu_1/', 'bar', 0);
+        this.bar_hp = ImageManager.loadInterfaceElement('menu_1/', 'bar_hp', 0);
+        this.bar_mp = ImageManager.loadInterfaceElement('menu_1/', 'bar_mp', 0);
+        this.bar_def = ImageManager.loadInterfaceElement('menu_1/', 'bar_def', 0);
+        this.bar_atk = ImageManager.loadInterfaceElement('menu_1/', 'bar_atk', 0);
     };
     
     NB_Interface_CharMenu.prototype.create = function() {
@@ -207,7 +214,57 @@
         this._createTitle();
         this._createLines();
         this._setupActors();
+        this._setupButtons();
         NB_Interface.prototype.create.call(this);
+    };
+    
+    NB_Interface_CharMenu.prototype._setupButtons = function() {
+        this._equipmentButtons.push(new NB_Button(null, null, null, null, 'Fegyver:', 
+                                    NB_Interface.fontColor, 610, 405, 255));
+        this._equipmentButtons.push(new NB_Button(null, null, null, null, 'Pajzs:', 
+                                    NB_Interface.fontColor, 610, 425, 255));
+        this._equipmentButtons.push(new NB_Button(null, null, null, null, 'Sisak:', 
+                                    NB_Interface.fontColor, 610, 445, 255));
+        this._equipmentButtons.push(new NB_Button(null, null, null, null, 'Páncél:', 
+                                    NB_Interface.fontColor, 610, 465, 255));
+        this._equipmentButtons.push(new NB_Button(null, null, null, null, 'Egyéb:', 
+                                    NB_Interface.fontColor, 610, 485, 255));
+        for (i = 0; i < 5; i++) {
+            this.addChild(this._equipmentButtons[i]._graphics);
+            this.addChild(this._equipmentButtons[i]._light);
+        }
+    };
+    
+    NB_Interface_CharMenu.prototype._generateBar = function(current, max, width, height, original) {
+        var ow = (current / max) * width;
+        var bitmap = new Bitmap(width, height);
+        bitmap.blt(original, 0, 0, width, height, 0, 0, width, height);
+        bitmap.clearRect(ow, 0, width, height);
+        return bitmap;
+    };
+    
+    NB_Interface_CharMenu.prototype._drawStatusBars = function(actor, bmp) {
+        // HP
+        bmp.blt(this._generateBar(actor.hp, actor.mhp, 200, 15, this.bar_hp), 0, 0, 200, 15, 278, 192, 200, 15);
+        bmp.blt(this.bar, 0, 0, 200, 15, 278, 192, 200, 15);
+        // MP
+        bmp.blt(this._generateBar(actor.mp, actor.mmp, 200, 15, this.bar_mp), 0, 0, 200, 15, 278, 217, 200, 15);
+        bmp.blt(this.bar, 0, 0, 200, 15, 278, 217, 200, 15);
+        // ATK
+        bmp.blt(this._generateBar(actor.atk, 100, 200, 15, this.bar_atk), 0, 0, 200, 15, 278, 242, 200, 15);
+        bmp.blt(this.bar, 0, 0, 200, 15, 278, 242, 200, 15);
+        // DEF
+        bmp.blt(this._generateBar(actor.def, 100, 200, 15, this.bar_def), 0, 0, 200, 15, 278, 267, 200, 15);
+        bmp.blt(this.bar, 0, 0, 200, 15, 278, 267, 200, 15);
+    };
+    
+    NB_Interface_CharMenu.prototype._drawEquipment = function(actor, bmp) {
+        for (i = 0; i < 5; i++) {
+            var equip = actor.equips()[i];
+            if (equip != null) {
+                bmp.drawText(equip.name, 290, 345 + i*20, null, NB_Interface.lineHeight, 'left');
+            }
+        }
     };
     
     NB_Interface_CharMenu.prototype._updateCharacterInfo = function() {
@@ -217,40 +274,51 @@
             var actor = this._party[this._currentChar];
             var actorData = $dataActors[actor.actorId()];
             var bio = actorData.note.split(/\r?\n/);
+            var bmp = this._characterInfo.bitmap;
             // Set face
             this._characterFace.bitmap = ImageManager.loadInterfaceElement('menu_1/chars/', 'face'+actor.actorId(), 0);
             this._characterFace.opacity = 0;
             this._characterFace.x = 315;
             this._characterFaceFadeOpacity = 0;
             // Draw!
-            this._characterInfo.bitmap.clear();
-            this._characterInfo.bitmap.drawText('Név: ' + actor.name(), 0, 0, 350, 30, 'left');
+            bmp.clear();
+            bmp.drawText('Név: ' + actor.name(), 0, 0, null, NB_Interface.lineHeight, 'left');
             for (i = 0; i < bio.length; i++) {
-                this._characterInfo.bitmap.drawText(bio[i], 180, (i*26), 350, 30, 'left');
+                bmp.drawText(bio[i], 185, (i*20), null, NB_Interface.lineHeight, 'left');
             }
+            bmp.drawText('Életerő:', 185, 180, null, NB_Interface.lineHeight, 'left');
+            bmp.drawText('Energia:', 185, 205, null, NB_Interface.lineHeight, 'left');
+            bmp.drawText('Támadás:', 185, 230, null, NB_Interface.lineHeight, 'left');
+            bmp.drawText('Védekezés:', 185, 255, null, NB_Interface.lineHeight, 'left');
+            bmp.drawText('Képesség:', 185, 285, null, NB_Interface.lineHeight, 'left');
+            bmp.drawText('Felszerelés:', 185, 320, null, NB_Interface.lineHeight, 'left');
+            this._drawStatusBars(actor, bmp);
+            this._drawEquipment(actor, bmp);
         }
     };
     
     NB_Interface_CharMenu.prototype._setupActors = function() {
         this._party = $gameParty.allMembers();
-        this._actorButtons = new NB_ButtonGroup();
+        this._actorButtons = new NB_ButtonGroup(true);
         for (i = 0; i < this._party.length; i++) {
             this._actorButtons.add(new NB_Button('menu_1/chars/', 'name'+this._party[i].actorId(), 
                                                  'menu_1/chars/', 'name'+this._party[i].actorId()+'sh',
-                                                 '', 210, 140+(i*46)));
+                                                 null, null, 210, 140+(i*46)));
         }
         this._actorButtons.addToContainer(this);
-        // Create character info bitmap!
+        
         this._characterFace = new Sprite();
         this._characterFace.y = 100;
         this.addChild(this._characterFace);
+        
         this._characterInfo = new Sprite();
         this._characterInfo.x = 400;
         this._characterInfo.y = 60;
-        this._characterInfo.bitmap = new Bitmap(400, 400);
+        this._characterInfo.bitmap = new Bitmap(500, 500);
         this._characterInfo.bitmap.fontSize = 26;
-        this._characterInfo.bitmap.textColor = 'rgba(36, 15, 0, 255)';
+        this._characterInfo.bitmap.textColor = 'rgba(20, 7, 0, 1)';
         this._characterInfo.bitmap.outlineColor = 'rgba(0, 0, 0, 0)';
+        this._characterInfo.bitmap.outlineWidth = 0;
         this.addChild(this._characterInfo);
     };
     
@@ -331,6 +399,14 @@
         this._updateCharacterInfo();
         if (this._characterFaceFadeOpacity < 255) {
             this._characterFace.x += (255-this._characterFaceFadeOpacity)/60;
+        }
+        for (i = 0; i < 5; i++) {
+            this._equipmentButtons[i].update();
+            if (this._equipmentButtons[i].mouseInside()) {
+                this._equipmentButtons[i].activate();
+            } else {
+                this._equipmentButtons[i].deactivate();
+            }
         }
     };
     

@@ -196,7 +196,7 @@
         aliases.Scene_Map_update.call(this);
         this.updateMouse();
     };
-
+    
 })();
 
 /****************************************************************
@@ -206,6 +206,10 @@
 function NB_Interface() {
     this.initialize.apply(this, arguments);
 }
+
+NB_Interface.fontColor = 'rgba(20, 7, 0, 1)';
+NB_Interface.fontSize = 26;
+NB_Interface.lineHeight = 30;
 
 NB_Interface.prototype = Object.create(Scene_Base.prototype);
 NB_Interface.prototype.constructor = NB_Interface;
@@ -307,15 +311,36 @@ function NB_Button() {
     this.initialize.apply(this, arguments);
 }
 
-NB_Button.prototype.initialize = function(bkgPath, bkg, lightPath, light, text, x, y, masterOpacity) {
+// Create a global blur filter
+NB_Button.blurFilter = new PIXI.filters.BlurFilter(1, 1, 1);
+
+NB_Button.prototype.initialize = function(bkgPath, bkg, lightPath, light, text, textColor, x, y, masterOpacity) {
     this._graphics = new Sprite();
-    this._graphics.bitmap = ImageManager.loadInterfaceElement(bkgPath, bkg, 0);
     this._graphics.anchor.x = 0.5;
     this._graphics.anchor.y = 0.5;
     this._light = new Sprite();
-    this._light.bitmap = ImageManager.loadInterfaceElement(lightPath, light, 0);
     this._light.anchor.x = 0.5;
     this._light.anchor.y = 0.5;
+    
+    if (text != null) {
+        this._graphics.bitmap = new Bitmap();
+        this._graphics.bitmap.textColor = textColor;
+        this._graphics.bitmap.outlineColor = 'rgba(0, 0, 0, 0)';
+        this._graphics.bitmap.fontSize = NB_Interface.fontSize;
+        var w = Math.round(this._graphics.bitmap.measureTextWidth(text));
+        var h = NB_Interface.lineHeight;
+        this._graphics.bitmap.resize(w, h);
+        this._graphics.width = w;
+        this._graphics.height = h;
+        this._graphics.bitmap.drawText(text, 0, 0, w, NB_Interface.lineHeight, 'left');
+        this._light.bitmap = new Bitmap(w, h);
+        this._light.bitmap.blt(this._graphics.bitmap, 0, 0, w, h, 0, 0, w, h);
+        this._light.filters = [NB_Button.blurFilter];
+    } else {
+        this._graphics.bitmap = ImageManager.loadInterfaceElement(bkgPath, bkg, 0);
+        this._light.bitmap = ImageManager.loadInterfaceElement(lightPath, light, 0);
+    }
+    
     this._x = x;
     this._y = y;
     this._lightOpacity = 0;
@@ -401,10 +426,11 @@ function NB_ButtonGroup() {
     this.initialize.apply(this, arguments);
 }
 
-NB_ButtonGroup.prototype.initialize = function() {
+NB_ButtonGroup.prototype.initialize = function(onlyActiveMouse) {
     this._buttons = [];
     this._active = 0;
     this._faded = false;
+    this._onlyActiveMouse = onlyActiveMouse;
 };
 
 NB_ButtonGroup.prototype.add = function(button, activate) {
@@ -489,7 +515,8 @@ NB_ButtonGroup.prototype.updateInput = function(mouseActive) {
     // Control mouse input
     for (i = 0; i < this._buttons.length; i++) {
         if (mouseActive) {
-            if (this._buttons[i].mouseInside()) {
+            if ((this._onlyActiveMouse && TouchInput.isTriggered() && this._buttons[i].mouseInside()) 
+                || (!this._onlyActiveMouse && this._buttons[i].mouseInside())) {
                 this._active = i;
             }
         }
