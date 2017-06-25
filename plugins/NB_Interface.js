@@ -44,6 +44,30 @@
     };
 
     /*********************************************
+     * Better destination
+     *********************************************/
+    
+    // Override!
+    Sprite_Destination.prototype.createBitmap = function() {
+        var tileWidth = $gameMap.tileWidth();
+        var tileHeight = $gameMap.tileHeight();
+        this.bitmap = new Bitmap(tileWidth, tileHeight);
+        this.bitmap.drawCircle(tileWidth/2, tileHeight/2, 15,'white');
+        this.anchor.x = 0.5;
+        this.anchor.y = 0.5;
+        this.blendMode = Graphics.BLEND_ADD;
+    };
+    
+    // Override!
+    Sprite_Destination.prototype.updateAnimation = function() {
+        this._frameCount++;
+        this._frameCount %= 40;
+        this.opacity = (40 - this._frameCount) * 2;
+        this.scale.x = 1 + this._frameCount / 40;
+        this.scale.y = this.scale.x;
+    };
+    
+    /*********************************************
      * Interface graphics loader
      *********************************************/
     
@@ -172,7 +196,7 @@
         aliases.Scene_Map_update.call(this);
         this.updateMouse();
     };
-
+    
 })();
 
 /****************************************************************
@@ -183,11 +207,19 @@ function NB_Interface() {
     this.initialize.apply(this, arguments);
 }
 
+NB_Interface.fontColor = 'rgba(20, 7, 0, 1)';
+NB_Interface.fontSize = 26;
+NB_Interface.lineHeight = 30;
+
 NB_Interface.prototype = Object.create(Scene_Base.prototype);
 NB_Interface.prototype.constructor = NB_Interface;
 
 NB_Interface.prototype.initialize = function() {
     Scene_Base.prototype.initialize.call(this);
+    this._enterComplete = false;
+    this._backgroundSprite = null;
+    this._backgroundTint = null;
+    this._pergamen = null;
 };
 
 NB_Interface.prototype.create = function() {
@@ -195,13 +227,56 @@ NB_Interface.prototype.create = function() {
     Scene_Base.prototype.create.call(this);
 };
 
+NB_Interface.prototype.createBackground = function() {
+    // Create all the background graphics
+    this._backgroundSprite = new Sprite();
+    this._backgroundSprite.bitmap = SceneManager.backgroundBitmap();
+    
+    this._backgroundTint = new Sprite();
+    this._backgroundTint.bitmap = new Bitmap(Graphics.width, Graphics.height);
+    this._backgroundTint.bitmap.fillAll('#240F00');
+    this._backgroundTint.opacity = 130;
+    
+    this._pergamen = new Sprite();
+    this._pergamen.bitmap = ImageManager.loadInterfaceElement('menu_1/', '13', 0);
+    
+    this.addChild(this._backgroundSprite);
+    this.addChild(this._backgroundTint);
+    this.addChild(this._pergamen);
+};
+
 NB_Interface.prototype.start = function() {
     Scene_Base.prototype.start.call(this);
 };
 
 NB_Interface.prototype.update = function() {
+    this.updateOpacity();
+    this.updateInput();
+    this.updateElements();
+    this.updateTransitions();
     this.updateMouse();
     Scene_Base.prototype.update.call(this);
+};
+
+NB_Interface.prototype.updateOpacity = function() {
+    // Override!
+    // Update the visibility of the menu elements.
+    // Make the scene "enter complete" if all elements are visible.
+};
+
+NB_Interface.prototype.updateInput = function() {
+    // Override!
+    // Update user input.
+};
+
+NB_Interface.prototype.updateTransitions = function() {
+    // Override!
+    // Update transitions to other scenes.
+};
+
+NB_Interface.prototype.updateElements = function() {
+    // Override!
+    // Update other interface embedded into this scene.
 };
 
 NB_Interface.prototype.stop = function() {
@@ -220,6 +295,14 @@ NB_Interface.prototype.isReady = function() {
     return Scene_Base.prototype.isReady.call(this);
 };
 
+NB_Interface.prototype.isEnterComplete = function() {
+    return this._enterComplete;
+};
+
+NB_Interface.prototype.makeEnterComplete = function() {
+    this._enterComplete = true;
+}
+
 /****************************************************************
  * General button interface element.
  ****************************************************************/
@@ -228,37 +311,68 @@ function NB_Button() {
     this.initialize.apply(this, arguments);
 }
 
-NB_Button.prototype.initialize = function(bkgPath, bkg, lightPath, light, text, x, y, masterOpacity) {
+// Create a global blur filter
+NB_Button.blurFilter = new PIXI.filters.BlurFilter(1, 1, 1);
+
+NB_Button.prototype.initialize = function(bkgPath, bkg, lightPath, light, text, textColor, x, y, masterOpacity) {
     this._graphics = new Sprite();
-    this._graphics.bitmap = ImageManager.loadInterfaceElement(bkgPath, bkg, 0);
+    this._graphics.anchor.x = 0.5;
+    this._graphics.anchor.y = 0.5;
     this._light = new Sprite();
-    this._light.bitmap = ImageManager.loadInterfaceElement(lightPath, light, 0);
+    this._light.anchor.x = 0.5;
+    this._light.anchor.y = 0.5;
+    
+    if (text != null) {
+        this._graphics.bitmap = new Bitmap();
+        this._graphics.bitmap.textColor = textColor;
+        this._graphics.bitmap.outlineColor = 'rgba(0, 0, 0, 0)';
+        this._graphics.bitmap.fontSize = NB_Interface.fontSize;
+        var w = Math.round(this._graphics.bitmap.measureTextWidth(text));
+        var h = NB_Interface.lineHeight;
+        this._graphics.bitmap.resize(w, h);
+        this._graphics.width = w;
+        this._graphics.height = h;
+        this._graphics.bitmap.drawText(text, 0, 0, w, NB_Interface.lineHeight, 'left');
+        this._light.bitmap = new Bitmap(w, h);
+        this._light.bitmap.blt(this._graphics.bitmap, 0, 0, w, h, 0, 0, w, h);
+        this._light.filters = [NB_Button.blurFilter];
+    } else {
+        this._graphics.bitmap = ImageManager.loadInterfaceElement(bkgPath, bkg, 0);
+        this._light.bitmap = ImageManager.loadInterfaceElement(lightPath, light, 0);
+    }
+    
     this._x = x;
     this._y = y;
     this._lightOpacity = 0;
     this._active = false;
     this._masterOpacity = masterOpacity;
-    this._scalePoint = new PIXI.Point(1, 1);
-    this._disposed = false;
-    
+    this._faded = false;
+    this._fadedOpacity = 255;
+    this._completelyFaded = false;
+    this._enlargeIfFaded = false;
     this.updateOpacity();
-    this._syncPosition();
 };
 
-NB_Button.prototype.dispose = function() {
-    this._disposed = true;
+NB_Button.prototype.fade = function(enlarge) {
+    if (!this._faded) {
+        this._faded = true;
+        this._enlargeIfFaded = enlarge;
+    }
 };
+
+NB_Button.prototype.completelyFaded = function() {
+    return this._completelyFaded;
+}
 
 NB_Button.prototype._syncPosition = function() {
-    this._graphics.x = this._x;
-    this._graphics.y = this._y;
-    this._light.x = this._x;
-    this._light.y = this._y;
+    this._graphics.x = this._x + this._graphics.width / 2;
+    this._graphics.y = this._y + this._graphics.height / 2;
+    this._light.x = this._x + this._light.width / 2;
+    this._light.y = this._y + this._light.height / 2;
 };
 
 NB_Button.prototype.setMasterOpacity = function(opc) {
     this._masterOpacity = opc;
-    this.updateOpacity();
 };
 
 NB_Button.prototype.activate = function() {
@@ -270,8 +384,8 @@ NB_Button.prototype.deactivate = function() {
 };
 
 NB_Button.prototype.updateOpacity = function() {
-    this._graphics.opacity = this._masterOpacity;
-    this._light.opacity = Math.round(this._lightOpacity * (this._masterOpacity / 255));
+    this._graphics.opacity = this._masterOpacity * (this._fadedOpacity / 255);
+    this._light.opacity = Math.round(this._lightOpacity * (this._masterOpacity / 255) * (this._fadedOpacity / 255));
 };
 
 NB_Button.prototype.mouseInside = function() {
@@ -279,9 +393,21 @@ NB_Button.prototype.mouseInside = function() {
 };
 
 NB_Button.prototype.update = function() {
-    if (this._disposed) {
-        this._scalePoint.x += 0.01;
-        this._graphics.scale = this._scalePoint;
+    this._syncPosition();
+    if (this._faded) {
+        if (this._enlargeIfFaded) {
+            this._graphics.scale.x += 0.005;
+            this._graphics.scale.y += 0.005;
+            this._light.scale.x += 0.005;
+            this._light.scale.y += 0.005;
+        }
+        this._fadedOpacity -= 12;
+        if (this._fadedOpacity <= 0) {
+            this._fadedOpacity = 0;
+            this._graphics.visible = false;
+            this._light.visible = false;
+            this._completelyFaded = true;
+        }
     } else {
         if (this._active) {
             if (this._lightOpacity < 255) this._lightOpacity += 15;
@@ -300,9 +426,11 @@ function NB_ButtonGroup() {
     this.initialize.apply(this, arguments);
 }
 
-NB_ButtonGroup.prototype.initialize = function() {
+NB_ButtonGroup.prototype.initialize = function(onlyActiveMouse) {
     this._buttons = [];
     this._active = 0;
+    this._faded = false;
+    this._onlyActiveMouse = onlyActiveMouse;
 };
 
 NB_ButtonGroup.prototype.add = function(button, activate) {
@@ -327,7 +455,46 @@ NB_ButtonGroup.prototype.getActiveID = function() {
     return this._active;  
 };
 
-NB_ButtonGroup.prototype.update = function(mouseActive) {
+NB_ButtonGroup.prototype.setActive = function(id) {
+    
+};
+
+NB_ButtonGroup.prototype.trigger = function(enlarge) {
+    this._buttons[this._active].fade(enlarge);
+    return this._active;
+};
+
+NB_ButtonGroup.prototype.clickedOnActive = function() {
+    return (this._buttons[this._active].mouseInside() && TouchInput.isTriggered());
+};
+
+NB_ButtonGroup.prototype.fade = function() {
+    for (i = 0; i < this._buttons.length; i++) {
+        this._buttons[i].fade(false);
+    }
+    this._faded = true;
+}
+
+NB_ButtonGroup.prototype.completelyFaded = function() {
+    for (i = 0; i < this._buttons.length; i++) {
+        if (this._buttons[i].completelyFaded()) return true;
+    }
+    return false;
+}
+
+NB_ButtonGroup.prototype.update = function() {
+    // Control button opacity
+    for (i = 0; i < this._buttons.length; i++) {
+        if (this._active == i) {
+            this._buttons[i].activate();
+        } else {
+            this._buttons[i].deactivate();
+        }
+        this._buttons[i].update();
+    }
+};
+
+NB_ButtonGroup.prototype.updateInput = function(mouseActive) {
     // Control keyboard input
     if (Input.isTriggered('up')) {
         SoundManager.playCursor();
@@ -348,18 +515,10 @@ NB_ButtonGroup.prototype.update = function(mouseActive) {
     // Control mouse input
     for (i = 0; i < this._buttons.length; i++) {
         if (mouseActive) {
-            if (this._buttons[i].mouseInside()) {
+            if ((this._onlyActiveMouse && TouchInput.isTriggered() && this._buttons[i].mouseInside()) 
+                || (!this._onlyActiveMouse && this._buttons[i].mouseInside())) {
                 this._active = i;
             }
         }
     }
-    // Control button opacity
-    for (i = 0; i < this._buttons.length; i++) {
-        if (this._active == i) {
-            this._buttons[i].activate();
-        } else {
-            this._buttons[i].deactivate();
-        }
-        this._buttons[i].update();
-    }
-};
+}
