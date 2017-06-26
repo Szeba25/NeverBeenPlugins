@@ -152,10 +152,6 @@
             if (Input.isTriggered('cancel')) {
                 this._exit = true;
             }
-            if (Input.isTriggered('ok')) {
-                SoundManager.playOk();
-                this._finished = true;
-            }
             if (Input.isTriggered('right')) {
                 this._movePieces(1, 0);
             }
