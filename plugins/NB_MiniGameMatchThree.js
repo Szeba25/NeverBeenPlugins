@@ -75,11 +75,14 @@
             obj['realY'] = 0;
             obj['sprite'] = new Sprite(this._objectBitmaps[obj.id]);
             obj.sprite.opacity = 0;
+            obj.sprite.anchor.x = 0.5;
+            obj.sprite.anchor.y = 0.5;
             obj['destX'] = 0;
             obj['destY'] = 0;
             obj['speed'] = 6;
             obj['destroyed'] = false;
             obj['destroyOpacity'] = 255;
+            obj['destroyScale'] = 1.0;
             this._objects.push(obj);
             this.addChild(obj.sprite);
         }
@@ -95,8 +98,8 @@
         }
         obj.x = x;
         obj.y = y;
-        obj.realX = 95 + x*90;
-        obj.realY = 95 + y*90;
+        obj.realX = 140 + x*90;
+        obj.realY = 140 + y*90;
         obj.destX = obj.realX;
         obj.destY = obj.realY;
         this._boardLogic[x][y] = obj;
@@ -108,8 +111,8 @@
         }
         obj.x = dx;
         obj.y = dy;
-        obj.destX = 95 + dx*90;
-        obj.destY = 95 + dy*90;
+        obj.destX = 140 + dx*90;
+        obj.destY = 140 + dy*90;
         this._boardLogic[dx][dy] = obj;
     }
     
@@ -117,8 +120,13 @@
         for (var i = 0; i < 25; i++) {
             if (this._objects[i].destroyed && this._objects[i].destroyOpacity > 0) {
                 this._objects[i].destroyOpacity -= 51;
+            } else if (!this._objects[i].destroyed && this._objects[i].destroyOpacity < 255) {
+                this._objects[i].destroyOpacity += 51;
+                this._objects[i].destroyScale += 0.2;
             }
             this._objects[i].sprite.opacity = Math.round(this._objects[i].destroyOpacity * (value/255));
+            this._objects[i].sprite.scale.x = this._objects[i].destroyScale;
+            this._objects[i].sprite.scale.y = this._objects[i].destroyScale;
         }
     };
     
@@ -190,6 +198,7 @@
             for (var y = 0; y < 5; y++) {
                 obj = this._boardLogic[x][y];
                 if (obj != null && obj.destroyed && obj.destroyOpacity == 0) {
+                    obj.destroyScale = 0;
                     this._boardLogic[x][y] = null;
                     console.log(x + '/' + y + ' removed from board');
                 }
@@ -229,23 +238,26 @@
     
     NB_MiniGameMatchThree.prototype._spawnNewObjects = function() {
         if (!this._isAnyObjectMoving() && this._isNewObjectNeeded()) {
-            for (x = 0; x < 5; x++) {
-                
+            for (var x = 0; x < 5; x++) {
+                for (var y = 0; y < 5; y++) {
+                    if (this._boardLogic[x][y] == null) {
+                        for (var i = 0; i < 25; i++) {
+                            if (this._objects[i].destroyed) {
+                                this._setObjectToLocation(this._objects[i], x, y, false);
+                                this._objects[i].destroyed = false;
+                                this._objects[i].id = Math.floor(Math.random() * 5);
+                                this._objects[i].sprite.bitmap = this._objectBitmaps[this._objects[i].id];
+                                console.log('spawn at: ' + x + '/' + y);
+                                break;
+                            }
+                        }
+                    }
+                }
             }
         }
     };
     
     NB_MiniGameMatchThree.prototype._objectsGravity = function() {
-        for (var i = 0; i < 25; i++) {
-            var obj = this._objects[i];
-            if (!obj.destroyed) {
-                if (!this._isObjectMoving(obj) && obj.y+1 < 5 && this._boardLogic[obj.x][obj.y+1] == null) {
-                    this._setObjectDestination(obj, obj.x, obj.y+1, true);
-                    console.log(obj.x + '/' + obj.y + ' object moved down by one');
-                    i = 0;
-                }
-            }
-        }
         
         for (var i = 0; i < 25; i++) {
             var obj = this._objects[i];
@@ -261,6 +273,17 @@
                 }
                 if (obj.realY > obj.destY) {
                     obj.realY -= obj.speed;
+                }
+            }
+        }
+        
+        for (var i = 0; i < 25; i++) {
+            var obj = this._objects[i];
+            if (!obj.destroyed) {
+                if (!this._isObjectMoving(obj) && obj.y+1 < 5 && this._boardLogic[obj.x][obj.y+1] == null) {
+                    this._setObjectDestination(obj, obj.x, obj.y+1, true);
+                    console.log(obj.x + '/' + obj.y + ' object moved down by one');
+                    i = 0;
                 }
             }
         }
