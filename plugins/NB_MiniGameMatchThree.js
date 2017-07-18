@@ -17,6 +17,12 @@
     var switchID = parseInt(parameters['switch']);
     var aliases = {};
     
+    var definedScoresMax = [];
+    definedScoresMax.push(0);
+    definedScoresMax.push(0);
+    definedScoresMax.push(0);
+    definedScoresMax.push(0);
+    
     function NB_MiniGameMatchThree() {
         this.initialize.apply(this, arguments);
     }
@@ -43,10 +49,20 @@
         this._oneValidMove = null;
         this._hintTime = 0;
         this._hintTimeReset = 0;
-        
         this._boardLogic = null;
         this._checkLogic = null;
+        this._exit = false;
         
+        this._scoreSprite = null;
+        this._scoreRedrawNeeded = false;
+        this._scores = null;
+        this._scoresMax = null;
+        
+        this._timeSprite = null;
+        this._timeRedrawNeeded = false;
+        this._time = null;
+        
+        // Sounds
         this._soundMove = {};
         this._soundMove['name'] = 'tm2_slash001r';
         this._soundMove['volume'] = 100;
@@ -71,29 +87,28 @@
         this._soundMatch['pitch'] = 100;
         this._soundMatch['pan'] = 0;
         
-        this._exit = false;
+        // Bitmaps
+        this._path = 'minigames/matchthree/shells/';
+        this._objectBitmaps = [];
+        for (var i = 0; i < 4; i++) {
+            this._objectBitmaps.push(ImageManager.loadInterfaceElement(this._path, 'shell'+i, 0));
+        }
+        this._objectBitmaps.push(ImageManager.loadInterfaceElement(this._path, 'stone', 0));
+        this._progressBarBitmap = ImageManager.loadInterfaceElement(this._path, 'progress_bar', 0);
+        this._progressBarBorderBitmap = ImageManager.loadInterfaceElement(this._path, 'progress_bar_border', 0);
     };
     
     NB_MiniGameMatchThree.prototype.create = function() {
         this._masterOpacity = 0;
         
         this.createBackground();
-        var path = 'minigames/matchthree/shells/';
         this.removeChild(this._pergamen);
         this._backgroundTint.opacity = 0;
         
-        this._objectBitmaps = [];
-        for (var i = 0; i < 4; i++) {
-            this._objectBitmaps.push(ImageManager.loadInterfaceElement(path, 'shell'+i, 0));
-        }
-        this._objectBitmaps.push(ImageManager.loadInterfaceElement(path, 'stone', 0));
-        this._progressBarBitmap = ImageManager.loadInterfaceElement(path, 'progress_bar', 0);
-        this._progressBarBorderBitmap = ImageManager.loadInterfaceElement(path, 'progress_bar_border', 0);
-        
-        this._board = new Sprite(ImageManager.loadInterfaceElement(path, 'board', 0));
+        this._board = new Sprite(ImageManager.loadInterfaceElement(this._path, 'board', 0));
         this._board.x = 90;
         this._board.y = 90;
-        this._selectionSprite = new Sprite(ImageManager.loadInterfaceElement(path, 'selection', 0));
+        this._selectionSprite = new Sprite(ImageManager.loadInterfaceElement(this._path, 'selection', 0));
         this._selectionSprite.anchor.x = 0.5;
         this._selectionSprite.anchor.y = 0.5;
         this._exit = false;
@@ -144,7 +159,73 @@
         this._hintTimeReset = 720;
         this._hintTime = this._hintTimeReset;
         
+        this._scoreSprite = new Sprite(new Bitmap(400, 540));
+        this._scoreSprite.x = 600;
+        this._scoreSprite.y = 30;
+        this._scoreRedrawNeeded = true;
+        
+        this._scores = [];
+        this._scoresMax = [];
+        for (var i = 0; i < 5; i++) {
+            this._scores.push(0);
+            this._scoresMax.push(definedScoresMax[i]);
+        }
+        
+        this._timeSprite = new Sprite(new Bitmap(200, 60));
+        this._timeSprite.bitmap.fontSize = 50;
+        this._timeSprite.x = 20;
+        this._timeSprite.y = 0;
+        this._timeRedrawNeeded = true;
+        this._time = 12001;
+        
+        this.addChild(this._scoreSprite);
+        this.addChild(this._timeSprite);
+        
         NB_Interface.prototype.create.call(this);
+    };
+    
+    NB_MiniGameMatchThree.prototype._redrawScores = function() {
+        if (this._scoreRedrawNeeded) {
+            var bmp = this._scoreSprite.bitmap;
+            bmp.clear();
+            for (var i = 0; i < 4; i++) {
+                bmp.blt(this._objectBitmaps[i], 0, 0, this._objectBitmaps[i].width, this._objectBitmaps[i].height,
+                        15 + i*100, 0, this._objectBitmaps[i].width, this._objectBitmaps[i].height);
+                
+                bmp.blt(this._progressBarBitmap, 0, 0, 
+                    this._progressBarBitmap.width, this._progressBarBitmap.height,
+                    34 + i*100, 114,
+                    this._progressBarBitmap.width, this._progressBarBitmap.height);
+                    
+                var percent = (this._scoresMax[i] - this._scores[i]) / this._scoresMax[i];
+                    
+                bmp.clearRect(34 + i*100, 114, this._progressBarBitmap.width,
+                        this._progressBarBitmap.height * percent);
+                        
+                bmp.drawText(this._scores[i] + '/' + this._scoresMax[i], 10 + i*100, 475, 100, 30, 'center');
+                
+                bmp.blt(this._progressBarBorderBitmap, 0, 0, 
+                    this._progressBarBorderBitmap.width, this._progressBarBorderBitmap.height,
+                    30 + i*100, 110,
+                    this._progressBarBorderBitmap.width, this._progressBarBorderBitmap.height);
+            }
+            this._scoreRedrawNeeded = false;
+        }
+    };
+    
+    NB_MiniGameMatchThree.prototype._refreshTime = function() {
+        if (this._time > 0) {
+            this._time--;
+            if (this._time % 60 == 0) {
+                this._timeRedrawNeeded = true;
+            }
+        }
+        if (this._timeRedrawNeeded) {
+            var bmp = this._timeSprite.bitmap;
+            bmp.clear();
+            bmp.drawText('idő: ' + this._time/60, 0, 0, 200, 60, 'left');
+            this._timeRedrawNeeded = false;
+        }
     };
     
     NB_MiniGameMatchThree.prototype._setObjectToLocation = function(obj, x, y, removeFromOld) {
@@ -267,6 +348,9 @@
                 if (horizontal > 2 || vertical > 2) {
                     if (destroy) {
                         board[x][y].destroyed = true;
+                        var id = board[x][y].id;
+                        this._scores[id] += 1;
+                        if (this._scores[id] > this._scoresMax[id]) this._scores[id] = this._scoresMax[id];
                     }
                     anyMatch = true;
                 }
@@ -279,6 +363,7 @@
         if (this._isBoardReady() && !this._isAnyObjectDestroyed()) {
             if (this._checkForMatch(this._boardLogic, true)) {
                 AudioManager.playSe(this._soundMatch);
+                this._scoreRedrawNeeded = true;
             }
         }
     };
@@ -674,6 +759,7 @@
         this._board.opacity = this._masterOpacity;
         this._selectionSprite.opacity = this._masterOpacity;
         this._setAllObjectsOpacity(this._masterOpacity);
+        this._scoreSprite.opacity = this._masterOpacity;
     };
     
     NB_MiniGameMatchThree.prototype.updateTransitions = function() {
@@ -691,12 +777,18 @@
         this._animateGrab();
         this._matchPassively();
         this._controlHintTime();
+        this._redrawScores();
+        this._refreshTime();
     };
     
     aliases.Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
     Game_Interpreter.prototype.pluginCommand = function(command, args) {
         aliases.Game_Interpreter_pluginCommand.call(this, command, args);
         if (command === 'minigame_matchthree') {
+            definedScoresMax[0] = parseInt(args[0]);
+            definedScoresMax[1] = parseInt(args[1]);
+            definedScoresMax[2] = parseInt(args[2]);
+            definedScoresMax[3] = parseInt(args[3]);
             SceneManager.goto(NB_MiniGameMatchThree);
         }
     };
