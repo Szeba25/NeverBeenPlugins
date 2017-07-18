@@ -33,8 +33,17 @@
         this._board = null;
         this._selectionSprite = null;
         this._objects = null;
+        this._selX = 0;
+        this._selY = 0;
+        this._selGrab = false;
+        this._selShrink = false;
+        this._swapHappened = false;
+        this._lastSwap1 = null;
+        this._lastSwap2 = null;
+        this._oneValidMove = null;
         
         this._boardLogic = null;
+        this._checkLogic = null;
         
         this._exit = false;
     };
@@ -60,14 +69,15 @@
         this._board.x = 90;
         this._board.y = 90;
         this._selectionSprite = new Sprite(ImageManager.loadInterfaceElement(path, 'selection', 0));
+        this._selectionSprite.anchor.x = 0.5;
+        this._selectionSprite.anchor.y = 0.5;
         this._exit = false;
         
         this.addChild(this._board);
-        this.addChild(this._selectionSprite);
         
         this._objects = [];
         for (var i = 0; i < 25; i++) {
-            obj = {};
+            var obj = {};
             obj['id'] = Math.floor(Math.random() * 5);
             obj['logicalX'] = 0;
             obj['logicalY'] = 0;
@@ -83,21 +93,37 @@
             obj['destroyed'] = false;
             obj['destroyOpacity'] = 255;
             obj['destroyScale'] = 1.0;
+            obj['hintScale'] = 1.0;
+            obj['hintShrink'] = false;
             this._objects.push(obj);
             this.addChild(obj.sprite);
         }
         
         this._prepareBoard();
         
+        this.addChild(this._selectionSprite);
+        this._setSelectionPos(0, 0);
+        this._selGrab = false;
+        this._selShrink = false;
+        this._swapHappened = false;
+        this._lastSwap1 = null;
+        this._lastSwap2 = null;
+        
+        this._oneValidMove = {};
+        this._oneValidMove['x'] = -1;
+        this._oneValidMove['y'] = -1;
+        this._oneValidMove['wx'] = -1;
+        this._oneValidMove['wy'] = -1;
+        
         NB_Interface.prototype.create.call(this);
     };
     
     NB_MiniGameMatchThree.prototype._setObjectToLocation = function(obj, x, y, removeFromOld) {
         if (removeFromOld) {
-            this._boardLogic[obj.x][obj.y] = null;
+            this._boardLogic[obj.logicalX][obj.logicalY] = null;
         }
-        obj.x = x;
-        obj.y = y;
+        obj.logicalX = x;
+        obj.logicalY = y;
         obj.realX = 140 + x*90;
         obj.realY = 140 + y*90;
         obj.destX = obj.realX;
@@ -107,43 +133,88 @@
     
     NB_MiniGameMatchThree.prototype._setObjectDestination = function(obj, dx, dy, removeFromOld) {
         if (removeFromOld) {
-            this._boardLogic[obj.x][obj.y] = null;
+            this._boardLogic[obj.logicalX][obj.logicalY] = null;
         }
-        obj.x = dx;
-        obj.y = dy;
+        obj.logicalX = dx;
+        obj.logicalY = dy;
         obj.destX = 140 + dx*90;
         obj.destY = 140 + dy*90;
         this._boardLogic[dx][dy] = obj;
-    }
+    };
+    
+    NB_MiniGameMatchThree.prototype._swapObjects = function(obj1, obj2) {
+        
+        var oldObjX = obj1.logicalX;
+        var oldObjY = obj1.logicalY;
+        obj1.logicalX = obj2.logicalX;
+        obj1.logicalY = obj2.logicalY;
+        obj2.logicalX = oldObjX;
+        obj2.logicalY = oldObjY;
+        
+        this._setObjectDestination(obj1, obj1.logicalX, obj1.logicalY, false);
+        this._setObjectDestination(obj2, obj2.logicalX, obj2.logicalY, false);
+        
+        this._lastSwap1 = obj1;
+        this._lastSwap2 = obj2;
+    };
     
     NB_MiniGameMatchThree.prototype._setAllObjectsOpacity = function(value) {
+        var boardReady = this._isBoardReady();
+        
         for (var i = 0; i < 25; i++) {
             if (this._objects[i].destroyed && this._objects[i].destroyOpacity > 0) {
-                this._objects[i].destroyOpacity -= 51;
+                this._objects[i].destroyOpacity -= 5;
             } else if (!this._objects[i].destroyed && this._objects[i].destroyOpacity < 255) {
-                this._objects[i].destroyOpacity += 51;
-                this._objects[i].destroyScale += 0.2;
+                this._objects[i].destroyOpacity += 5;
+                this._objects[i].destroyScale += 1/51;
             }
+            
+            if ( boardReady &&
+                 ((this._objects[i].logicalX == this._oneValidMove.x && 
+                  this._objects[i].logicalY == this._oneValidMove.y) ||
+                 (this._objects[i].logicalX == this._oneValidMove.wx && 
+                  this._objects[i].logicalY == this._oneValidMove.wy)) ) {
+                
+                if (this._objects[i].hintShrink) {
+                    if (this._objects[i].hintScale > 0.9) {
+                        this._objects[i].hintScale -= 0.005;
+                    } else {
+                        this._objects[i].hintShrink = false;
+                    }
+                } else {
+                    if (this._objects[i].hintScale < 1.0) {
+                        this._objects[i].hintScale += 0.005;
+                    } else {
+                        this._objects[i].hintShrink = true;
+                    }
+                }
+            } else {
+                if (this._objects[i].hintScale < 1.0) {
+                    this._objects[i].hintScale += 0.005;
+                }
+            }
+            
             this._objects[i].sprite.opacity = Math.round(this._objects[i].destroyOpacity * (value/255));
-            this._objects[i].sprite.scale.x = this._objects[i].destroyScale;
-            this._objects[i].sprite.scale.y = this._objects[i].destroyScale;
+            this._objects[i].sprite.scale.x = this._objects[i].destroyScale * this._objects[i].hintScale;
+            this._objects[i].sprite.scale.y = this._objects[i].destroyScale * this._objects[i].hintScale;
         }
     };
     
-    NB_MiniGameMatchThree.prototype._checkForMatch = function() {
+    NB_MiniGameMatchThree.prototype._checkForMatch = function(board, destroy) {
+        var anyMatch = false;
         for (var y = 0; y < 5; y++) {
             for (var x = 0; x < 5; x++) {
                 // Check horizontal
                 var horizontal = 1;
                 for (var i = x-1; i >= 0; i--) {
-                    if (this._boardLogic[i][y].id == this._boardLogic[x][y].id) {
+                    if (board[i][y].id == board[x][y].id) {
                         horizontal++;
                     } else {
                         break;
                     }
                 }
                 for (var i = x+1; i < 5; i++) {
-                    if (this._boardLogic[i][y].id == this._boardLogic[x][y].id) {
+                    if (board[i][y].id == board[x][y].id) {
                         horizontal++;
                     } else {
                         break;
@@ -151,38 +222,47 @@
                 }
                 var vertical = 1;
                 for (var i = y-1; i >= 0; i--) {
-                    if (this._boardLogic[x][i].id == this._boardLogic[x][y].id) {
+                    if (board[x][i].id == board[x][y].id) {
                         vertical++;
                     } else {
                         break;
                     }
                 }
                 for (var i = y+1; i < 5; i++) {
-                    if (this._boardLogic[x][i].id == this._boardLogic[x][y].id) {
+                    if (board[x][i].id == board[x][y].id) {
                         vertical++;
                     } else {
                         break;
                     }
                 }
                 if (horizontal > 2 || vertical > 2) {
-                    this._boardLogic[x][y].destroyed = true;
+                    if (destroy) {
+                        board[x][y].destroyed = true;
+                    }
+                    anyMatch = true;
                 }
-                /*
-                console.log(this._boardLogic[x][y].x + '/' + this._boardLogic[x][y].y +
-                            ' object at ' + x + '/' + y + ' h value is: ' + horizontal);
-                console.log(this._boardLogic[x][y].x + '/' + this._boardLogic[x][y].y +
-                            ' object at ' + x + '/' + y + ' v value is: ' + vertical);
-                */
             }
         }
+        return anyMatch;
     };
+    
+    NB_MiniGameMatchThree.prototype._matchPassively = function() {
+        if (this._isBoardReady()) {
+            this._checkForMatch(this._boardLogic, true);
+        }
+    }
     
     NB_MiniGameMatchThree.prototype._prepareBoard = function() {
         this._boardLogic = [];
+        this._checkLogic = [];
         for (var x = 0; x < 5; x++) {
             this._boardLogic.push([]);
+            this._checkLogic.push([]);
             for (var y = 0; y < 5; y++) {
                 this._boardLogic[x].push(null);
+                var chkobj = {};
+                chkobj['id'] = 0;
+                this._checkLogic[x].push(chkobj);
             }
         }
         for (var x = 0; x < 5; x++) {
@@ -190,7 +270,6 @@
                 this._setObjectToLocation(this._objects[x*5 + y], x, y, false);
             }
         }
-        console.log(this._boardLogic);
     };
     
     NB_MiniGameMatchThree.prototype._removeTotallyDestroyedObjects = function() {
@@ -219,6 +298,21 @@
         return false;
     };
     
+    NB_MiniGameMatchThree.prototype._isBoardReady = function() {
+        for (var i = 0; i < 25; i++) {
+            if (this._isObjectMoving(this._objects[i])) {
+                return false;
+            }
+            if (this._objects[i].destroyed) {
+                return false;
+            }
+            if (this._objects[i].destroyOpacity < 255) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
     NB_MiniGameMatchThree.prototype._isNewObjectNeeded = function() {
         for (var i = 0; i < 25; i++) {
             if (this._objects[i].destroyed) {
@@ -226,6 +320,80 @@
             }
         }
         return false;
+    };
+    
+    NB_MiniGameMatchThree.prototype._checkLogicSwap = function(x, y, dx, dy) {
+        var temp = this._checkLogic[x][y];
+        this._checkLogic[x][y] = this._checkLogic[x+dx][y+dy];
+        this._checkLogic[x+dx][y+dy] = temp;
+    };
+    
+    NB_MiniGameMatchThree.prototype._setOneValidMove = function(x, y, wx, wy) {
+        this._oneValidMove.x = x;
+        this._oneValidMove.y = y;
+        this._oneValidMove.wx = wx;
+        this._oneValidMove.wy = wy;
+    };
+    
+    NB_MiniGameMatchThree.prototype._anyMoves = function() {
+        for (var x = 0; x < 5; x++) {
+            for (var y = 0; y < 5; y++) {
+                this._checkLogic[x][y].id = this._boardLogic[x][y].id;
+            }
+        }
+        for (var x = 0; x < 5; x++) {
+            for (var y = 0; y < 5; y++) {
+                
+                if (x > 0) {
+                    this._checkLogicSwap(x, y, -1, 0);
+                    if (this._checkForMatch(this._checkLogic, false)) {
+                        this._setOneValidMove(x, y, x-1, y);
+                        return true;
+                    }
+                    this._checkLogicSwap(x, y, -1, 0);
+                }
+                
+                if (x < 4) {
+                    this._checkLogicSwap(x, y, 1, 0);
+                    if (this._checkForMatch(this._checkLogic, false)) {
+                        this._setOneValidMove(x, y, x+1, y);
+                        return true;
+                    }
+                    this._checkLogicSwap(x, y, 1, 0);
+                }
+                
+                if (y > 0) {
+                    this._checkLogicSwap(x, y, 0, -1);
+                    if (this._checkForMatch(this._checkLogic, false)) {
+                        this._setOneValidMove(x, y, x, y-1);
+                        return true;
+                    }
+                    this._checkLogicSwap(x, y, 0, -1);
+                }
+                
+                if (y < 4) {
+                    this._checkLogicSwap(x, y, 0, 1);
+                    if (this._checkForMatch(this._checkLogic, false)) {
+                        this._setOneValidMove(x, y, x, y+1);
+                        return true;
+                    }
+                    this._checkLogicSwap(x, y, 0, 1);
+                }
+                
+            }
+        }
+        this._setOneValidMove(-1, -1, -1, -1);
+        return false;
+    };
+    
+    NB_MiniGameMatchThree.prototype._rebuildIfNoMoves = function() {
+        if (this._isBoardReady()) {
+            if (!this._anyMoves()) {
+                for (i = 0; i < 25; i++) {
+                    this._objects[i].destroyed = true;
+                }
+            }
+        }
     };
     
     NB_MiniGameMatchThree.prototype._syncObjects = function() {
@@ -257,6 +425,31 @@
         }
     };
     
+    NB_MiniGameMatchThree.prototype._animateGrab = function() {
+        if (this._selGrab) {
+            if (this._selShrink) {
+                if (this._selectionSprite.scale.x > 0.8) {
+                    this._selectionSprite.scale.x -= 0.01;
+                    this._selectionSprite.scale.y -= 0.01;
+                } else {
+                    this._selShrink = false;
+                }
+            } else {
+                if (this._selectionSprite.scale.x < 1.0) {
+                    this._selectionSprite.scale.x += 0.01;
+                    this._selectionSprite.scale.y += 0.01;
+                } else {
+                    this._selShrink = true;
+                }
+            }
+        } else {
+            if (this._selectionSprite.scale.x < 1.0) {
+                this._selectionSprite.scale.x += 0.01;
+                this._selectionSprite.scale.y += 0.01;
+            }
+        }
+    };
+    
     NB_MiniGameMatchThree.prototype._objectsGravity = function() {
         
         for (var i = 0; i < 25; i++) {
@@ -280,21 +473,81 @@
         for (var i = 0; i < 25; i++) {
             var obj = this._objects[i];
             if (!obj.destroyed) {
-                if (!this._isObjectMoving(obj) && obj.y+1 < 5 && this._boardLogic[obj.x][obj.y+1] == null) {
-                    this._setObjectDestination(obj, obj.x, obj.y+1, true);
-                    console.log(obj.x + '/' + obj.y + ' object moved down by one');
+                if (!this._isObjectMoving(obj) && obj.logicalY+1 < 5 && this._boardLogic[obj.logicalX][obj.logicalY+1] == null) {
+                    this._setObjectDestination(obj, obj.logicalX, obj.logicalY+1, true);
+                    console.log(obj.logicalX + '/' + obj.logicalY + ' object moved down by one');
                     i = 0;
                 }
             }
         }
     };
     
+    NB_MiniGameMatchThree.prototype._setSelectionPos = function(x, y) {
+        // limit positions
+        if (x < 0) x = 4;
+        if (x > 4) x = 0;
+        if (y < 0) y = 4;
+        if (y > 4) y = 0;
+        
+        this._selX = x;
+        this._selY = y;
+        this._selectionSprite.x = 142 + this._selX * 90;
+        this._selectionSprite.y = 140 + this._selY * 90;
+    };
+    
+    NB_MiniGameMatchThree.prototype._swapSelectionByDelta = function(dx, dy) {
+        if (this._selX + dx >= 0 && this._selX + dx <= 4 &&
+            this._selY + dy >= 0 && this._selY + dy <= 4) {
+            
+            var obj1 = this._boardLogic[this._selX][this._selY];
+            var obj2 = this._boardLogic[this._selX + dx][this._selY + dy];
+            this._swapObjects(obj1, obj2);
+        }
+    };
+    
     NB_MiniGameMatchThree.prototype.updateInput = function() {
+        if (!this._selGrab) {
+            if (Input.isTriggered('up')) {
+                this._setSelectionPos(this._selX, this._selY-1);
+            } else if (Input.isTriggered('down')) {
+                this._setSelectionPos(this._selX, this._selY+1);
+            } else if (Input.isTriggered('left')) {
+                this._setSelectionPos(this._selX-1, this._selY);
+            } else if (Input.isTriggered('right')) {
+                this._setSelectionPos(this._selX+1, this._selY);
+            } else if (this._isBoardReady() && Input.isTriggered('ok')) {
+                this._selGrab = true;
+                this._selShrink = true;
+                this._swapHappened = false;
+            }
+        } else {
+            if (this._swapHappened && !this._isAnyObjectMoving()) {
+                if (!this._checkForMatch(this._boardLogic, true)) {
+                    this._swapObjects(this._lastSwap1, this._lastSwap2);
+                    this._selGrab = false;
+                } else {
+                    this._selGrab = false;
+                }
+            } else if (!this._swapHappened) {
+                if (Input.isTriggered('ok')) {
+                    this._selGrab = false;
+                } else if (Input.isTriggered('up')) {
+                    this._swapSelectionByDelta(0, -1);
+                    this._swapHappened = true;
+                } else if (Input.isTriggered('down')) {
+                    this._swapSelectionByDelta(0, 1);
+                    this._swapHappened = true;
+                } else if (Input.isTriggered('left')) {
+                    this._swapSelectionByDelta(-1, 0);
+                    this._swapHappened = true;
+                } else if (Input.isTriggered('right')) {
+                    this._swapSelectionByDelta(1, 0);
+                    this._swapHappened = true;
+                }
+            }
+        }
         if (Input.isTriggered('cancel')) {
             this._exit = true;
-        }
-        if (Input.isTriggered('ok') && !this._isAnyObjectMoving()) {
-            this._checkForMatch();
         }
     };
     
@@ -328,10 +581,13 @@
     };
     
     NB_MiniGameMatchThree.prototype.updateElements = function() {
+        this._rebuildIfNoMoves();
         this._syncObjects();
         this._removeTotallyDestroyedObjects();
         this._objectsGravity();
         this._spawnNewObjects();
+        this._animateGrab();
+        this._matchPassively();
     };
     
     aliases.Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
