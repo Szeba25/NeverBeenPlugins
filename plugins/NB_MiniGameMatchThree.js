@@ -41,15 +41,40 @@
         this._lastSwap1 = null;
         this._lastSwap2 = null;
         this._oneValidMove = null;
+        this._hintTime = 0;
+        this._hintTimeReset = 0;
         
         this._boardLogic = null;
         this._checkLogic = null;
+        
+        this._soundMove = {};
+        this._soundMove['name'] = 'tm2_slash001r';
+        this._soundMove['volume'] = 100;
+        this._soundMove['pitch'] = 100;
+        this._soundMove['pan'] = 0;
+        
+        this._soundSelect = {};
+        this._soundSelect['name'] = 'tm2_counter000';
+        this._soundSelect['volume'] = 100;
+        this._soundSelect['pitch'] = 100;
+        this._soundSelect['pan'] = 0;
+        
+        this._soundCursor = {};
+        this._soundCursor['name'] = 'tm2_switch000';
+        this._soundCursor['volume'] = 100;
+        this._soundCursor['pitch'] = 100;
+        this._soundCursor['pan'] = 0;
+        
+        this._soundMatch = {};
+        this._soundMatch['name'] = 'Ice4';
+        this._soundMatch['volume'] = 100;
+        this._soundMatch['pitch'] = 100;
+        this._soundMatch['pan'] = 0;
         
         this._exit = false;
     };
     
     NB_MiniGameMatchThree.prototype.create = function() {
-        
         this._masterOpacity = 0;
         
         this.createBackground();
@@ -78,7 +103,7 @@
         this._objects = [];
         for (var i = 0; i < 25; i++) {
             var obj = {};
-            obj['id'] = Math.floor(Math.random() * 5);
+            obj['id'] = 0;
             obj['logicalX'] = 0;
             obj['logicalY'] = 0;
             obj['realX'] = 0;
@@ -100,6 +125,7 @@
         }
         
         this._prepareBoard();
+        this._randomizeBoard();
         
         this.addChild(this._selectionSprite);
         this._setSelectionPos(0, 0);
@@ -114,6 +140,9 @@
         this._oneValidMove['y'] = -1;
         this._oneValidMove['wx'] = -1;
         this._oneValidMove['wy'] = -1;
+        
+        this._hintTimeReset = 720;
+        this._hintTime = this._hintTimeReset;
         
         NB_Interface.prototype.create.call(this);
     };
@@ -163,34 +192,34 @@
         
         for (var i = 0; i < 25; i++) {
             if (this._objects[i].destroyed && this._objects[i].destroyOpacity > 0) {
-                this._objects[i].destroyOpacity -= 5;
+                this._objects[i].destroyOpacity -= 15;
             } else if (!this._objects[i].destroyed && this._objects[i].destroyOpacity < 255) {
-                this._objects[i].destroyOpacity += 5;
-                this._objects[i].destroyScale += 1/51;
+                this._objects[i].destroyOpacity += 15;
+                this._objects[i].destroyScale += 1/17;
             }
             
-            if ( boardReady &&
+            if ( boardReady && this._hintTime < 120 &&
                  ((this._objects[i].logicalX == this._oneValidMove.x && 
                   this._objects[i].logicalY == this._oneValidMove.y) ||
                  (this._objects[i].logicalX == this._oneValidMove.wx && 
                   this._objects[i].logicalY == this._oneValidMove.wy)) ) {
                 
                 if (this._objects[i].hintShrink) {
-                    if (this._objects[i].hintScale > 0.9) {
-                        this._objects[i].hintScale -= 0.005;
+                    if (this._objects[i].hintScale > 0.8) {
+                        this._objects[i].hintScale -= 0.01;
                     } else {
                         this._objects[i].hintShrink = false;
                     }
                 } else {
                     if (this._objects[i].hintScale < 1.0) {
-                        this._objects[i].hintScale += 0.005;
+                        this._objects[i].hintScale += 0.01;
                     } else {
                         this._objects[i].hintShrink = true;
                     }
                 }
             } else {
                 if (this._objects[i].hintScale < 1.0) {
-                    this._objects[i].hintScale += 0.005;
+                    this._objects[i].hintScale += 0.01;
                 }
             }
             
@@ -247,10 +276,12 @@
     };
     
     NB_MiniGameMatchThree.prototype._matchPassively = function() {
-        if (this._isBoardReady()) {
-            this._checkForMatch(this._boardLogic, true);
+        if (this._isBoardReady() && !this._isAnyObjectDestroyed()) {
+            if (this._checkForMatch(this._boardLogic, true)) {
+                AudioManager.playSe(this._soundMatch);
+            }
         }
-    }
+    };
     
     NB_MiniGameMatchThree.prototype._prepareBoard = function() {
         this._boardLogic = [];
@@ -272,6 +303,22 @@
         }
     };
     
+    NB_MiniGameMatchThree.prototype._randomizeBoard = function() {
+        var doneIn = 0;
+        do {
+            for (var i = 0; i < 25; i++) {
+                this._objects[i].id = Math.floor(Math.random() * 5);
+                this._objects[i].sprite.bitmap = this._objectBitmaps[this._objects[i].id];
+            }
+            doneIn++;
+        } while(this._checkForMatch(this._boardLogic, false) && doneIn < 1000);
+        if (doneIn == 1000) {
+            console.log('no comment... 1000 matching boards...');
+        } else {
+            console.log('randomized in ' + doneIn + ' steps');
+        }
+    };
+    
     NB_MiniGameMatchThree.prototype._removeTotallyDestroyedObjects = function() {
         for (var x = 0; x < 5; x++) {
             for (var y = 0; y < 5; y++) {
@@ -289,6 +336,15 @@
         return (obj.realX != obj.destX || obj.realY != obj.destY);
     };
     
+    NB_MiniGameMatchThree.prototype._isAnyObjectDestroyed = function() {
+        for (var i = 0; i < 25; i++) {
+            if (this._objects[i].destroyed) {
+                return true;
+            }
+        }
+        return false;
+    };
+    
     NB_MiniGameMatchThree.prototype._isAnyObjectMoving = function() {
         for (var i = 0; i < 25; i++) {
             if (this._isObjectMoving(this._objects[i])) {
@@ -299,6 +355,9 @@
     };
     
     NB_MiniGameMatchThree.prototype._isBoardReady = function() {
+        if (this._masterOpacity < 255) {
+            return false;
+        }
         for (var i = 0; i < 25; i++) {
             if (this._isObjectMoving(this._objects[i])) {
                 return false;
@@ -311,7 +370,7 @@
             }
         }
         return true;
-    }
+    };
     
     NB_MiniGameMatchThree.prototype._isNewObjectNeeded = function() {
         for (var i = 0; i < 25; i++) {
@@ -502,50 +561,93 @@
             var obj1 = this._boardLogic[this._selX][this._selY];
             var obj2 = this._boardLogic[this._selX + dx][this._selY + dy];
             this._swapObjects(obj1, obj2);
+            AudioManager.playSe(this._soundMove);
+            return true;
+        } else {
+            return false;
+        }
+    };
+    
+    NB_MiniGameMatchThree.prototype._controlHintTime = function() {
+        if (this._hintTime > 0) {
+            this._hintTime--;
+        } else {
+            this._hintTime = this._hintTimeReset/3;
         }
     };
     
     NB_MiniGameMatchThree.prototype.updateInput = function() {
+        var boardReady = this._isBoardReady();
+        
+        if (TouchInput.isTriggered()) {
+            var px = parseInt((TouchInput.ncx-100) / 90);
+            var py = parseInt((TouchInput.ncy-100) / 90);
+            if (px >= 0 && px < 5 && py >= 0 && py < 5) {
+                this._setSelectionPos(px, py);
+                if (boardReady) {
+                    AudioManager.playSe(this._soundSelect);
+                    this._selGrab = true;
+                    this._selShrink = true;
+                    this._swapHappened = false;
+                }
+            }
+        }
+        
         if (!this._selGrab) {
             if (Input.isTriggered('up')) {
                 this._setSelectionPos(this._selX, this._selY-1);
+                AudioManager.playSe(this._soundCursor);
             } else if (Input.isTriggered('down')) {
                 this._setSelectionPos(this._selX, this._selY+1);
+                AudioManager.playSe(this._soundCursor);
             } else if (Input.isTriggered('left')) {
                 this._setSelectionPos(this._selX-1, this._selY);
+                AudioManager.playSe(this._soundCursor);
             } else if (Input.isTriggered('right')) {
                 this._setSelectionPos(this._selX+1, this._selY);
-            } else if (this._isBoardReady() && Input.isTriggered('ok')) {
+                AudioManager.playSe(this._soundCursor);
+            } else if (boardReady && Input.isTriggered('ok')) {
+                AudioManager.playSe(this._soundSelect);
                 this._selGrab = true;
                 this._selShrink = true;
                 this._swapHappened = false;
             }
         } else {
             if (this._swapHappened && !this._isAnyObjectMoving()) {
-                if (!this._checkForMatch(this._boardLogic, true)) {
+                if (!this._checkForMatch(this._boardLogic, false)) {
                     this._swapObjects(this._lastSwap1, this._lastSwap2);
                     this._selGrab = false;
                 } else {
+                    this._hintTime = this._hintTimeReset;
                     this._selGrab = false;
                 }
             } else if (!this._swapHappened) {
                 if (Input.isTriggered('ok')) {
                     this._selGrab = false;
                 } else if (Input.isTriggered('up')) {
-                    this._swapSelectionByDelta(0, -1);
-                    this._swapHappened = true;
+                    this._swapHappened = this._swapSelectionByDelta(0, -1);
                 } else if (Input.isTriggered('down')) {
-                    this._swapSelectionByDelta(0, 1);
-                    this._swapHappened = true;
+                    this._swapHappened = this._swapSelectionByDelta(0, 1);
                 } else if (Input.isTriggered('left')) {
-                    this._swapSelectionByDelta(-1, 0);
-                    this._swapHappened = true;
+                    this._swapHappened = this._swapSelectionByDelta(-1, 0);
                 } else if (Input.isTriggered('right')) {
-                    this._swapSelectionByDelta(1, 0);
-                    this._swapHappened = true;
+                    this._swapHappened = this._swapSelectionByDelta(1, 0);
+                } else if (TouchInput.isReleased()) {
+                    var px = parseInt((TouchInput.ncx-100) / 90);
+                    var py = parseInt((TouchInput.ncy-100) / 90);
+                    if (px < this._selX) {
+                        this._swapHappened = this._swapSelectionByDelta(-1, 0);
+                    } else if (px > this._selX) {
+                        this._swapHappened = this._swapSelectionByDelta(1, 0);
+                    } else if (py < this._selY) {
+                        this._swapHappened = this._swapSelectionByDelta(0, -1);
+                    } else if (py > this._selY) {
+                        this._swapHappened = this._swapSelectionByDelta(0, 1);
+                    }
                 }
             }
         }
+        
         if (Input.isTriggered('cancel')) {
             this._exit = true;
         }
@@ -588,6 +690,7 @@
         this._spawnNewObjects();
         this._animateGrab();
         this._matchPassively();
+        this._controlHintTime();
     };
     
     aliases.Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;

@@ -25,10 +25,10 @@
     
     for (var i = 1; i <= 7; i++) {
         var fts = {};
-        fts["name"] = "FootstepA" + i;
-        fts["volume"] = parseInt(parameters['volume']);
-        fts["pitch"] = 100;
-        fts["pan"] = 0;
+        fts['name'] = 'FootstepA' + i;
+        fts['volume'] = parseInt(parameters['volume']);
+        fts['pitch'] = 100;
+        fts['pan'] = 0;
         AudioManager.loadStaticSe(fts);
         footsteps.push(fts);
     }
