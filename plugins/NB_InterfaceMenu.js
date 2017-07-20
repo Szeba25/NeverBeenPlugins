@@ -26,15 +26,21 @@
     // Expanded!
     NB_Interface_MainMenu.prototype.initialize = function() {
         NB_Interface.prototype.initialize.call(this);
-        this._fadeOut = null;
-        this._buttonGroup = null;
-        this._exit = false;
-        this._exitToTitle = false;
-        this._enterSubmenu = null;
+        /** MEMBER VARIABLES
+            _fadeOut
+            _exit
+            _exitToTitle
+            _enterSubmenu
+        */
     };
     
     // Expanded!
     NB_Interface_MainMenu.prototype.create = function() {
+        // Create variables
+        this._fadeOut = null;
+        this._exit = false;
+        this._exitToTitle = false;
+        this._enterSubmenu = null;
         // Create generic background
         this.createBackground();
         // Create additional graphics
@@ -186,22 +192,46 @@
     
     NB_Interface_CharMenu.prototype.initialize = function() {
         NB_Interface.prototype.initialize.call(this);
+        /** MEMBER VARIABLES
+            _masterOpacity
+            _exit
+            _title1
+            _title2
+            _line1
+            _line2
+            _party
+            _characterInfo
+            _characterFace
+            _characterFaceFadeOpacity
+            _graphicsSet
+            _actorButtons
+            _currentChar
+            _currentCharUpdated
+            _equipmentButtons
+            bar
+            bar_hp
+            bar_mp
+            bar_def
+            bar_atk
+        */
+    };
+    
+    NB_Interface_CharMenu.prototype.create = function() {
+        this.createBackground();
+        this._loadBars();
+        this._graphicsSet = [];
+        this._createTitle();
+        this._createLines();
+        this._setupActors();
+        this._setupButtons();
+        
         this._masterOpacity = 0;
         this._exit = false;
-        this._title1 = null;
-        this._title2 = null;
-        this._line1 = null;
-        this._line2 = null;
-        this._party = null;
-        this._characterInfo = null;
-        this._characterFace = null;
-        this._characterFaceFadeOpacity = 0;
-        this._graphicsSet = [];
-        this._actorButtons = null;
-        this._currentChar = 0;
-        this._currentCharUpdated = null;
-        this._equipmentButtons = [];
-        // Interface graphics
+        
+        NB_Interface.prototype.create.call(this);
+    };
+    
+    NB_Interface_CharMenu.prototype._loadBars = function() {
         this.bar = ImageManager.loadInterfaceElement('menu_1/', 'bar', 0);
         this.bar_hp = ImageManager.loadInterfaceElement('menu_1/', 'bar_hp', 0);
         this.bar_mp = ImageManager.loadInterfaceElement('menu_1/', 'bar_mp', 0);
@@ -209,16 +239,8 @@
         this.bar_atk = ImageManager.loadInterfaceElement('menu_1/', 'bar_atk', 0);
     };
     
-    NB_Interface_CharMenu.prototype.create = function() {
-        this.createBackground();
-        this._createTitle();
-        this._createLines();
-        this._setupActors();
-        this._setupButtons();
-        NB_Interface.prototype.create.call(this);
-    };
-    
     NB_Interface_CharMenu.prototype._setupButtons = function() {
+        this._equipmentButtons = [];
         this._equipmentButtons.push(new NB_Button(null, null, null, null, 'Fegyver:', 
                                     NB_Interface.fontColor, 610, 405, 255));
         this._equipmentButtons.push(new NB_Button(null, null, null, null, 'Pajzs:', 
@@ -298,7 +320,12 @@
     };
     
     NB_Interface_CharMenu.prototype._setupActors = function() {
+        // Actor variables
+        this._currentChar = 0;
+        this._currentCharUpdated = -1;
+        this._characterFaceFadeOpacity = 0;
         this._party = $gameParty.allMembers();
+        // Buttons and other data
         this._actorButtons = new NB_ButtonGroup(true);
         for (var i = 0; i < this._party.length; i++) {
             this._actorButtons.add(new NB_Button('menu_1/chars/', 'name'+this._party[i].actorId(), 
@@ -333,6 +360,7 @@
         this._title2.x = 165;
         this._title2.y = 40;
         this._title2.opacity = 0;
+        this._graphicsSet = [];
         this._graphicsSet.push(this._title1);
         this._graphicsSet.push(this._title2);
         this.addChild(this._title1);
