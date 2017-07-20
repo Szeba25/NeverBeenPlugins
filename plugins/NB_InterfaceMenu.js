@@ -362,7 +362,6 @@
         this._title2.x = 165;
         this._title2.y = 40;
         this._title2.opacity = 0;
-        this._graphicsSet = [];
         this._graphicsSet.push(this._title1);
         this._graphicsSet.push(this._title2);
         this.addChild(this._title1);
