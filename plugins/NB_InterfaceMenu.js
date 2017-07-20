@@ -31,6 +31,8 @@
             _exit
             _exitToTitle
             _enterSubmenu
+            _buttonGroup
+            _pergamenMark
         */
     };
     
