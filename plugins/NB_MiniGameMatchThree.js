@@ -32,70 +32,40 @@
     
     NB_MiniGameMatchThree.prototype.initialize = function() {
         NB_Interface.prototype.initialize.call(this);
-        this._masterOpacity = 0;
-        this._objectBitmaps = null;
-        this._progressBarBitmap = null;
-        this._progressBarBorderBitmap = null;
-        this._board = null;
-        this._selectionSprite = null;
-        this._objects = null;
-        this._selX = 0;
-        this._selY = 0;
-        this._selGrab = false;
-        this._selShrink = false;
-        this._swapHappened = false;
-        this._lastSwap1 = null;
-        this._lastSwap2 = null;
-        this._oneValidMove = null;
-        this._hintTime = 0;
-        this._hintTimeReset = 0;
-        this._boardLogic = null;
-        this._checkLogic = null;
-        this._exit = false;
-        
-        this._scoreSprite = null;
-        this._scoreRedrawNeeded = false;
-        this._scores = null;
-        this._scoresMax = null;
-        
-        this._timeSprite = null;
-        this._timeRedrawNeeded = false;
-        this._time = null;
-        
-        // Sounds
-        this._soundMove = {};
-        this._soundMove['name'] = 'tm2_slash001r';
-        this._soundMove['volume'] = 100;
-        this._soundMove['pitch'] = 100;
-        this._soundMove['pan'] = 0;
-        
-        this._soundSelect = {};
-        this._soundSelect['name'] = 'tm2_counter000';
-        this._soundSelect['volume'] = 100;
-        this._soundSelect['pitch'] = 100;
-        this._soundSelect['pan'] = 0;
-        
-        this._soundCursor = {};
-        this._soundCursor['name'] = 'tm2_switch000';
-        this._soundCursor['volume'] = 100;
-        this._soundCursor['pitch'] = 100;
-        this._soundCursor['pan'] = 0;
-        
-        this._soundMatch = {};
-        this._soundMatch['name'] = 'Ice4';
-        this._soundMatch['volume'] = 100;
-        this._soundMatch['pitch'] = 100;
-        this._soundMatch['pan'] = 0;
-        
-        // Bitmaps
-        this._path = 'minigames/matchthree/shells/';
-        this._objectBitmaps = [];
-        for (var i = 0; i < 4; i++) {
-            this._objectBitmaps.push(ImageManager.loadInterfaceElement(this._path, 'shell'+i, 0));
-        }
-        this._objectBitmaps.push(ImageManager.loadInterfaceElement(this._path, 'stone', 0));
-        this._progressBarBitmap = ImageManager.loadInterfaceElement(this._path, 'progress_bar', 0);
-        this._progressBarBorderBitmap = ImageManager.loadInterfaceElement(this._path, 'progress_bar_border', 0);
+        /** MEMBER VARIABLES
+            _masterOpacity
+            _objectBitmaps
+            _progressBarBitmap
+            _progressBarBorderBitmap
+            _board
+            _selectionSprite
+            _objects
+            _selX
+            _selY
+            _selGrab
+            _selShrink
+            _swapHappened
+            _lastSwap1
+            _lastSwap2
+            _oneValidMove
+            _hintTime
+            _hintTimeReset
+            _boardLogic
+            _checkLogic
+            _exit
+            _scoreSprite
+            _scoreRedrawNeeded
+            _scores
+            _scoresMax
+            _timeSprite
+            _timeRedrawNeeded
+            _time
+            _soundMove
+            _soundSelect
+            _soundCursor
+            _soundMatch
+            _path
+        */
     };
     
     NB_MiniGameMatchThree.prototype.create = function() {
@@ -105,6 +75,8 @@
         this.removeChild(this._pergamen);
         this._backgroundTint.opacity = 0;
         
+        this._createSounds();
+        this._loadBitmaps();
         this._board = new Sprite(ImageManager.loadInterfaceElement(this._path, 'board', 0));
         this._board.x = 90;
         this._board.y = 90;
@@ -144,6 +116,8 @@
         
         this.addChild(this._selectionSprite);
         this._setSelectionPos(0, 0);
+        this._selX = 0;
+        this._selY = 0;
         this._selGrab = false;
         this._selShrink = false;
         this._swapHappened = false;
@@ -182,6 +156,41 @@
         this.addChild(this._timeSprite);
         
         NB_Interface.prototype.create.call(this);
+    };
+    
+    NB_MiniGameMatchThree.prototype._createSounds = function() {
+        this._soundMove = {};
+        this._soundMove['name'] = 'tm2_slash001r';
+        this._soundMove['volume'] = 100;
+        this._soundMove['pitch'] = 100;
+        this._soundMove['pan'] = 0;
+        this._soundSelect = {};
+        this._soundSelect['name'] = 'tm2_counter000';
+        this._soundSelect['volume'] = 100;
+        this._soundSelect['pitch'] = 100;
+        this._soundSelect['pan'] = 0;
+        this._soundCursor = {};
+        this._soundCursor['name'] = 'tm2_switch000';
+        this._soundCursor['volume'] = 100;
+        this._soundCursor['pitch'] = 100;
+        this._soundCursor['pan'] = 0;
+        this._soundMatch = {};
+        this._soundMatch['name'] = 'Ice4';
+        this._soundMatch['volume'] = 100;
+        this._soundMatch['pitch'] = 100;
+        this._soundMatch['pan'] = 0;
+    };
+    
+    NB_MiniGameMatchThree.prototype._loadBitmaps = function() {
+        // Bitmaps
+        this._path = 'minigames/matchthree/shells/';
+        this._objectBitmaps = [];
+        for (var i = 0; i < 4; i++) {
+            this._objectBitmaps.push(ImageManager.loadInterfaceElement(this._path, 'shell'+i, 0));
+        }
+        this._objectBitmaps.push(ImageManager.loadInterfaceElement(this._path, 'stone', 0));
+        this._progressBarBitmap = ImageManager.loadInterfaceElement(this._path, 'progress_bar', 0);
+        this._progressBarBorderBitmap = ImageManager.loadInterfaceElement(this._path, 'progress_bar_border', 0);
     };
     
     NB_MiniGameMatchThree.prototype._redrawScores = function() {

@@ -26,49 +26,23 @@
     
     NB_MiniGameCombine.prototype.initialize = function() {
         NB_Interface.prototype.initialize.call(this);
-        this._graphics = null;
-        this._exit = false;
-        this._finished = false;
-        this._finishedSprite = null;
-        this._solveWait = 0;
-        this._finishedWaitCount = 0;
-        this._sound = null;
-    };
-    
-    NB_MiniGameCombine.prototype._setTo = function(piece, x, y) {
-        piece.x = x;
-        piece.y = y;
-        piece.sprite.x = 120 + x * 168;
-        piece.sprite.y = 20 + y * 190;
-        piece.realX = piece.sprite.x;
-        piece.realY = piece.sprite.y;
-        piece.destX = piece.sprite.x;
-        piece.destY = piece.sprite.y;
-    };
-    
-    NB_MiniGameCombine.prototype._sendTo = function(piece, x, y) {
-        piece.x = x;
-        piece.y = y;
-        piece.destX = 120 + x * 168;
-        piece.destY = 20 + y * 190;
-    };
-    
-    NB_MiniGameCombine.prototype._checkPieceCollision = function(x, y) {
-        if (x < 0 || x > 4 || y < 0 || y > 2) {
-            return true;
-        }
-        for (var i = 0; i < this._pieces.length; i++) {
-            if (x == this._pieces[i].x && y == this._pieces[i].y) {
-                return true;
-            }
-        }
-        return false;
+        /** MEMBER VARIABLES
+            _exit
+            _finished
+            _pieces
+            _finishedSprite
+            _solveWait
+            _finishedWaitCount
+            _sound
+        */
     };
     
     NB_MiniGameCombine.prototype.create = function() {
         this.createBackground();
         this.removeChild(this._pergamen);
         this._backgroundTint.opacity = 0;
+        this._exit = false;
+        this._finished = false;
         this._pieces = [];
         for (var i = 1; i <= 14; i++) {
             var sprite = new Sprite(ImageManager.loadInterfaceElement('minigames/combine/stone/', ''+i, 0));
@@ -110,6 +84,36 @@
         this._sound['pitch'] = 100;
         this._sound['pan'] = 0;
         NB_Interface.prototype.create.call(this);
+    };
+    
+    NB_MiniGameCombine.prototype._setTo = function(piece, x, y) {
+        piece.x = x;
+        piece.y = y;
+        piece.sprite.x = 120 + x * 168;
+        piece.sprite.y = 20 + y * 190;
+        piece.realX = piece.sprite.x;
+        piece.realY = piece.sprite.y;
+        piece.destX = piece.sprite.x;
+        piece.destY = piece.sprite.y;
+    };
+    
+    NB_MiniGameCombine.prototype._sendTo = function(piece, x, y) {
+        piece.x = x;
+        piece.y = y;
+        piece.destX = 120 + x * 168;
+        piece.destY = 20 + y * 190;
+    };
+    
+    NB_MiniGameCombine.prototype._checkPieceCollision = function(x, y) {
+        if (x < 0 || x > 4 || y < 0 || y > 2) {
+            return true;
+        }
+        for (var i = 0; i < this._pieces.length; i++) {
+            if (x == this._pieces[i].x && y == this._pieces[i].y) {
+                return true;
+            }
+        }
+        return false;
     };
     
     NB_MiniGameCombine.prototype._checkFinished = function() {

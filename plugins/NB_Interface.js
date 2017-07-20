@@ -216,13 +216,18 @@ NB_Interface.prototype.constructor = NB_Interface;
 
 NB_Interface.prototype.initialize = function() {
     Scene_Base.prototype.initialize.call(this);
-    this._enterComplete = false;
-    this._backgroundSprite = null;
-    this._backgroundTint = null;
-    this._pergamen = null;
+    /** MEMBER VARIABLES
+        _enterComplete
+        _backgroundSprite
+        _backgroundTint
+        _pergamen
+    */
 };
 
 NB_Interface.prototype.create = function() {
+    // Create variables
+    this._enterComplete = false;
+    // Add the mouse
     this.addMouse();
     Scene_Base.prototype.create.call(this);
 };
