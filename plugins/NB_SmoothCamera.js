@@ -15,7 +15,6 @@
     var cameraTargetX = 0;
     var cameraTargetY = 0;
     var cameraAlpha = 0.12;
-    var cameraDistLimit = 999;
     
     Game_Map.prototype.setDisplayTarget = function(x, y) {
         if (x < 0) x = 0;
@@ -58,25 +57,46 @@
         
         if (this._displayTargetX < this._displayX) {
             var distance = Math.abs(this._displayTargetX - this._displayX) * cameraAlpha;
-            newX -= Math.min(distance, cameraDistLimit);
+            newX -= distance;
+            /*
+            if (distance < 0.000000001) {
+                newX = this._displayTargetX;
+            }
+            */
         }
         
         if (this._displayTargetX > this._displayX) {
             var distance = Math.abs(this._displayTargetX - this._displayX) * cameraAlpha;
-            newX += Math.min(distance, cameraDistLimit);
+            newX += distance;
+            /*
+            if (distance < 0.000000001) {
+                newX = this._displayTargetX;
+            }
+            */
         }
         
         if (this._displayTargetY < this._displayY) {
             var distance = Math.abs(this._displayTargetY - this._displayY) * cameraAlpha;
-            newY -= Math.min(distance, cameraDistLimit);
+            newY -= distance;
+            /*
+            if (distance < 0.000000001) {
+                newY = this._displayTargetY;
+            }
+            */
         }
         
         if (this._displayTargetY > this._displayY) {
             var distance = Math.abs(this._displayTargetY - this._displayY) * cameraAlpha;
-            newY += Math.min(distance, cameraDistLimit);
+            newY += distance;
+            /*
+            if (distance < 0.000000001) {
+                newY = this._displayTargetY;
+            }
+            */
         }
         
         this.setDisplayPos(newX, newY);
+        //console.log(this._displayX + '/' + this._displayY);
         
         this._fogX = this._displayX;
         this._fogY = this._displayY;
@@ -86,19 +106,20 @@
     Game_Player.prototype.updateScroll = function(lastScrolledX, lastScrolledY) {
         if (cameraLocked) {
             $gameMap.setDisplayTarget(this._realX - 13, this._realY - 7);
+            //console.log(this.screenX() + '!' + this.screenY());
         }
     };
     
     // Override!
     Game_CharacterBase.prototype.screenX = function() {
         var tw = $gameMap.tileWidth();
-        return Math.floor(this.scrolledX() * tw + tw / 2);
+        return Math.ceil(this.scrolledX() * tw + tw / 2);
     };
     
     // Override!
     Game_CharacterBase.prototype.screenY = function() {
         var th = $gameMap.tileHeight();
-        return Math.floor(this.scrolledY() * th + th -
+        return Math.ceil(this.scrolledY() * th + th -
                           this.shiftY() - this.jumpHeight());
     };
     
@@ -146,6 +167,7 @@
     Spriteset_Map.prototype.updateTilemap = function() {
         this._tilemap.origin.x = Math.floor($gameMap.displayX() * $gameMap.tileWidth());
         this._tilemap.origin.y = Math.floor($gameMap.displayY() * $gameMap.tileHeight());
+        //console.log(this._tilemap.origin.x + '|' + this._tilemap.origin.y);
     };
     
     aliases.Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
@@ -159,12 +181,8 @@
             cameraLocked = true;
         } else if (command == 'camera_alpha') {
             cameraAlpha = parseFloat(args[0]);
-        } else if (command == 'camera_distlimit') {
-            cameraDistLimit = parseFloat(args[0]);
         } else if (command == 'camera_alpha_reset') {
             cameraAlpha = 0.12;
-        } else if (command == 'camera_distlimit_reset') {
-            cameraDistLimit = 999;
         }
     };
     
