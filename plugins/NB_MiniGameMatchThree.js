@@ -494,9 +494,9 @@
             doneIn++;
         } while(this._checkForMatch(this._boardLogic, false) && doneIn < 1000);
         if (doneIn == 1000) {
-            console.log('no comment... 1000 matching boards...');
+            //console.log('no comment... 1000 matching boards...');
         } else {
-            console.log('randomized in ' + doneIn + ' steps');
+            //console.log('randomized in ' + doneIn + ' steps');
         }
     };
     
@@ -507,7 +507,7 @@
                 if (obj != null && obj.destroyed && obj.destroyOpacity == 0) {
                     obj.destroyScale = 0;
                     this._boardLogic[x][y] = null;
-                    console.log(x + '/' + y + ' removed from board');
+                    //console.log(x + '/' + y + ' removed from board');
                 }
             }
         }
@@ -658,7 +658,7 @@
                                 this._objects[i].destroyed = false;
                                 this._objects[i].id = Math.floor(Math.random() * 5);
                                 this._objects[i].sprite.bitmap = this._objectBitmaps[this._objects[i].id];
-                                console.log('spawn at: ' + x + '/' + y);
+                                //console.log('spawn at: ' + x + '/' + y);
                                 break;
                             }
                         }
@@ -718,7 +718,7 @@
             if (!obj.destroyed) {
                 if (!this._isObjectMoving(obj) && obj.logicalY+1 < 5 && this._boardLogic[obj.logicalX][obj.logicalY+1] == null) {
                     this._setObjectDestination(obj, obj.logicalX, obj.logicalY+1, true);
-                    console.log(obj.logicalX + '/' + obj.logicalY + ' object moved down by one');
+                    //console.log(obj.logicalX + '/' + obj.logicalY + ' object moved down by one');
                     i = 0;
                 }
             }
