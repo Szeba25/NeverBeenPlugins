@@ -30,7 +30,7 @@
     
     aliases.Game_Map_setup = Game_Map.prototype.setup;
     Game_Map.prototype.setup = function(mapId) {
-        aliases.Game_Map_setup.call(this);
+        aliases.Game_Map_setup.call(this, mapId);
         this._displayTargetX = 0;
         this._displayTargetY = 0;
     };
