@@ -27,11 +27,16 @@
     NB_Interface_MainMenu.prototype.initialize = function() {
         NB_Interface.prototype.initialize.call(this);
         /** MEMBER VARIABLES
+            # flow control
             _fadeOut
             _exit
             _exitToTitle
             _enterSubmenu
+            
+            # interface elements
             _buttonGroup
+            
+            # sprites
             _pergamenMark
         */
     };
@@ -195,21 +200,30 @@
     NB_Interface_CharMenu.prototype.initialize = function() {
         NB_Interface.prototype.initialize.call(this);
         /** MEMBER VARIABLES
-            _masterOpacity
+            # flow control
             _exit
+            _masterOpacity
+            _characterFaceFadeOpacity
+            _currentChar
+            _currentCharUpdated
+            
+            # sprites and bitmaps
+            _graphicsSet
             _title1
             _title2
             _line1
             _line2
-            _party
             _characterInfo
             _characterFace
-            _characterFaceFadeOpacity
-            _graphicsSet
+            
+            # data
+            _party
+            
+            # interface elements
             _actorButtons
-            _currentChar
-            _currentCharUpdated
             _equipmentButtons
+            
+            # bar bitmaps
             bar
             bar_hp
             bar_mp
