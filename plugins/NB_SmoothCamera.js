@@ -31,7 +31,6 @@
         aliases.Game_Map_initialize.call(this);
         this._displayTargetX = 0;
         this._displayTargetY = 0;
-        this._cameraAlpha = 0.1;
     };
     
     aliases.Game_Map_setup = Game_Map.prototype.setup;
@@ -145,8 +144,8 @@
     
     // Override!
     Spriteset_Map.prototype.updateTilemap = function() {
-        this._tilemap.origin.x = Math.ceil($gameMap.displayX() * $gameMap.tileWidth());
-        this._tilemap.origin.y = Math.ceil($gameMap.displayY() * $gameMap.tileHeight());
+        this._tilemap.origin.x = Math.floor($gameMap.displayX() * $gameMap.tileWidth());
+        this._tilemap.origin.y = Math.floor($gameMap.displayY() * $gameMap.tileHeight());
     };
     
     aliases.Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
