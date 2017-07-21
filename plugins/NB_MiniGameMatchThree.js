@@ -33,13 +33,9 @@
     NB_MiniGameMatchThree.prototype.initialize = function() {
         NB_Interface.prototype.initialize.call(this);
         /** MEMBER VARIABLES
+            # flow control
+            _exit
             _masterOpacity
-            _objectBitmaps
-            _progressBarBitmap
-            _progressBarBorderBitmap
-            _board
-            _selectionSprite
-            _objects
             _selX
             _selY
             _selGrab
@@ -50,25 +46,37 @@
             _oneValidMove
             _hintTime
             _hintTimeReset
-            _boardLogic
-            _checkLogic
-            _exit
-            _scoreSprite
-            _scoreRedrawNeeded
             _scores
             _scoresMax
-            _timeSprite
             _timeRedrawNeeded
             _time
+            _path
+            _scoreRedrawNeeded
+            
+            # sprites and bitmaps
+            _objectBitmaps
+            _progressBarBitmap
+            _progressBarBorderBitmap
+            _board
+            _selectionSprite
+            _scoreSprite
+            _timeSprite
+            
+            # game logic
+            _objects
+            _boardLogic
+            _checkLogic
+            
+            # sound data
             _soundMove
             _soundSelect
             _soundCursor
             _soundMatch
-            _path
         */
     };
     
     NB_MiniGameMatchThree.prototype.create = function() {
+        this._exit = false;
         this._masterOpacity = 0;
         
         this.createBackground();
@@ -83,7 +91,6 @@
         this._selectionSprite = new Sprite(ImageManager.loadInterfaceElement(this._path, 'selection', 0));
         this._selectionSprite.anchor.x = 0.5;
         this._selectionSprite.anchor.y = 0.5;
-        this._exit = false;
         
         this.addChild(this._board);
         
