@@ -75,11 +75,11 @@
     };
     
     Game_Map.prototype.fogOx = function() {
-        return this._fogX * this.tileWidth();
+        return Math.ceil(this._fogX * this.tileWidth());
     };
     
     Game_Map.prototype.fogOy = function() {
-        return this._fogY * this.tileHeight();
+        return Math.ceil(this._fogY * this.tileHeight());
     };
     
     /*
@@ -169,8 +169,8 @@
         }
         
         if (this._parallaxMapTop.bitmap) {
-            this._parallaxMapTop.x = Math.round(-1*$gameMap.displayX()*$gameMap.tileWidth());
-            this._parallaxMapTop.y = Math.round(-1*$gameMap.displayY()*$gameMap.tileHeight());
+            this._parallaxMapTop.x = Math.ceil(-1*$gameMap.displayX()*$gameMap.tileWidth());
+            this._parallaxMapTop.y = Math.ceil(-1*$gameMap.displayY()*$gameMap.tileHeight());
         }
         
         if (this._fog.bitmap) {
@@ -189,8 +189,8 @@
         
         // Fix the picture to the map if it's name starts with the dollar sign
         if (this.picture().name().charAt(0) == '$') {
-            this.x -= Math.round($gameMap.displayX()*$gameMap.tileWidth());
-            this.y -= Math.round($gameMap.displayY()*$gameMap.tileHeight());
+            this.x -= Math.ceil($gameMap.displayX()*$gameMap.tileWidth());
+            this.y -= Math.ceil($gameMap.displayY()*$gameMap.tileHeight());
         }
     };
     
