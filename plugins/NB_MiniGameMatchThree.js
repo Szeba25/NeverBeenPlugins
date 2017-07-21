@@ -17,11 +17,14 @@
     var switchID = parseInt(parameters['switch']);
     var aliases = {};
     
+    var graphicsFolder = '';
+    
     var definedScoresMax = [];
     definedScoresMax.push(0);
     definedScoresMax.push(0);
     definedScoresMax.push(0);
     definedScoresMax.push(0);
+    var definedTime = 0;
     
     function NB_MiniGameMatchThree() {
         this.initialize.apply(this, arguments);
@@ -52,15 +55,21 @@
             _time
             _path
             _scoreRedrawNeeded
+            _win
+            _lose
+            _winFade
+            _winWait
             
             # sprites and bitmaps
             _objectBitmaps
             _progressBarBitmap
+            _progressBarBitmapGray
             _progressBarBorderBitmap
             _board
             _selectionSprite
             _scoreSprite
             _timeSprite
+            _winSprite
             
             # game logic
             _objects
@@ -72,10 +81,15 @@
             _soundSelect
             _soundCursor
             _soundMatch
+            _soundWin
+            _soundLose
         */
     };
     
     NB_MiniGameMatchThree.prototype.create = function() {
+        
+        this._path = 'minigames/matchthree/' + graphicsFolder + '/';
+        
         this._exit = false;
         this._masterOpacity = 0;
         
@@ -157,10 +171,19 @@
         this._timeSprite.x = 20;
         this._timeSprite.y = 0;
         this._timeRedrawNeeded = true;
-        this._time = 12001;
+        this._time = definedTime*60 + 1;
+        
+        this._winSprite = new Sprite(new Bitmap(Graphics.width, Graphics.height));
+        this._winSprite.bitmap.fillAll('#ffffff');
+        this._winSprite.opacity = 0;
+        this._win = false;
+        this._lose = false;
+        this._winFade = false;
+        this._winWait = 60;
         
         this.addChild(this._scoreSprite);
         this.addChild(this._timeSprite);
+        this.addChild(this._winSprite);
         
         NB_Interface.prototype.create.call(this);
     };
@@ -186,17 +209,27 @@
         this._soundMatch['volume'] = 100;
         this._soundMatch['pitch'] = 100;
         this._soundMatch['pan'] = 0;
+        this._soundWin = {};
+        this._soundWin['name'] = 'Item3';
+        this._soundWin['volume'] = 100;
+        this._soundWin['pitch'] = 100;
+        this._soundWin['pan'] = 0;
+        this._soundLose = {};
+        this._soundLose['name'] = 'Buzzer1';
+        this._soundLose['volume'] = 100;
+        this._soundLose['pitch'] = 100;
+        this._soundLose['pan'] = 0;
     };
     
     NB_MiniGameMatchThree.prototype._loadBitmaps = function() {
         // Bitmaps
-        this._path = 'minigames/matchthree/shells/';
         this._objectBitmaps = [];
         for (var i = 0; i < 4; i++) {
             this._objectBitmaps.push(ImageManager.loadInterfaceElement(this._path, 'shell'+i, 0));
         }
         this._objectBitmaps.push(ImageManager.loadInterfaceElement(this._path, 'stone', 0));
         this._progressBarBitmap = ImageManager.loadInterfaceElement(this._path, 'progress_bar', 0);
+        this._progressBarBitmapGray = ImageManager.loadInterfaceElement(this._path, 'progress_bar_gray', 0);
         this._progressBarBorderBitmap = ImageManager.loadInterfaceElement(this._path, 'progress_bar_border', 0);
     };
     
@@ -208,16 +241,24 @@
                 bmp.blt(this._objectBitmaps[i], 0, 0, this._objectBitmaps[i].width, this._objectBitmaps[i].height,
                         15 + i*100, 0, this._objectBitmaps[i].width, this._objectBitmaps[i].height);
                 
-                bmp.blt(this._progressBarBitmap, 0, 0, 
-                    this._progressBarBitmap.width, this._progressBarBitmap.height,
-                    34 + i*100, 114,
-                    this._progressBarBitmap.width, this._progressBarBitmap.height);
+                var percent = 0;
+                if (this._scoresMax[i] == 0) {
+                    bmp.blt(this._progressBarBitmapGray, 0, 0, 
+                        this._progressBarBitmapGray.width, this._progressBarBitmapGray.height,
+                        34 + i*100, 114,
+                        this._progressBarBitmapGray.width, this._progressBarBitmapGray.height);
                     
-                var percent = (this._scoresMax[i] - this._scores[i]) / this._scoresMax[i];
+                } else {
+                    bmp.blt(this._progressBarBitmap, 0, 0, 
+                        this._progressBarBitmap.width, this._progressBarBitmap.height,
+                        34 + i*100, 114,
+                        this._progressBarBitmap.width, this._progressBarBitmap.height);
                     
-                bmp.clearRect(34 + i*100, 114, this._progressBarBitmap.width,
+                    percent = (this._scoresMax[i] - this._scores[i]) / this._scoresMax[i];
+                    bmp.clearRect(34 + i*100, 114, this._progressBarBitmap.width,
                         this._progressBarBitmap.height * percent);
-                        
+                }
+                
                 bmp.drawText(this._scores[i] + '/' + this._scoresMax[i], 10 + i*100, 475, 100, 30, 'center');
                 
                 bmp.blt(this._progressBarBorderBitmap, 0, 0, 
@@ -230,17 +271,27 @@
     };
     
     NB_MiniGameMatchThree.prototype._refreshTime = function() {
-        if (this._time > 0) {
+        if (this._time == 0 && !this._win && !this._lose) {
+            // LOSE TRIGGER!
             this._time--;
-            if (this._time % 60 == 0) {
-                this._timeRedrawNeeded = true;
+            this._selGrab = false;
+            this._lose = true;
+            this._exit = true;
+            $gameSwitches.setValue(switchID, false);
+            AudioManager.playSe(this._soundLose);
+        } else {
+            if (this._time > 0 && !this._win && !this._lose) {
+                this._time--;
+                if (this._time % 60 == 0) {
+                    this._timeRedrawNeeded = true;
+                }
             }
-        }
-        if (this._timeRedrawNeeded) {
-            var bmp = this._timeSprite.bitmap;
-            bmp.clear();
-            bmp.drawText('idő: ' + this._time/60, 0, 0, 200, 60, 'left');
-            this._timeRedrawNeeded = false;
+            if (this._timeRedrawNeeded) {
+                var bmp = this._timeSprite.bitmap;
+                bmp.clear();
+                bmp.drawText('idő: ' + this._time/60, 0, 0, 200, 60, 'left');
+                this._timeRedrawNeeded = false;
+            }
         }
     };
     
@@ -365,14 +416,43 @@
                     if (destroy) {
                         board[x][y].destroyed = true;
                         var id = board[x][y].id;
-                        this._scores[id] += 1;
-                        if (this._scores[id] > this._scoresMax[id]) this._scores[id] = this._scoresMax[id];
+                        this._appendScore(horizontal, vertical, id);
                     }
                     anyMatch = true;
                 }
             }
         }
         return anyMatch;
+    };
+    
+    NB_MiniGameMatchThree.prototype._appendScore = function(horizontal, vertical, id) {
+        
+        if (horizontal == 5 || vertical == 5) {
+            this._scores[id] += 3;
+        } else if (horizontal == 4 || vertical == 4) {
+            this._scores[id] += 2;
+        } else {
+            this._scores[id] += 1;
+        }
+        
+        if (this._scores[id] > this._scoresMax[id]) {
+            this._scores[id] = this._scoresMax[id];
+        }
+        
+        var willWin = true;
+        for (var i = 0; i < 4; i++) {
+            if (this._scores[i] < this._scoresMax[i]) {
+                willWin = false;
+                break;
+            }
+        }
+        if (!this._win && willWin) {
+            // WIN TRIGGER!
+            this._selGrab = false;
+            $gameSwitches.setValue(switchID, true);
+            AudioManager.playSe(this._soundWin);
+        }
+        this._win = willWin;
     };
     
     NB_MiniGameMatchThree.prototype._matchPassively = function() {
@@ -474,6 +554,9 @@
     };
     
     NB_MiniGameMatchThree.prototype._isNewObjectNeeded = function() {
+        if (this._win || this._lose) {
+            return false;
+        }
         for (var i = 0; i < 25; i++) {
             if (this._objects[i].destroyed) {
                 return true;
@@ -678,6 +761,10 @@
     };
     
     NB_MiniGameMatchThree.prototype.updateInput = function() {
+        if (this._exit || this._win || this._lose) {
+            return;
+        }
+        
         var boardReady = this._isBoardReady();
         
         if (TouchInput.isTriggered()) {
@@ -750,17 +837,24 @@
         }
         
         if (Input.isTriggered('cancel')) {
+            $gameSwitches.setValue(switchID, false);
             this._exit = true;
         }
     };
     
     NB_MiniGameMatchThree.prototype.updateOpacity = function() {
         if (this._exit) {
+            var masterDecrease = 15;
+            var backgroundDecrease = 10;
+            if (this._lose) {
+                masterDecrease = 5;
+                backgroundDecrease = 3;
+            }
             if (this._masterOpacity > 0) {
-                this._masterOpacity -= 15;
+                this._masterOpacity -= masterDecrease;
             }
             if (this._backgroundTint.opacity > 0) {
-                this._backgroundTint.opacity -= 10;
+                this._backgroundTint.opacity -= backgroundDecrease;
             }
         } else {
             if (this._masterOpacity < 255) {
@@ -772,6 +866,28 @@
                 this._backgroundTint.opacity += 10;
             }
         }
+        
+        if (this._win) {
+            if (this._winWait > 0) {
+                this._winWait--;
+            } else {
+                if (!this._winFade && this._winSprite.opacity < 255) {
+                    this._winSprite.opacity += 15;
+                    if (this._winSprite.opacity > 100) {
+                        this._exit = true;
+                    }
+                    if (this._winSprite.opacity == 255) {
+                        this._winFade = true;
+                    }
+                } else if (this._winFade && this._winSprite.opacity > 0) {
+                    this._winSprite.opacity -= 15;
+                    if (this._winSprite.opacity < 0) {
+                        this._winSprite.opacity = 0;
+                    }
+                }
+            }
+        }
+        
         this._board.opacity = this._masterOpacity;
         this._selectionSprite.opacity = this._masterOpacity;
         this._setAllObjectsOpacity(this._masterOpacity);
@@ -779,7 +895,7 @@
     };
     
     NB_MiniGameMatchThree.prototype.updateTransitions = function() {
-        if (this._exit && this._masterOpacity == 0) {
+        if (this._exit && this._masterOpacity == 0 && this._winSprite.opacity == 0) {
             SceneManager.goto(Scene_Map);
         }
     };
@@ -801,10 +917,12 @@
     Game_Interpreter.prototype.pluginCommand = function(command, args) {
         aliases.Game_Interpreter_pluginCommand.call(this, command, args);
         if (command === 'minigame_matchthree') {
-            definedScoresMax[0] = parseInt(args[0]);
-            definedScoresMax[1] = parseInt(args[1]);
-            definedScoresMax[2] = parseInt(args[2]);
-            definedScoresMax[3] = parseInt(args[3]);
+            graphicsFolder = args[0];
+            definedScoresMax[0] = parseInt(args[1]);
+            definedScoresMax[1] = parseInt(args[2]);
+            definedScoresMax[2] = parseInt(args[3]);
+            definedScoresMax[3] = parseInt(args[4]);
+            definedTime = parseInt(args[5]);
             SceneManager.goto(NB_MiniGameMatchThree);
         }
     };

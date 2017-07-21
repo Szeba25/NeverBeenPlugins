@@ -17,6 +17,8 @@
     var switchID = parseInt(parameters['switch']);
     var aliases = {};
     
+    var graphicsFolder = '';
+    
     function NB_MiniGameCombine() {
         this.initialize.apply(this, arguments);
     }
@@ -45,7 +47,7 @@
         this._finished = false;
         this._pieces = [];
         for (var i = 1; i <= 14; i++) {
-            var sprite = new Sprite(ImageManager.loadInterfaceElement('minigames/combine/stone/', ''+i, 0));
+            var sprite = new Sprite(ImageManager.loadInterfaceElement('minigames/combine/' + graphicsFolder + '/', ''+i, 0));
             sprite.opacity = 0;
             obj = {};
             obj['id'] = i;
@@ -73,7 +75,7 @@
         this._setTo(this._pieces[11], 0, 2);
         this._setTo(this._pieces[12], 3, 0);
         this._setTo(this._pieces[13], 2, 1);
-        this._finishedSprite = new Sprite(ImageManager.loadInterfaceElement('minigames/combine/stone/', 'finished', 0));
+        this._finishedSprite = new Sprite(ImageManager.loadInterfaceElement('minigames/combine/' + graphicsFolder + '/', 'finished', 0));
         this._finishedSprite.opacity = 0;
         this._solveWait = 80;
         this._finishedWaitCount = 240;
@@ -154,6 +156,7 @@
     NB_MiniGameCombine.prototype.updateInput = function() {
         if (!this._exit && !this._finished) {
             if (Input.isTriggered('cancel')) {
+                $gameSwitches.setValue(switchID, false);
                 this._exit = true;
             }
             if (Input.isTriggered('right')) {
@@ -250,6 +253,7 @@
     Game_Interpreter.prototype.pluginCommand = function(command, args) {
         aliases.Game_Interpreter_pluginCommand.call(this, command, args);
         if (command === 'minigame_combine') {
+            graphicsFolder = args[0];
             SceneManager.goto(NB_MiniGameCombine);
         }
     };
