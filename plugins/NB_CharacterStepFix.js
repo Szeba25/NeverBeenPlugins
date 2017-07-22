@@ -14,25 +14,28 @@
     aliases.Game_CharacterBase_initMembers = Game_CharacterBase.prototype.initMembers;
     Game_CharacterBase.prototype.initMembers = function() {
         aliases.Game_CharacterBase_initMembers.call(this);
-        this._justStartedMoving = false;
+        this._stopDelay = 0;
     };
     
     aliases.Game_CharacterBase_update = Game_CharacterBase.prototype.update;
     Game_CharacterBase.prototype.update = function() {
         
-        // Addition to clear the flag
         if (this.isStopping()) {
-            this._justStartedMoving = false;
+            if (this._stopDelay > 0) {
+                this._stopDelay--;
+            }
+        } else {
+            this._stopDelay = 1;
+        }
+        
+        // Set flag
+        if (this.isMoving() && this._stopDelay == 0) {
+            this._stopDelay = 1;
+            this._animationCount = this.animationWait();
         }
         
         // Run the original method
         aliases.Game_CharacterBase_update.call(this);
-        
-        // Set flag
-        if (this.isMoving() && !this._justStartedMoving) {
-            this._justStartedMoving = true;
-            this._animationCount = this.animationWait();
-        }
     };
     
     // Override!
@@ -41,7 +44,7 @@
             this._animationCount += 1.5;
         } else if (this.hasStepAnime()) {
             this._animationCount++;
-        } else if (!this._justStartedMoving) {
+        } else if (this.isStopping() && this._stopDelay == 0) {
             this.resetPattern();
         }
     };

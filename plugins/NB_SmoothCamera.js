@@ -11,19 +11,136 @@
     
     var aliases = {};
     
-    var cameraLocked = true;
-    var cameraTargetX = 0;
-    var cameraTargetY = 0;
-    var cameraAlpha = 0.12;
+    var CAMERA_LIMIT = 99;
     
-    Game_Map.prototype.setDisplayTarget = function(x, y) {
+    function NB_Camera() {
+        this.initialize.apply(this, arguments);
+    }
+    
+    NB_Camera.prototype.initialize = function() {
+        this._playerLock = true;
+        this._eventLock = null;
+        this._x = 0;
+        this._y = 0;
+        this._targetX = 0;
+        this._targetY = 0;
+        this._limitX = CAMERA_LIMIT;
+        this._limitY = CAMERA_LIMIT;
+        this._alpha = 0.1;
+    };
+    
+    NB_Camera.prototype.setPosition = function(x, y) {
+        this.setTarget(x, y);
+        this._x = this._targetX;
+        this._y = this._targetY;
+        $gameMap.setDisplayPos(this._x, this._y);
+    };
+    
+    NB_Camera.prototype.setPositionToEvent = function(event) {
+        this.setPosition(event._realX - 13, event._realY - 7);
+    };
+    
+    NB_Camera.prototype.setTarget = function(x, y) {
+        var maxX = $gameMap.width() - 27;
+        var maxY = $gameMap.height() - 15;
         if (x < 0) x = 0;
         if (y < 0) y = 0;
-        if (x > this.width() - 27) x = this.width() - 27;
-        if (y > this.height() - 15) y = this.height() - 15;
-        this._displayTargetX = x;
-        this._displayTargetY = y;
+        if (x > maxX) x = maxX;
+        if (y > maxY) y = maxY;
+        this._targetX = x;
+        this._targetY = y;
     };
+    
+    NB_Camera.prototype.setTargetToEvent = function(event) {
+        if (event != null) {
+            this.setTarget(event._realX - 13, event._realY - 7);
+        } else {
+            this.setTarget(0, 0);
+        }
+    };
+    
+    NB_Camera.prototype.lockToEvent = function(event) {
+        if (event != null) {
+            this._playerLock = false;
+            this._eventLock = event;
+        } else {
+            console.log('camera: lock to null event error!');
+        }
+        
+    };
+    
+    NB_Camera.prototype.lockToPlayer = function() {
+        this._playerLock = true;
+        this._eventLock = null;
+    };
+    
+    NB_Camera.prototype.prepareForLookAt = function(limit) {
+        this._playerLock = false;
+        this._eventLock = null;
+        var distX = Math.abs(this._targetX - this._x);
+        var distY = Math.abs(this._targetY - this._y);
+        this._limitX = distX * limit;
+        this._limitY = distY * limit;
+    };
+    
+    NB_Camera.prototype.alpha = function() {
+        return this._alpha;
+    };
+    
+    NB_Camera.prototype.setAlpha = function(alpha) {
+        this._alpha = alpha;
+    };
+    
+    NB_Camera.prototype.resetAlpha = function() {
+        this._alpha = 0.1;
+    }
+    
+    NB_Camera.prototype.resetLimits = function() {
+        this._limitX = CAMERA_LIMIT;
+        this._limitY = CAMERA_LIMIT;
+    };
+    
+    NB_Camera.prototype.decideTarget = function() {
+        if (!this._playerLock) {
+            if (this._eventLock != null) {
+                this.setTargetToEvent(this._eventLock);
+            }
+        } else {
+            this.setTargetToEvent($gamePlayer);
+            this.resetLimits();
+        }
+    };
+    
+    NB_Camera.prototype.lerpToTarget = function(displayX, displayY) {
+        
+        var newX = displayX;
+        var newY = displayY;
+        
+        if (this._targetX < displayX) {
+            var distance = Math.abs(this._targetX - displayX) * this._alpha;
+            newX = displayX - Math.min(distance, this._limitX);
+        } else if (this._targetX > displayX) {
+            var distance = Math.abs(this._targetX - displayX) * this._alpha;
+            newX = displayX + Math.min(distance, this._limitX);
+        }
+        
+        if (this._targetY < displayY) {
+            var distance = Math.abs(this._targetY - displayY) * this._alpha;
+            newY = displayY - Math.min(distance, this._limitY);
+        } else if (this._targetY > displayY) {
+            var distance = Math.abs(this._targetY - displayY) * this._alpha;
+            newY = displayY + Math.min(distance, this._limitY);
+        }
+        
+        this._x = newX;
+        this._y = newY;
+        
+        $gameMap.setDisplayPos(this._x, this._y);
+        
+    };
+    
+    // Create the shared camera instance!!!
+    var camera = new NB_Camera();
     
     Game_Map.prototype.getPixelScrollX = function() {
         return Math.floor(this.displayX() * this.tileWidth());
@@ -33,64 +150,23 @@
         return Math.floor(this.displayY() * this.tileHeight());
     };
     
-    aliases.Game_Map_initialize = Game_Map.prototype.initialize;
-    Game_Map.prototype.initialize = function() {
-        aliases.Game_Map_initialize.call(this);
-        this._displayTargetX = 0;
-        this._displayTargetY = 0;
-    };
-    
-    aliases.Game_Map_setup = Game_Map.prototype.setup;
-    Game_Map.prototype.setup = function(mapId) {
-        aliases.Game_Map_setup.call(this, mapId);
-        this._displayTargetX = 0;
-        this._displayTargetY = 0;
-    };
-    
     aliases.Game_Map_update = Game_Map.prototype.update;
     Game_Map.prototype.update = function(sceneActive) {
         aliases.Game_Map_update.call(this, sceneActive);
-        
-        if (!cameraLocked) {
-            this.setDisplayTarget(cameraTargetX, cameraTargetY);
-        }
-        
-        var newX = this._displayX;
-        var newY = this._displayY;
-        
-        if (this._displayTargetX < this._displayX) {
-            var distance = Math.abs(this._displayTargetX - this._displayX) * cameraAlpha;
-            newX -= distance;
-        }
-        
-        if (this._displayTargetX > this._displayX) {
-            var distance = Math.abs(this._displayTargetX - this._displayX) * cameraAlpha;
-            newX += distance;
-        }
-        
-        if (this._displayTargetY < this._displayY) {
-            var distance = Math.abs(this._displayTargetY - this._displayY) * cameraAlpha;
-            newY -= distance;
-        }
-        
-        if (this._displayTargetY > this._displayY) {
-            var distance = Math.abs(this._displayTargetY - this._displayY) * cameraAlpha;
-            newY += distance;
-        }
-        
-        this.setDisplayPos(newX, newY);
-        //console.log('display: ' + this._displayX + '/' + this._displayY);
-        
-        this._fogX = this._displayX;
-        this._fogY = this._displayY;
+        // Apply linear interpolation to the camera
+        camera.decideTarget();
+        camera.lerpToTarget(this._displayX, this._displayY);
     };
     
     // Override!
     Game_Player.prototype.updateScroll = function(lastScrolledX, lastScrolledY) {
-        if (cameraLocked) {
-            $gameMap.setDisplayTarget(this._realX - 13, this._realY - 7);
-            //console.log('player: ' + this.screenX() + '/' + this.screenY());
-        }
+        // This function is disabled!
+    };
+    
+    // Override!
+    Game_Player.prototype.center = function(x, y) {
+        console.log('camera: center at: ' + x + '/' + y);
+        camera.setPosition(x - 13, y - 7);
     };
     
     // Override!
@@ -118,22 +194,32 @@
     Spriteset_Map.prototype.updateTilemap = function() {
         this._tilemap.origin.x = $gameMap.getPixelScrollX();
         this._tilemap.origin.y = $gameMap.getPixelScrollY();
-        //console.log('tilemap: ' + this._tilemap.origin.x + '/' + this._tilemap.origin.y);
     };
     
     aliases.Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
     Game_Interpreter.prototype.pluginCommand = function(command, args) {
         aliases.Game_Interpreter_pluginCommand.call(this, command, args);
-        if (command === 'camera_lookat') {
-            cameraLocked = false;
-            cameraTargetX = parseInt(args[0]);
-            cameraTargetY = parseInt(args[1]);
-        } else if (command == 'camera_lock') {
-            cameraLocked = true;
-        } else if (command == 'camera_alpha') {
-            cameraAlpha = parseFloat(args[0]);
-        } else if (command == 'camera_alpha_reset') {
-            cameraAlpha = 0.12;
+        switch (command) {
+            case 'camera_lookat':
+                camera.setTarget(parseInt(args[0]), parseInt(args[1]));
+                camera.prepareForLookAt(parseFloat(args[2]));
+                break;
+            case 'camera_lookat_event':
+                camera.setTargetToEvent($gameMap.event(parseInt(args[0])));
+                camera.prepareForLookAt(parseFloat(args[1]));
+                break;
+            case 'camera_eventlock':
+                camera.lockToEvent($gameMap.event(parseInt(args[0])));
+                break;
+            case 'camera_playerlock':
+                camera.lockToPlayer();
+                break;
+            case 'camera_alpha':
+                camera.setAlpha(parseFloat(args[0]));
+                break;
+            case 'camera_alpha_reset':
+                camera.resetAlpha();
+                break;
         }
     };
     
