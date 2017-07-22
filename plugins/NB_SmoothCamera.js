@@ -5,6 +5,29 @@
 /*:
  * @plugindesc Adds interpolation to the camera.
  * @author Scalytank
+ * @help Plugin commands:
+ *
+ * - camera_lookat [x] [y] [limit%]
+ *   look at the passed x and y tile coordinates
+ *   limit the camera movement by total distance traveled every frame
+ *   the origin is at the upper left corner
+ *
+ * - camera_lookat_event [id] [limit%]
+ *   look at the event with the given id
+ *   limit the camera movement by total distance traveled every frame
+ *
+ * - camera_eventlock [id]
+ *   lock the camera at the event with the given id
+ *
+ * - camera_playerlock
+ *   lock the camera at the player (default)
+ *
+ * - camera_alpha [alpha]
+ *   set the following speed of the camera
+ *   0-1 where 1 is the fastest!
+ *
+ * - camera_alpha_reset
+ *   reset the following speed of the camera to the defaul value
  */
 
 (function() {
@@ -202,11 +225,11 @@
         switch (command) {
             case 'camera_lookat':
                 camera.setTarget(parseInt(args[0]), parseInt(args[1]));
-                camera.prepareForLookAt(parseFloat(args[2]));
+                camera.prepareForLookAt(parseFloat(args[2]) / 100);
                 break;
             case 'camera_lookat_event':
                 camera.setTargetToEvent($gameMap.event(parseInt(args[0])));
-                camera.prepareForLookAt(parseFloat(args[1]));
+                camera.prepareForLookAt(parseFloat(args[1]) / 100);
                 break;
             case 'camera_eventlock':
                 camera.lockToEvent($gameMap.event(parseInt(args[0])));
