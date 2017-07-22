@@ -25,6 +25,14 @@
         this._displayTargetY = y;
     };
     
+    Game_Map.prototype.getPixelScrollX = function() {
+        return Math.floor(this.displayX() * this.tileWidth());
+    };
+    
+    Game_Map.prototype.getPixelScrollY = function() {
+        return Math.floor(this.displayY() * this.tileHeight());
+    };
+    
     aliases.Game_Map_initialize = Game_Map.prototype.initialize;
     Game_Map.prototype.initialize = function() {
         aliases.Game_Map_initialize.call(this);
@@ -37,11 +45,6 @@
         aliases.Game_Map_setup.call(this, mapId);
         this._displayTargetX = 0;
         this._displayTargetY = 0;
-    };
-    
-    aliases.Game_Map_setDisplayPos = Game_Map.prototype.setDisplayPos;
-    Game_Map.prototype.setDisplayPos = function(x, y) {
-        aliases.Game_Map_setDisplayPos.call(this, x, y);
     };
     
     aliases.Game_Map_update = Game_Map.prototype.update;
@@ -58,45 +61,25 @@
         if (this._displayTargetX < this._displayX) {
             var distance = Math.abs(this._displayTargetX - this._displayX) * cameraAlpha;
             newX -= distance;
-            /*
-            if (distance < 0.000000001) {
-                newX = this._displayTargetX;
-            }
-            */
         }
         
         if (this._displayTargetX > this._displayX) {
             var distance = Math.abs(this._displayTargetX - this._displayX) * cameraAlpha;
             newX += distance;
-            /*
-            if (distance < 0.000000001) {
-                newX = this._displayTargetX;
-            }
-            */
         }
         
         if (this._displayTargetY < this._displayY) {
             var distance = Math.abs(this._displayTargetY - this._displayY) * cameraAlpha;
             newY -= distance;
-            /*
-            if (distance < 0.000000001) {
-                newY = this._displayTargetY;
-            }
-            */
         }
         
         if (this._displayTargetY > this._displayY) {
             var distance = Math.abs(this._displayTargetY - this._displayY) * cameraAlpha;
             newY += distance;
-            /*
-            if (distance < 0.000000001) {
-                newY = this._displayTargetY;
-            }
-            */
         }
         
         this.setDisplayPos(newX, newY);
-        //console.log(this._displayX + '/' + this._displayY);
+        //console.log('display: ' + this._displayX + '/' + this._displayY);
         
         this._fogX = this._displayX;
         this._fogY = this._displayY;
@@ -106,54 +89,22 @@
     Game_Player.prototype.updateScroll = function(lastScrolledX, lastScrolledY) {
         if (cameraLocked) {
             $gameMap.setDisplayTarget(this._realX - 13, this._realY - 7);
-            //console.log(this.screenX() + '!' + this.screenY());
+            //console.log('player: ' + this.screenX() + '/' + this.screenY());
         }
     };
     
     // Override!
     Game_CharacterBase.prototype.screenX = function() {
         var tw = $gameMap.tileWidth();
-        return Math.ceil(this.scrolledX() * tw + tw / 2);
+        var px = this._realX * tw - $gameMap.getPixelScrollX();
+        return Math.floor(px + tw/2);
     };
     
     // Override!
     Game_CharacterBase.prototype.screenY = function() {
         var th = $gameMap.tileHeight();
-        return Math.ceil(this.scrolledY() * th + th -
-                          this.shiftY() - this.jumpHeight());
-    };
-    
-    // Override!
-    Game_CharacterBase.prototype.scrolledX = function() {
-        return this._realX - $gameMap.displayX();
-    };
-
-    // Override!
-    Game_CharacterBase.prototype.scrolledY = function() {
-        return this._realY - $gameMap.displayY();
-    };
-    
-    // Override!
-    Spriteset_Base.prototype.updatePosition = function() {
-        var screen = $gameScreen;
-        var scale = screen.zoomScale();
-        this.scale.x = scale;
-        this.scale.y = scale;
-        this.x = Math.floor(-screen.zoomX() * (scale - 1));
-        this.y = Math.floor(-screen.zoomY() * (scale - 1));
-        this.x += Math.floor(screen.shake());
-    };
-    
-    // Override!
-    Sprite_Damage.prototype.updateChild = function(sprite) {
-        sprite.dy += 0.5;
-        sprite.ry += sprite.dy;
-        if (sprite.ry >= 0) {
-            sprite.ry = 0;
-            sprite.dy *= -0.6;
-        }
-        sprite.y = Math.floor(sprite.ry);
-        sprite.setBlendColor(this._flashColor);
+        var py = this._realY * th - $gameMap.getPixelScrollY();
+        return Math.floor(py + th - this.shiftY() - this.jumpHeight());
     };
     
     // Override!
@@ -165,9 +116,9 @@
     
     // Override!
     Spriteset_Map.prototype.updateTilemap = function() {
-        this._tilemap.origin.x = Math.floor($gameMap.displayX() * $gameMap.tileWidth());
-        this._tilemap.origin.y = Math.floor($gameMap.displayY() * $gameMap.tileHeight());
-        //console.log(this._tilemap.origin.x + '|' + this._tilemap.origin.y);
+        this._tilemap.origin.x = $gameMap.getPixelScrollX();
+        this._tilemap.origin.y = $gameMap.getPixelScrollY();
+        //console.log('tilemap: ' + this._tilemap.origin.x + '/' + this._tilemap.origin.y);
     };
     
     aliases.Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
