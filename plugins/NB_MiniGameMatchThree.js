@@ -763,6 +763,7 @@
         }
     };
     
+    // Override!
     NB_MiniGameMatchThree.prototype.updateInput = function() {
         if (this._exit || this._win || this._lose) {
             return;
@@ -845,6 +846,7 @@
         }
     };
     
+    // Override!
     NB_MiniGameMatchThree.prototype.updateOpacity = function() {
         if (this._exit) {
             var masterDecrease = 15;
@@ -897,12 +899,14 @@
         this._scoreSprite.opacity = this._masterOpacity;
     };
     
+    // Override!
     NB_MiniGameMatchThree.prototype.updateTransitions = function() {
         if (this._exit && this._masterOpacity == 0 && this._winSprite.opacity == 0) {
             SceneManager.goto(Scene_Map);
         }
     };
     
+    // Override!
     NB_MiniGameMatchThree.prototype.updateElements = function() {
         this._rebuildIfNoMoves();
         this._syncObjects();

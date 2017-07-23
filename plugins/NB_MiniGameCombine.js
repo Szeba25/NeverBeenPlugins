@@ -156,6 +156,7 @@
         this._checkFinished();
     };
     
+    // Override!
     NB_MiniGameCombine.prototype.updateInput = function() {
         if (!this._exit && !this._finished) {
             if (Input.isTriggered('cancel')) {
@@ -177,6 +178,7 @@
         }
     };
     
+    // Override!
     NB_MiniGameCombine.prototype.updateOpacity = function() {
         if (this._exit) {
             if (this._finishedSprite.opacity > 0) {
@@ -215,6 +217,8 @@
             } else {
                 if (this._backgroundTint.opacity < 130) {
                     this._backgroundTint.opacity += 10;
+                } else if (!this.isEnterComplete()) {
+                    this.makeEnterComplete();
                 }
                 for (var i = 0; i < this._pieces.length; i++) {
                     if (this._pieces[i].sprite.opacity < 255) {
@@ -225,12 +229,14 @@
         }
     };
     
+    // Override!
     NB_MiniGameCombine.prototype.updateTransitions = function() {
         if (this._exit && this._pieces[0].sprite.opacity == 0 && this._finishedSprite.opacity == 0) {
             SceneManager.goto(Scene_Map);
         }
     };
     
+    // Override!
     NB_MiniGameCombine.prototype.updateElements = function() {
         for (var i = 0; i < this._pieces.length; i++) {
             if (this._pieces[i].realX < this._pieces[i].destX) {

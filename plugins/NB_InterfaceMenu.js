@@ -129,7 +129,7 @@
     
     // Override!
     NB_Interface_MainMenu.prototype.updateInput = function() {
-        if (this.isEnterComplete() && !this._exit && !this._exitToTitle && this._enterSubmenu == null) {
+        if (!this._exit && !this._exitToTitle && this._enterSubmenu == null) {
             // Update buttons input
             this._buttonGroup.updateInput(this.isMouseActive());
             // Go into submenu
@@ -423,6 +423,8 @@
                     this._graphicsSet[i].opacity += 15;
                 }
                 this._masterOpacity += 15;
+            } else if (!this.isEnterComplete()) {
+                this.makeEnterComplete();
             }
         }
         this._actorButtons.setMasterOpactiy(this._masterOpacity);

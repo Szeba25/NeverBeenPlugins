@@ -256,7 +256,9 @@ NB_Interface.prototype.start = function() {
 
 NB_Interface.prototype.update = function() {
     this.updateOpacity();
-    this.updateInput();
+    if (this._enterComplete) {
+        this.updateInput();
+    }
     this.updateElements();
     this.updateTransitions();
     this.updateMouse();
