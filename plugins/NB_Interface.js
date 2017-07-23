@@ -311,7 +311,7 @@ NB_Interface.prototype.makeEnterComplete = function() {
 }
 
 /****************************************************************
- * General button interface element.
+ * Button: A general button interface element
  ****************************************************************/
 
 function NB_Button() {
@@ -321,6 +321,14 @@ function NB_Button() {
 // Create a global blur filter
 NB_Button.blurFilter = new PIXI.filters.BlurFilter(1, 1, 1);
 
+/*
+ * To initialize with background and light:
+ * ('bkgPath', 'bkg', 'lightPath', 'light', null, null, x, y, opacity);
+ *
+ * Without background:
+ * (null, null, null, null, 'text', color, x, y, opacity);
+ *
+ */
 NB_Button.prototype.initialize = function(bkgPath, bkg, lightPath, light, text, textColor, x, y, masterOpacity) {
     this._graphics = new Sprite();
     this._graphics.anchor.x = 0.5;
@@ -350,6 +358,8 @@ NB_Button.prototype.initialize = function(bkgPath, bkg, lightPath, light, text, 
     
     this._x = x;
     this._y = y;
+    this._tx = x;
+    this._ty = y;
     this._lightOpacity = 0;
     this._active = false;
     this._masterOpacity = masterOpacity;
@@ -360,6 +370,27 @@ NB_Button.prototype.initialize = function(bkgPath, bkg, lightPath, light, text, 
     this.updateOpacity();
 };
 
+NB_Button.prototype.hide = function() {
+    if (!this._faded) {
+        this._faded = true;
+        this._enlargeIfFaded = false;
+        this._fadedOpacity = 0;
+        this._graphics.visible = false;
+        this._light.visible = false;
+        this._completelyFaded = true;
+    }
+};
+
+NB_Button.prototype.setPosition = function(x, y) {
+    this._x = x;
+    this._y = y;
+};
+
+NB_Button.prototype.setTarget = function(x, y) {
+    this._tx = x;
+    this._ty = y;
+};
+
 NB_Button.prototype.fade = function(enlarge) {
     if (!this._faded) {
         this._faded = true;
@@ -367,11 +398,43 @@ NB_Button.prototype.fade = function(enlarge) {
     }
 };
 
+NB_Button.prototype.unFade = function() {
+    if (this._faded) {
+        this._faded = false;
+        this._graphics.scale.x = 1;
+        this._graphics.scale.y = 1;
+        this._light.scale.x = 1;
+        this._light.scale.y = 1;
+    }
+};
+
+NB_Button.prototype.isFaded = function() {
+    return this._faded;
+};
+
 NB_Button.prototype.completelyFaded = function() {
     return this._completelyFaded;
-}
+};
 
 NB_Button.prototype._syncPosition = function() {
+    // Lerp to target
+    if (this._x < this._tx) {
+        var dist = Math.abs(this._x - this._tx);
+        this._x += dist * 0.2;
+    }
+    if (this._x > this._tx) {
+        var dist = Math.abs(this._x - this._tx);
+        this._x -= dist * 0.2;
+    }
+    if (this._y < this._ty) {
+        var dist = Math.abs(this._y - this._ty);
+        this._y += dist * 0.2;
+    }
+    if (this._y > this._ty) {
+        var dist = Math.abs(this._y - this._ty);
+        this._y -= dist * 0.2;
+    }
+    // Set to graphics
     this._graphics.x = this._x + this._graphics.width / 2;
     this._graphics.y = this._y + this._graphics.height / 2;
     this._light.x = this._x + this._light.width / 2;
@@ -416,6 +479,15 @@ NB_Button.prototype.update = function() {
             this._completelyFaded = true;
         }
     } else {
+        if (this._fadedOpacity < 255) {
+            this._fadedOpacity += 12;
+            if (this._fadedOpacity > 255) {
+                this._fadedOpacity = 255;
+            }
+        }
+        if (!this._graphics.visible) this._graphics.visible = true;
+        if (!this._light.visible) this._light.visible = true;
+        if (this._completelyFaded) this._completelyFaded = false;
         if (this._active) {
             if (this._lightOpacity < 255) this._lightOpacity += 15;
         } else {
@@ -463,7 +535,7 @@ NB_ButtonGroup.prototype.getActiveID = function() {
 };
 
 NB_ButtonGroup.prototype.setActive = function(id) {
-    
+    this._active = id;
 };
 
 NB_ButtonGroup.prototype.trigger = function(enlarge) {
@@ -529,3 +601,147 @@ NB_ButtonGroup.prototype.updateInput = function(mouseActive) {
         }
     }
 }
+
+/****************************************************************
+ * List
+ ****************************************************************/
+
+function NB_List() {
+    this.initialize.apply(this, arguments);
+}
+
+NB_List.prototype.initialize = function(x, y, visibleSize) {
+    this._elements = [];
+    this._container = new PIXI.Container();
+    this._x = x;
+    this._y = y;
+    this._activeId = 0;
+    this._visibleSize = visibleSize;
+    this._firstVisibleId = 0;
+};
+
+NB_List.prototype.addListElement = function(text) {
+    this._addListElement(text, this._elements.length);
+};
+
+NB_List.prototype.addListElementAtIndex = function(text, id) {
+    if (id >= 0 && id <= this._elements.length) this._addListElement(text, id);
+};
+
+NB_List.prototype._addListElement = function(text, id) {
+    var elem = new NB_Button(null, null, null, null, text, NB_Interface.fontColor, this._x, this._y, 0);
+    this._elements.splice(id, 0, elem);
+    this._container.addChild(elem._graphics);
+    this._container.addChild(elem._light);
+    elem.hide();
+    this.unfoldFromFirstVisible();
+};
+
+NB_List.prototype.removeById = function(id) {
+    if (id >= 0 && id < this._elements.length) {
+        var elem = this._elements.splice(id, 1)[0];
+        this._container.removeChild(elem._graphics);
+        this._container.removeChild(elem._light);
+        if (this._activeId == this._elements.length) {
+            if (this._activeId > 0) this._activeId--;
+        }
+        if (this._activeId < this._firstVisibleId) {
+            this._firstVisibleId--;
+        }
+        this.unfoldFromFirstVisible();
+    }
+};
+
+NB_List.prototype.addToContainer = function(container) {
+    container.addChild(this._container);
+};
+
+NB_List.prototype.unfoldFromFirstVisible = function() {
+    for (var i = 0; i < this._elements.length; i++) {
+        if (i < this._firstVisibleId) {
+            this._elements[i].setTarget(this._x, this._y - 30);
+            this._elements[i].fade(true);
+        } else {
+            var relativeId = i - this._firstVisibleId;
+            if (relativeId < this._visibleSize) {
+                this._elements[i].setTarget(this._x, this._y + (relativeId * 30));
+                this._elements[i].unFade();
+            } else {
+                this._elements[i].setTarget(this._x, this._y + (this._visibleSize * 30));
+                this._elements[i].fade(true);
+            }
+        }
+    }
+};
+
+NB_List.prototype.update = function() {
+    for (var i = 0; i < this._elements.length; i++) {
+        if (this._activeId == i) {
+            this._elements[i].activate();
+        } else {
+            this._elements[i].deactivate();
+        }
+        this._elements[i].update();
+    }
+};
+
+NB_List.prototype.scrollUp = function(playSound) {
+    if (playSound) SoundManager.playCursor();
+    if (this._activeId > 0) {
+        this._activeId--;
+        
+        if (this._activeId < this._firstVisibleId) {
+            this._firstVisibleId--;
+            this.unfoldFromFirstVisible();
+        }
+        
+    } else {
+        this._activeId = this._elements.length-1;
+        this._firstVisibleId = this._activeId - this._visibleSize + 1;
+        if (this._firstVisibleId < 0) this._firstVisibleId = 0;
+        this.unfoldFromFirstVisible();
+    }
+};
+
+NB_List.prototype.scrollDown = function(playSound) {
+    if (playSound) SoundManager.playCursor();
+    if (this._activeId < this._elements.length-1) {
+        this._activeId++;
+        
+        if (this._activeId - this._firstVisibleId >= this._visibleSize) {
+            this._firstVisibleId++;
+            this.unfoldFromFirstVisible();
+        }
+    } else {
+        this._activeId = 0;
+        this._firstVisibleId = 0;
+        this.unfoldFromFirstVisible();
+    }
+};
+
+NB_List.prototype.updateInput = function(mouseActive) {
+    if (Input.isRepeated('up') || TouchInput.wheelY < 0) {
+        this.scrollUp(TouchInput.wheelY == 0);
+    }
+    if (Input.isRepeated('down') || TouchInput.wheelY > 0) {
+        this.scrollDown(TouchInput.wheelY == 0);
+    }
+    if (Input.isTriggered('ok')) {
+        this.removeById(this._activeId);
+    }
+    if (Input.isTriggered('right')) {
+        this.addListElementAtIndex('újelem!', this._activeId);
+    }
+    for (var i = 0; i < this._elements.length; i++) {
+        if (mouseActive && this._elements[i].mouseInside() && TouchInput.isTriggered()) {
+            this._activeId = i;
+            this.removeById(i);
+        }
+    }
+};
+
+NB_List.prototype.setMasterOpacity = function(value) {
+    for (var i = 0; i < this._elements.length; i++) {
+        this._elements[i].setMasterOpacity(value);
+    }
+};

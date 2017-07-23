@@ -183,6 +183,9 @@
             case 0:
                 SceneManager.goto(NB_Interface_CharMenu);
                 break;
+            case 2:
+                SceneManager.goto(NB_Interface_Quest);
+                break;
             default:
                 SceneManager.goto(Scene_Map);
                 break;
@@ -401,6 +404,7 @@
         this.addChild(this._line2);
     };
     
+    // Override!
     NB_Interface_CharMenu.prototype.updateInput = function() {
         this._actorButtons.updateInput(this.isMouseActive());
         this._currentChar = this._actorButtons.getActiveID();
@@ -409,6 +413,7 @@
         }
     };
     
+    // Override!
     NB_Interface_CharMenu.prototype.updateOpacity = function() {
         if (this._exit) {
             if (this._masterOpacity > 0) {
@@ -435,13 +440,16 @@
         this._characterFace.opacity = this._characterFaceFadeOpacity * (this._masterOpacity / 255);
     };
     
+    // Override!
     NB_Interface_CharMenu.prototype.updateTransitions = function() {
         if (this._exit && this._masterOpacity == 0) {
             instantMainMenuFlag = true;
+            returnFrom = 0;
             SceneManager.goto(NB_Interface_MainMenu);
         }
     };
     
+    // Override!
     NB_Interface_CharMenu.prototype.updateElements = function() {
         this._actorButtons.update();
         this._updateCharacterInfo();
@@ -456,6 +464,102 @@
                 this._equipmentButtons[i].deactivate();
             }
         }
+    };
+    
+    /****************************************************************
+     * Quest menu
+     ****************************************************************/
+    
+    function NB_Interface_Quest() {
+        this.initialize.apply(this, arguments);
+    }
+    
+    NB_Interface_Quest.prototype = Object.create(NB_Interface.prototype);
+    NB_Interface_Quest.prototype.constructor = NB_Interface_Quest;
+    
+    NB_Interface_Quest.prototype.initialize = function() {
+        NB_Interface.prototype.initialize.call(this);
+        /** MEMBER VARIABLES
+            # flow control
+            _exit
+            _masterOpacity
+            
+            # sprites and bitmaps
+            _line
+            
+            # interface
+            _questList
+        */
+    };
+    
+    NB_Interface_Quest.prototype.create = function() {
+        this.createBackground();
+        
+        this._exit = false;
+        this._masterOpacity = 0;
+        
+        this._line = new Sprite(ImageManager.loadInterfaceElement('menu_1/', 'line1', 0));
+        this._line.x = 350
+        this._line.opacity = 0;
+        this.addChild(this._line);
+        
+        this._questList = new NB_List(200, 120, 10);
+        this._questList.addListElement('egyik elem');
+        this._questList.addListElement('második elem');
+        this._questList.addListElement('harmadik elem');
+        this._questList.addListElement('negyedik elem');
+        this._questList.addListElement('ötödik elem');
+        this._questList.addListElement('hatodik elem');
+        this._questList.addListElement('hetedik elem');
+        this._questList.addListElement('nyolcadik elem');
+        this._questList.addListElement('kilencedik elem');
+        this._questList.addListElement('tizedik elem');
+        this._questList.addListElement('tizenegyedik elem');
+        this._questList.addListElement('tizenkettedik elem');
+        this._questList.addListElement('bob elem');
+        this._questList.addListElement('böbi elem');
+        this._questList.addListElement('maci elem');
+        this._questList.addListElement('buksi elem');
+        this._questList.addToContainer(this);
+        
+        this.makeEnterComplete();
+        
+        NB_Interface.prototype.create.call(this);
+    };
+    
+    NB_Interface_Quest.prototype.updateInput = function() {
+        this._questList.updateInput(this.isMouseActive());
+        if (Input.isTriggered('menu') && !this._exit) {
+            this._exit = true;
+        }
+    };
+    
+    NB_Interface_Quest.prototype.updateOpacity = function() {
+        if (this._exit) {
+            if (this._masterOpacity > 0) {
+                this._masterOpacity -= 15;
+            }
+        } else {
+            if (this._masterOpacity < 255) {
+                this._masterOpacity += 15;
+            } else if (!this.isEnterComplete()) {
+                this.makeEnterComplete();
+            }
+        }
+        this._line.opacity = this._masterOpacity;
+        this._questList.setMasterOpacity(this._masterOpacity);
+    };
+    
+    NB_Interface_Quest.prototype.updateTransitions = function() {
+        if (this._exit && this._masterOpacity == 0) {
+            instantMainMenuFlag = true;
+            returnFrom = 2;
+            SceneManager.goto(NB_Interface_MainMenu);
+        }
+    };
+    
+    NB_Interface_Quest.prototype.updateElements = function() {
+        this._questList.update();
     };
     
     /****************************************************************
