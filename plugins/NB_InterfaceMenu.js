@@ -5,6 +5,9 @@
 /*:
  * @plugindesc The in game menu
  * @author Scalytank
+ *
+ * @help DEPENDENCY:
+ * > NB_Interface.js
  */
 
 (function() {

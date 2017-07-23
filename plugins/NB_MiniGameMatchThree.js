@@ -9,6 +9,9 @@
  * @param switch
  * @desc The switch ID for switching to true if completed!
  * @default 1
+ *
+ * @help DEPENDENCY:
+ * > NB_Interface.js
  */
 
 (function() {
