@@ -85,7 +85,7 @@
     /*********************************************
      * Custom sprite
      *********************************************/
-    
+     
     function NB_Sprite() {
         this.initialize.apply(this, arguments);
     }
@@ -99,6 +99,10 @@
     
     NB_Sprite.prototype.setFilter = function(filter) {
         this.filters = [filter];
+    };
+    
+    NB_Sprite.prototype.resetFilter = function() {
+        this.filters = null;
     };
     
     /*********************************************
@@ -126,7 +130,7 @@
     };
     
     NB_Lighting.prototype.update = function() {
-        this._filter.setAmbientLight(10);
+        this._filter.setAmbientLight(40);
         Graphics._renderer.render(this._layer, this._lightMap);
     };
     
@@ -139,6 +143,7 @@
         aliases.Spriteset_Map_createLowerLayer.call(this);
         
         this._lighting = new NB_Lighting();
+        
         this.sprite1 = new Sprite(ImageManager.loadLight('light_nb'));
         this.sprite1.blendMode = PIXI.BLEND_MODES.NB_LIGHT;
         this.sprite2 = new Sprite(ImageManager.loadLight('light_nb'));
@@ -152,15 +157,15 @@
         this._lighting.addLight(this.sprite1);
         this._lighting.addLight(this.sprite2);
         this._lighting.addLight(this.sprite3);
+        
         this._baseSprite.addChild(this._lighting._layerSprite);
     };
     
     aliases.Spriteset_Map_update = Spriteset_Map.prototype.update;
     Spriteset_Map.prototype.update = function() {
         aliases.Spriteset_Map_update.call(this);
-        
-        this.sprite1.x = $gamePlayer.screenX()-100;
-        this.sprite1.y = $gamePlayer.screenY()-100;
+        this.sprite1.x = $gamePlayer.screenX()-300;
+        this.sprite1.y = $gamePlayer.screenY()-300;
         this._lighting.update();
     };
     
