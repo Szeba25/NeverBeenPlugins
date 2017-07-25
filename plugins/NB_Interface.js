@@ -76,23 +76,12 @@
     };
     
     /*********************************************
-     * Hide mouse and remove blur from snapshots
+     * Remove snapping completely...
      *********************************************/
     
     // Override!
-    SceneManager.snap = function() {
-        var mouseWasActive = this._scene.isMouseActive();
-        this._scene.deactivateMouse();
-        
-        var snapshot = Bitmap.snap(this._scene);
-        
-        if (mouseWasActive) this._scene.activateMouse();
-        return snapshot;
-    };
-    
-    // Override!
     SceneManager.snapForBackground = function() {
-        this._backgroundBitmap = this.snap();
+        this._backgroundBitmap = null;
     };
     
     /*********************************************
@@ -218,7 +207,7 @@ NB_Interface.prototype.initialize = function() {
     Scene_Base.prototype.initialize.call(this);
     /** MEMBER VARIABLES
         _enterComplete
-        _backgroundSprite
+        _backgroundSpriteset
         _backgroundTint
         _pergamen
     */
@@ -234,8 +223,7 @@ NB_Interface.prototype.create = function() {
 
 NB_Interface.prototype.createBackground = function() {
     // Create all the background graphics
-    this._backgroundSprite = new Sprite();
-    this._backgroundSprite.bitmap = SceneManager.backgroundBitmap();
+    this._backgroundSpriteset = new Spriteset_Map();
     
     this._backgroundTint = new Sprite();
     this._backgroundTint.bitmap = new Bitmap(Graphics.width, Graphics.height);
@@ -245,7 +233,7 @@ NB_Interface.prototype.createBackground = function() {
     this._pergamen = new Sprite();
     this._pergamen.bitmap = ImageManager.loadInterfaceElement('menu_1/', '13', 0);
     
-    this.addChild(this._backgroundSprite);
+    this.addChild(this._backgroundSpriteset);
     this.addChild(this._backgroundTint);
     this.addChild(this._pergamen);
 };
