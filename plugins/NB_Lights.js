@@ -97,25 +97,9 @@
         PIXI.Sprite.call(this, texture);
     };
     
-    NB_Sprite.prototype.addFilter = function(filter) {
-        var current_filters = this.filters;
-        if (!current_filters) {
-            current_filters = [];
-        }
-        current_filters.push(filter);
-        this.filters = current_filters;
-        console.log(filter + '/' + this.filters);
+    NB_Sprite.prototype.setFilter = function(filter) {
+        this.filters = [filter];
     };
-    
-    /*
-    NB_Sprite.prototype.removeFilter = function(filter) {
-        var id = this.filters.indexOf(filter);
-        if (id != -1) this.filters.splice(id, 1);
-        if (this.filters.length == 0) {
-            this.filters = null;
-        }
-    };
-    */
     
     /*********************************************
      * The main lighting layer
@@ -133,7 +117,7 @@
         this._filter.setResolution(Graphics.width, Graphics.height);
         this._filter.blendMode = PIXI.BLEND_MODES.NB_LIGHTING;
         this._layerSprite = new NB_Sprite(this._lightMap);
-        this._layerSprite.addFilter(this._filter);
+        this._layerSprite.setFilter(this._filter);
     };
     
     NB_Lighting.prototype.addLight = function(spriteLight) {
