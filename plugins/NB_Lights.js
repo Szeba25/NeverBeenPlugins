@@ -6,6 +6,7 @@
  * @plugindesc Adds a fast lighting layer.
  * @author Khas / Scalytank
  * @help All credit goes to Khas, this plugin is based on his Advanced Lighting.
+ *
  * DEPENDENCY:
  * > NB_SmoothCamera.js
  */
@@ -150,6 +151,7 @@
     NB_LightSprite.prototype.sync = function() {
         this.x = this._lightData.x;
         this.y = this._lightData.y;
+        this.opacity = this._lightData.intensity;
     };
     
     /*********************************************
@@ -275,19 +277,49 @@
                 $gameMap.getLightingManager().changeAmbient(parseInt(args[0]), parseInt(args[1]));
                 break;
             case 'lights_add_to_map':
-                var x = parseInt(args[0]);
-                var y = parseInt(args[1]);
-                var name = args[2];
-                $gameMap.getLightingManager().addLight(new NB_Light(null, x, y, name));
+                var id = parseInt(args[0]);
+                var x = parseInt(args[1]);
+                var y = parseInt(args[2]);
+                var name = args[3];
+                var intensity = parseInt(args[4]);
+                var light = new NB_Light(id, null, x, y, name, intensity);
+                $gameMap.getLightingManager().addLight(light);
+                if (args.length == 7) {
+                    var intensityTarget = parseInt(args[5]);
+                    var intensityChangeDuration = parseInt(args[6]);
+                    light.setIntensityTarget(intensityTarget, intensityChangeDuration);
+                }
                 break;
             case 'lights_add_to_event':
-                var event = $gameMap.event(parseInt(args[0]));
-                var name = args[1];
-                $gameMap.getLightingManager().addLight(new NB_Light(event, 0, 0, name));
+                var id = parseInt(args[0]);
+                var event = $gameMap.event(parseInt(args[1]));
+                var name = args[2];
+                var intensity = parseInt(args[3]);
+                var light = new NB_Light(id, event, 0, 0, name, intensity);
+                $gameMap.getLightingManager().addLight(light);
+                if (args.length == 6) {
+                    var intensityTarget = parseInt(args[4]);
+                    var intensityChangeDuration = parseInt(args[5]);
+                    light.setIntensityTarget(intensityTarget, intensityChangeDuration);
+                }
                 break;
             case 'lights_add_to_player':
-                var name = args[0];
-                $gameMap.getLightingManager().addLight(new NB_Light($gamePlayer, 0, 0, name));
+                var id = parseInt(args[0]);
+                var name = args[1];
+                var intensity = args[2];
+                var light = new NB_Light(id, $gamePlayer, 0, 0, name, intensity);
+                $gameMap.getLightingManager().addLight(light);
+                if (args.length == 5) {
+                    var intensityTarget = parseInt(args[3]);
+                    var intensityChangeDuration = parseInt(args[4]);
+                    light.setIntensityTarget(intensityTarget, intensityChangeDuration);
+                }
+                break;
+            case 'lights_change':
+                var id = parseInt(args[0]);
+                var intensityTarget = parseInt(args[1]);
+                var intensityChangeDuration = parseInt(args[2]);
+                $gameMap.getLightingManager().changeLight(id, intensityTarget, intensityChangeDuration);
                 break;
         }
     };
@@ -295,11 +327,22 @@
 })();
 
 /*********************************************
- * Lighting object, and manager
- * This manager will be saved with $gameMap!
- * (GLOBAL ACCESS NEEDED FOR THESE!)
+ * Lighting object
+ * This will be saved with $gameMap!
+ * GLOBAL ACCESS NEEDED
  *********************************************/
 
+function NB_Light() {
+    this.initialize.apply(this, arguments);
+}
+ 
+Object.defineProperty(NB_Light.prototype, 'id', {
+    get: function() {
+        return this._id;
+    },
+    configurable: false
+});
+ 
 Object.defineProperty(NB_Light.prototype, 'x', {
     get: function() {
         return this._x;
@@ -320,6 +363,13 @@ Object.defineProperty(NB_Light.prototype, 'name', {
     },
     configurable: false
 });
+
+Object.defineProperty(NB_Light.prototype, 'intensity', {
+    get: function() {
+        return this._intensity;
+    },
+    configurable: false
+});
  
 Object.defineProperty(NB_Light.prototype, 'addedToLightMap', {
     get: function() {
@@ -331,21 +381,26 @@ Object.defineProperty(NB_Light.prototype, 'addedToLightMap', {
     configurable: true
 });
  
-function NB_Light() {
-    this.initialize.apply(this, arguments);
-}
-
-NB_Light.prototype.initialize = function(character, x, y, name) {
+NB_Light.prototype.initialize = function(id, character, x, y, name, intensity) {
+    this._id = id;
     this._character = character;
     this._originX = x;
     this._originY = y;
     this._x = 0;
     this._y = 0;
     this._name = name;
+    this._intensity = intensity;
+    this._intensityTarget = intensity;
+    this._intensityChangeDuration = 0;
     this._addedToLightMap = false;
 };
 
-NB_Light.prototype.update = function() {
+NB_Light.prototype.setIntensityTarget = function(value, duration) {
+    this._intensityTarget = value;
+    this._intensityChangeDuration = duration;
+};
+
+NB_Light.prototype._updatePosition = function() {
     if (this._character) {
         this._x = this._character.screenX();
         this._y = this._character.screenY();
@@ -354,6 +409,24 @@ NB_Light.prototype.update = function() {
         this._y = this._originY - $gameMap.getPixelScrollY();
     }
 };
+
+NB_Light.prototype._updateIntensity = function() {
+    if (this._intensityChangeDuration > 0) {
+        var d = this._intensityChangeDuration;
+        this._intensity = (this._intensity * (d - 1) + this._intensityTarget) / d;
+    }
+};
+
+NB_Light.prototype.update = function() {
+    this._updatePosition();
+    this._updateIntensity();
+};
+ 
+/*********************************************
+ * Lighting manager object
+ * This will be saved with $gameMap!
+ * GLOBAL ACCESS NEEDED
+ *********************************************/
  
 function NB_LightingManager() {
     this.initialize.apply(this, arguments);
@@ -382,6 +455,14 @@ NB_LightingManager.prototype.initialize = function() {
 
 NB_LightingManager.prototype.addLight = function(light) {
     this._lights.push(light);
+};
+
+NB_LightingManager.prototype.changeLight = function(id, intensityTarget, intensityChangeDuration) {
+    for (var i = 0; i < this._lights.length; i++) {
+        if (this._lights[i].id === id) {
+            this._lights[i].setIntensityTarget(intensityTarget, intensityChangeDuration);
+        }
+    }
 };
 
 NB_LightingManager.prototype.setAllLightsToNotAdded = function() {
