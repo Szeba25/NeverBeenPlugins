@@ -9,6 +9,25 @@
  *
  * DEPENDENCY:
  * > NB_SmoothCamera.js
+ *
+ * Plugin commands:
+ *
+ * - lights_set_ambient [ambient%] [duration]
+ *
+ * - lights_add_to_map [id] [x] [y] [name] [intensity%] [#intensityTarget%] [#intensityChangeDuration]
+ *
+ * - lights_add_to_event [id] [eventId] [name] [intensity%] [#intensityTarget%] [#intensityChangeDuration]
+ *
+ * - lights_add_to_player [id] [name] [intensity%] [#intensityTarget%] [#intensityChangeDuration]
+ *
+ * - lights_change_intensity [id] [intensityTarget%] [intensityChangeDuration]
+ *   id can be set to 'all' to affect all lights
+ *
+ * - lights_set_flaring [id] [flaringMin%] [flaringChangeDuration]
+ *   id can be set to 'all' to affect all lights
+ *
+ * - lights_stop_flaring [id] [stopDuration]
+ *   id can be set to 'all' to affect all lights
  */
 
 (function() {
