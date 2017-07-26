@@ -9,6 +9,8 @@
  *
  * @help DEPENDENCY:
  * > NB_Mouse.js
+ * > NB_SmoothCamera.js
+ * > NB_Lights.js
  */
 
 /*********************************************
@@ -39,6 +41,7 @@ NB_Interface.prototype.initialize = function() {
     /** MEMBER VARIABLES
         _enterComplete
         _backgroundSprite
+        _backgroundLight
         _backgroundTint
         _pergamen
     */
@@ -55,6 +58,7 @@ NB_Interface.prototype.create = function() {
 NB_Interface.prototype.createBackground = function() {
     // Create all the background graphics
     this._backgroundSprite = new Sprite(SceneManager.backgroundBitmap());
+    this._backgroundLight = SceneManager.getLightAsSprite();
     
     this._backgroundTint = new Sprite(new Bitmap(Graphics.width, Graphics.height));
     this._backgroundTint.bitmap.fillAll('#240F00');
@@ -63,6 +67,7 @@ NB_Interface.prototype.createBackground = function() {
     this._pergamen = new Sprite(ImageManager.loadInterfaceElement('menu_1/', '13'));
     
     this.addChild(this._backgroundSprite);
+    this.addChild(this._backgroundLight);
     this.addChild(this._backgroundTint);
     this.addChild(this._pergamen);
 };

@@ -188,7 +188,6 @@
     
     // Override!
     Game_Player.prototype.center = function(x, y) {
-        console.log('camera: center at: ' + x + '/' + y);
         camera.setPosition(x - 13, y - 7);
     };
     

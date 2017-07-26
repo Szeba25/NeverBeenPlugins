@@ -18,7 +18,7 @@
     };
     
     /*********************************************
-     * Disable mouse in snaps, and remove blur
+     * Disable mouse in snaps
      *********************************************/
     
     // Override!
@@ -30,11 +30,6 @@
         
         if (mouseWasActive) this._scene.activateMouse();
         return snapshot;
-    };
-    
-    // Override!
-    SceneManager.snapForBackground = function() {
-        this._backgroundBitmap = this.snap();
     };
     
     /*********************************************

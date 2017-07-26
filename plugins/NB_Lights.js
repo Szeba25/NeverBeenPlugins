@@ -6,6 +6,8 @@
  * @plugindesc Adds a fast lighting layer.
  * @author Khas / Scalytank
  * @help All credit goes to Khas, this plugin is based on his Advanced Lighting.
+ * DEPENDENCY:
+ * > NB_SmoothCamera.js
  */
 
 (function() {
@@ -89,18 +91,18 @@
     function NB_Sprite() {
         this.initialize.apply(this, arguments);
     }
-    
+
     NB_Sprite.prototype = Object.create(PIXI.Sprite.prototype);
     NB_Sprite.prototype.constructor = NB_Sprite;
-    
+
     NB_Sprite.prototype.initialize = function(texture) {
         PIXI.Sprite.call(this, texture);
     };
-    
+
     NB_Sprite.prototype.setFilter = function(filter) {
         this.filters = [filter];
     };
-    
+
     NB_Sprite.prototype.resetFilter = function() {
         this.filters = null;
     };
@@ -110,11 +112,11 @@
      *********************************************/
     
     var lightingData = {};
-    lightingData.lightMap = null;
+    lightingData.lightMapTexture = null;
     lightingData.filter = null;
     
     SceneManager._loadLightingData = function() {
-        lightingData.lightMap = new PIXI.RenderTexture.create(Graphics.width, Graphics.height);
+        lightingData.lightMapTexture = new PIXI.RenderTexture.create(Graphics.width, Graphics.height);
         lightingData.filter = new NB_LightingFilter();
         lightingData.filter.setResolution(Graphics.width, Graphics.height);
         lightingData.filter.blendMode = PIXI.BLEND_MODES.NB_LIGHTING;
@@ -127,26 +129,71 @@
     };
     
     /*********************************************
-     * The main lighting layer
+     * Sprite for lights
      *********************************************/
-    
-    function NB_Lighting() {
+     
+    function NB_LightSprite() {
         this.initialize.apply(this, arguments);
     }
     
-    NB_Lighting.prototype.initialize = function() {
-        this._lights = [];
+    NB_LightSprite.prototype = Object.create(Sprite.prototype);
+    NB_LightSprite.prototype.constructor = NB_LightSprite;
+    
+    NB_LightSprite.prototype.initialize = function(lightData) {
+        Sprite.prototype.initialize.call(this, ImageManager.loadLight(lightData.name));
+        this.blendMode = PIXI.BLEND_MODES.NB_LIGHT;
+        this.anchor.x = 0.5;
+        this.anchor.y = 0.5;
+        this._lightData = lightData;
+    };
+    
+    NB_LightSprite.prototype.sync = function() {
+        this.x = this._lightData.x;
+        this.y = this._lightData.y;
+    };
+    
+    /*********************************************
+     * The main light map
+     *********************************************/
+    
+    function NB_LightMap() {
+        this.initialize.apply(this, arguments);
+    }
+    
+    NB_LightMap.prototype.initialize = function(manager) {
+        this._manager = manager;
         this._layer = new PIXI.Container();
-        this._layerSprite = new NB_Sprite(lightingData.lightMap);
+        this._layerSprite = new NB_Sprite(lightingData.lightMapTexture);
         this._layerSprite.setFilter(lightingData.filter);
     };
     
-    NB_Lighting.prototype.update = function() {
-        lightingData.filter.setAmbientLight(100);
-        Graphics._renderer.render(this._layer, lightingData.lightMap);
+    NB_LightMap.prototype._addNewLights = function() {
+        var currentLights = this._manager.lights;
+        for (var i = 0; i < currentLights.length; i++) {
+            var light = currentLights[i];
+            if (!light.addedToLightMap) {
+                var sprite = new NB_LightSprite(light);
+                this._layer.addChild(sprite);
+                light.addedToLightMap = true;
+            }
+        }
     };
     
-    NB_Lighting.prototype.layerSprite = function() {
+    NB_LightMap.prototype._updateLights = function() {
+        var allSprites = this._layer.children;
+        for (var i = 0; i < allSprites.length; i++) {
+            allSprites[i].sync();
+        }
+    };
+    
+    NB_LightMap.prototype.update = function() {
+        lightingData.filter.setAmbientLight(this._manager.ambient);
+        this._addNewLights();
+        this._updateLights();
+        Graphics._renderer.render(this._layer, lightingData.lightMapTexture);
+    };
+    
+    NB_LightMap.prototype.layerSprite = function() {
         return this._layerSprite;
     };
     
@@ -158,14 +205,38 @@
     Spriteset_Map.prototype.createLowerLayer = function() {
         aliases.Spriteset_Map_createLowerLayer.call(this);
         
-        this._lighting = new NB_Lighting();
+        $gameMap.prepareLightMapRefresh();
+        this._lighting = new NB_LightMap($gameMap.getLightingManager());
         this._baseSprite.addChild(this._lighting.layerSprite());
+        
+        console.log('Spriteset_Map created');
     };
     
     aliases.Spriteset_Map_update = Spriteset_Map.prototype.update;
     Spriteset_Map.prototype.update = function() {
         aliases.Spriteset_Map_update.call(this);
         this._lighting.update();
+    };
+    
+    aliases.Game_Map_setup = Game_Map.prototype.setup;
+    Game_Map.prototype.setup = function(mapId) {
+        aliases.Game_Map_setup.call(this, mapId);
+        this._lightingManager = new NB_LightingManager();
+        console.log('Game_Map setup: ' + mapId);
+    };
+    
+    aliases.Game_Map_update = Game_Map.prototype.update;
+    Game_Map.prototype.update = function(sceneActive) {
+        aliases.Game_Map_update.call(this, sceneActive);
+        this._lightingManager.update();
+    }
+    
+    Game_Map.prototype.getLightingManager = function() {
+        return this._lightingManager;
+    };
+    
+    Game_Map.prototype.prepareLightMapRefresh = function() {
+        this._lightingManager.setAllLightsToNotAdded();
     };
     
     /*********************************************
@@ -175,9 +246,161 @@
     aliases.SceneManager_static_snap = SceneManager.snap;
     SceneManager.snap = function() {
         if (this._scene instanceof Scene_Map) {
-            console.log('got it!!!');
+            this._scene._spriteset._lighting._layerSprite.visible = false;
+            console.log('Escaped from Scene_Map!');
         }
         return aliases.SceneManager_static_snap.call(this);
     };
     
+    // Override!
+    SceneManager.snapForBackground = function() {
+        this._backgroundBitmap = this.snap();
+    };
+    
+    SceneManager.getLightAsSprite = function() {
+        var sprite = new NB_Sprite(lightingData.lightMapTexture);
+        sprite.setFilter(lightingData.filter);
+        return sprite;
+    };
+    
+    /*********************************************
+     * Plugin commands
+     *********************************************/
+    
+    aliases.Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
+    Game_Interpreter.prototype.pluginCommand = function(command, args) {
+        aliases.Game_Interpreter_pluginCommand.call(this, command, args);
+        switch (command) {
+            case 'lights_set_ambient':
+                $gameMap.getLightingManager().changeAmbient(parseInt(args[0]), parseInt(args[1]));
+                break;
+            case 'lights_add_to_map':
+                var x = parseInt(args[0]);
+                var y = parseInt(args[1]);
+                var name = args[2];
+                $gameMap.getLightingManager().addLight(new NB_Light(null, x, y, name));
+                break;
+            case 'lights_add_to_event':
+                var event = $gameMap.event(parseInt(args[0]));
+                var name = args[1];
+                $gameMap.getLightingManager().addLight(new NB_Light(event, 0, 0, name));
+                break;
+            case 'lights_add_to_player':
+                var name = args[0];
+                $gameMap.getLightingManager().addLight(new NB_Light($gamePlayer, 0, 0, name));
+                break;
+        }
+    };
+    
 })();
+
+/*********************************************
+ * Lighting object, and manager
+ * This manager will be saved with $gameMap!
+ * (GLOBAL ACCESS NEEDED FOR THESE!)
+ *********************************************/
+
+Object.defineProperty(NB_Light.prototype, 'x', {
+    get: function() {
+        return this._x;
+    },
+    configurable: false
+});
+
+Object.defineProperty(NB_Light.prototype, 'y', {
+    get: function() {
+        return this._y;
+    },
+    configurable: false
+});
+ 
+Object.defineProperty(NB_Light.prototype, 'name', {
+    get: function() {
+        return this._name;
+    },
+    configurable: false
+});
+ 
+Object.defineProperty(NB_Light.prototype, 'addedToLightMap', {
+    get: function() {
+        return this._addedToLightMap;
+    },
+    set: function(flag) {
+        this._addedToLightMap = flag;
+    },
+    configurable: true
+});
+ 
+function NB_Light() {
+    this.initialize.apply(this, arguments);
+}
+
+NB_Light.prototype.initialize = function(character, x, y, name) {
+    this._character = character;
+    this._originX = x;
+    this._originY = y;
+    this._x = 0;
+    this._y = 0;
+    this._name = name;
+    this._addedToLightMap = false;
+};
+
+NB_Light.prototype.update = function() {
+    if (this._character) {
+        this._x = this._character.screenX();
+        this._y = this._character.screenY();
+    } else {
+        this._x = this._originX - $gameMap.getPixelScrollX();
+        this._y = this._originY - $gameMap.getPixelScrollY();
+    }
+};
+ 
+function NB_LightingManager() {
+    this.initialize.apply(this, arguments);
+}
+
+Object.defineProperty(NB_LightingManager.prototype, 'lights', {
+    get: function() {
+        return this._lights;
+    },
+    configurable: false
+});
+
+Object.defineProperty(NB_LightingManager.prototype, 'ambient', {
+    get: function() {
+        return this._ambient;
+    },
+    configurable: true
+});
+
+NB_LightingManager.prototype.initialize = function() {
+    this._lights = [];
+    this._ambient = 100;
+    this._ambientTarget = 100;
+    this._ambientChangeDuration = 0;
+};
+
+NB_LightingManager.prototype.addLight = function(light) {
+    this._lights.push(light);
+};
+
+NB_LightingManager.prototype.setAllLightsToNotAdded = function() {
+    for (var i = 0; i < this._lights.length; i++) {
+        this._lights[i].addedToLightMap = false;
+    }
+};
+
+NB_LightingManager.prototype.changeAmbient = function(value, duration) {
+    this._ambientTarget = value;
+    this._ambientChangeDuration = duration;
+};
+
+NB_LightingManager.prototype.update = function() {
+    if (this._ambientChangeDuration > 0) {
+        var d = this._ambientChangeDuration;
+        this._ambient = (this._ambient * (d - 1) + this._ambientTarget) / d;
+    }
+    for (var i = 0; i < this._lights.length; i++) {
+        this._lights[i].update();
+    }
+};
