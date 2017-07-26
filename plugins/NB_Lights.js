@@ -152,6 +152,8 @@
         this.x = this._lightData.x;
         this.y = this._lightData.y;
         this.opacity = this._lightData.intensity;
+        this.scale.x = this._lightData.flaringState / 100;
+        this.scale.y = this._lightData.flaringState / 100;
     };
     
     /*********************************************
@@ -270,7 +272,8 @@
      *********************************************/
     
     function percentToAlpha(percent) {
-        return (percent / 100) * 255;
+        var alpha = (percent / 100) * 255;
+        return alpha;
     }
     
     aliases.Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
@@ -320,11 +323,22 @@
                     light.setIntensityTarget(intensityTarget, intensityChangeDuration);
                 }
                 break;
-            case 'lights_change':
+            case 'lights_change_intensity':
                 var id = parseInt(args[0]);
                 var intensityTarget = percentToAlpha(parseInt(args[1]));
                 var intensityChangeDuration = parseInt(args[2]);
-                $gameMap.getLightingManager().changeLights(id, intensityTarget, intensityChangeDuration);
+                $gameMap.getLightingManager().changeLightsIntensity(id, intensityTarget, intensityChangeDuration);
+                break;
+            case 'lights_set_flaring':
+                var id = parseInt(args[0]);
+                var flaringMin = parseInt(args[1]);
+                var flaringChangeDuration = parseInt(args[2]);
+                $gameMap.getLightingManager().setLightsFlaring(id, flaringMin, flaringChangeDuration);
+                break;
+            case 'lights_stop_flaring':
+                var id = parseInt(args[0]);
+                var stopDuration = parseInt(args[1]);
+                $gameMap.getLightingManager().stopLightsFlaring(id, stopDuration);
                 break;
         }
     };
@@ -375,6 +389,13 @@ Object.defineProperty(NB_Light.prototype, 'intensity', {
     },
     configurable: false
 });
+
+Object.defineProperty(NB_Light.prototype, 'flaringState', {
+    get: function() {
+        return this._flaringState;
+    },
+    configurable: false
+});
  
 Object.defineProperty(NB_Light.prototype, 'addedToLightMap', {
     get: function() {
@@ -397,12 +418,36 @@ NB_Light.prototype.initialize = function(id, character, x, y, name, intensity) {
     this._intensity = intensity;
     this._intensityTarget = intensity;
     this._intensityChangeDuration = 0;
+    this._flaring = false;
+    this._flaringMin = 100;
+    this._flaringChangeDurationOriginal = 0;
+    this._flaringChangeDuration = 0;
+    this._flaringShrink = true;
+    this._flaringState = 100;
     this._addedToLightMap = false;
 };
 
 NB_Light.prototype.setIntensityTarget = function(value, duration) {
     this._intensityTarget = value;
     this._intensityChangeDuration = duration;
+};
+
+NB_Light.prototype.setFlaring = function(min, duration) {
+    this._flaring = true;
+    this._flaringMin = min;
+    this._flaringChangeDurationOriginal = duration;
+    this._flaringChangeDuration = duration;
+    this._flaringShrink = true;
+};
+
+NB_Light.prototype.stopFlaring = function(duration) {
+    if (this._flaring) {
+        this._flaring = false;
+        this._flaringMin = 100;
+        this._flaringChangeDurationOriginal = 0;
+        this._flaringChangeDuration = duration;
+        this._flaringShrink = false;
+    }
 };
 
 NB_Light.prototype._updatePosition = function() {
@@ -422,9 +467,37 @@ NB_Light.prototype._updateIntensity = function() {
     }
 };
 
+NB_Light.prototype._updateFlaring = function() {
+    if (this._flaring) {
+        if (this._flaringChangeDuration > 0) {
+            var d = this._flaringChangeDuration;
+            if (this._flaringShrink) {
+                this._flaringState = (this._flaringState * (d - 1) + this._flaringMin) / d;
+            } else {
+                this._flaringState = (this._flaringState * (d - 1) + 100) / d;
+            }
+            this._flaringChangeDuration--;
+        }
+        if (this._flaringChangeDuration == 0) {
+            console.log('direction change!');
+            this._flaringChangeDuration = this._flaringChangeDurationOriginal;
+            this._flaringShrink = !this._flaringShrink;
+        }
+        console.log(this._flaringState);
+    } else {
+        if (this._flaringChangeDuration > 0) {
+            var d = this._flaringChangeDuration;
+            this._flaringState = (this._flaringState * (d - 1) + 100) / d;
+            this._flaringChangeDuration--;
+            console.log('s: ' + this._flaringState);
+        }
+    }
+};
+
 NB_Light.prototype.update = function() {
     this._updatePosition();
     this._updateIntensity();
+    this._updateFlaring();
 };
  
 /*********************************************
@@ -462,10 +535,26 @@ NB_LightingManager.prototype.addLight = function(light) {
     this._lights.push(light);
 };
 
-NB_LightingManager.prototype.changeLights = function(id, intensityTarget, intensityChangeDuration) {
+NB_LightingManager.prototype.changeLightsIntensity = function(id, intensityTarget, intensityChangeDuration) {
     for (var i = 0; i < this._lights.length; i++) {
         if (this._lights[i].id === id) {
             this._lights[i].setIntensityTarget(intensityTarget, intensityChangeDuration);
+        }
+    }
+};
+
+NB_LightingManager.prototype.setLightsFlaring = function(id, flaringMin, flaringChangeDuration) {
+    for (var i = 0; i < this._lights.length; i++) {
+        if (this._lights[i].id === id) {
+            this._lights[i].setFlaring(flaringMin, flaringChangeDuration);
+        }
+    }
+};
+
+NB_LightingManager.prototype.stopLightsFlaring = function(id, stopDuration) {
+    for (var i = 0; i < this._lights.length; i++) {
+        if (this._lights[i].id === id) {
+            this._lights[i].stopFlaring(stopDuration);
         }
     }
 };
