@@ -213,7 +213,7 @@
         this._lighting = new NB_LightMap($gameMap.getLightingManager());
         this._baseSprite.addChild(this._lighting.layerSprite());
         
-        console.log('Spriteset_Map created');
+        //console.log('Spriteset_Map created');
     };
     
     aliases.Spriteset_Map_update = Spriteset_Map.prototype.update;
@@ -226,7 +226,7 @@
     Game_Map.prototype.setup = function(mapId) {
         aliases.Game_Map_setup.call(this, mapId);
         this._lightingManager = new NB_LightingManager();
-        console.log('Game_Map setup: ' + mapId);
+        //console.log('Game_Map setup: ' + mapId);
     };
     
     aliases.Game_Map_update = Game_Map.prototype.update;
@@ -251,7 +251,7 @@
     SceneManager.snap = function() {
         if (this._scene instanceof Scene_Map) {
             this._scene._spriteset._lighting._layerSprite.visible = false;
-            console.log('Escaped from Scene_Map!');
+            //console.log('Escaped from Scene_Map!');
         }
         return aliases.SceneManager_static_snap.call(this);
     };
@@ -479,17 +479,14 @@ NB_Light.prototype._updateFlaring = function() {
             this._flaringChangeDuration--;
         }
         if (this._flaringChangeDuration == 0) {
-            console.log('direction change!');
             this._flaringChangeDuration = this._flaringChangeDurationOriginal;
             this._flaringShrink = !this._flaringShrink;
         }
-        console.log(this._flaringState);
     } else {
         if (this._flaringChangeDuration > 0) {
             var d = this._flaringChangeDuration;
             this._flaringState = (this._flaringState * (d - 1) + 100) / d;
             this._flaringChangeDuration--;
-            console.log('s: ' + this._flaringState);
         }
     }
 };
