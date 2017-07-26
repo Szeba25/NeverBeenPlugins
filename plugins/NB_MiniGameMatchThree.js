@@ -102,10 +102,10 @@
         
         this._createSounds();
         this._loadBitmaps();
-        this._board = new Sprite(ImageManager.loadInterfaceElement(this._path, 'board', 0));
+        this._board = new Sprite(ImageManager.loadInterfaceElement(this._path, 'board'));
         this._board.x = 90;
         this._board.y = 90;
-        this._selectionSprite = new Sprite(ImageManager.loadInterfaceElement(this._path, 'selection', 0));
+        this._selectionSprite = new Sprite(ImageManager.loadInterfaceElement(this._path, 'selection'));
         this._selectionSprite.anchor.x = 0.5;
         this._selectionSprite.anchor.y = 0.5;
         
@@ -228,12 +228,12 @@
         // Bitmaps
         this._objectBitmaps = [];
         for (var i = 0; i < 4; i++) {
-            this._objectBitmaps.push(ImageManager.loadInterfaceElement(this._path, 'shell'+i, 0));
+            this._objectBitmaps.push(ImageManager.loadInterfaceElement(this._path, 'shell'+i));
         }
-        this._objectBitmaps.push(ImageManager.loadInterfaceElement(this._path, 'stone', 0));
-        this._progressBarBitmap = ImageManager.loadInterfaceElement(this._path, 'progress_bar', 0);
-        this._progressBarBitmapGray = ImageManager.loadInterfaceElement(this._path, 'progress_bar_gray', 0);
-        this._progressBarBorderBitmap = ImageManager.loadInterfaceElement(this._path, 'progress_bar_border', 0);
+        this._objectBitmaps.push(ImageManager.loadInterfaceElement(this._path, 'stone'));
+        this._progressBarBitmap = ImageManager.loadInterfaceElement(this._path, 'progress_bar');
+        this._progressBarBitmapGray = ImageManager.loadInterfaceElement(this._path, 'progress_bar_gray');
+        this._progressBarBorderBitmap = ImageManager.loadInterfaceElement(this._path, 'progress_bar_border');
     };
     
     NB_MiniGameMatchThree.prototype._redrawScores = function() {

@@ -50,7 +50,7 @@
         this._finished = false;
         this._pieces = [];
         for (var i = 1; i <= 14; i++) {
-            var sprite = new Sprite(ImageManager.loadInterfaceElement('minigames/combine/' + graphicsFolder + '/', ''+i, 0));
+            var sprite = new Sprite(ImageManager.loadInterfaceElement('minigames/combine/' + graphicsFolder + '/', ''+i));
             sprite.opacity = 0;
             obj = {};
             obj['id'] = i;
@@ -78,7 +78,7 @@
         this._setTo(this._pieces[11], 0, 2);
         this._setTo(this._pieces[12], 3, 0);
         this._setTo(this._pieces[13], 2, 1);
-        this._finishedSprite = new Sprite(ImageManager.loadInterfaceElement('minigames/combine/' + graphicsFolder + '/', 'finished', 0));
+        this._finishedSprite = new Sprite(ImageManager.loadInterfaceElement('minigames/combine/' + graphicsFolder + '/', 'finished'));
         this._finishedSprite.opacity = 0;
         this._solveWait = 80;
         this._finishedWaitCount = 240;

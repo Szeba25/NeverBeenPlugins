@@ -68,7 +68,7 @@
     
     NB_Interface_MainMenu.prototype._createGraphics = function() {
         this._pergamenMark = new Sprite();
-        this._pergamenMark.bitmap = ImageManager.loadInterfaceElement('menu_1/', '0', 0);
+        this._pergamenMark.bitmap = ImageManager.loadInterfaceElement('menu_1/', '0');
         this._pergamenMark.opacity = 0;
         this.addChild(this._pergamenMark);
     };
@@ -254,11 +254,11 @@
     };
     
     NB_Interface_CharMenu.prototype._loadBars = function() {
-        this.bar = ImageManager.loadInterfaceElement('menu_1/', 'bar', 0);
-        this.bar_hp = ImageManager.loadInterfaceElement('menu_1/', 'bar_hp', 0);
-        this.bar_mp = ImageManager.loadInterfaceElement('menu_1/', 'bar_mp', 0);
-        this.bar_def = ImageManager.loadInterfaceElement('menu_1/', 'bar_def', 0);
-        this.bar_atk = ImageManager.loadInterfaceElement('menu_1/', 'bar_atk', 0);
+        this.bar = ImageManager.loadInterfaceElement('menu_1/', 'bar');
+        this.bar_hp = ImageManager.loadInterfaceElement('menu_1/', 'bar_hp');
+        this.bar_mp = ImageManager.loadInterfaceElement('menu_1/', 'bar_mp');
+        this.bar_def = ImageManager.loadInterfaceElement('menu_1/', 'bar_def');
+        this.bar_atk = ImageManager.loadInterfaceElement('menu_1/', 'bar_atk');
     };
     
     NB_Interface_CharMenu.prototype._setupButtons = function() {
@@ -320,7 +320,7 @@
             var bio = actorData.note.split(/\r?\n/);
             var bmp = this._characterInfo.bitmap;
             // Set face
-            this._characterFace.bitmap = ImageManager.loadInterfaceElement('menu_1/chars/', 'face'+actor.actorId(), 0);
+            this._characterFace.bitmap = ImageManager.loadInterfaceElement('menu_1/chars/', 'face'+actor.actorId());
             this._characterFace.opacity = 0;
             this._characterFace.x = 315;
             this._characterFaceFadeOpacity = 0;
@@ -373,12 +373,12 @@
     
     NB_Interface_CharMenu.prototype._createTitle = function() {
         this._title1 = new Sprite();
-        this._title1.bitmap = ImageManager.loadInterfaceElement('menu_1/', '11', 0);
+        this._title1.bitmap = ImageManager.loadInterfaceElement('menu_1/', '11');
         this._title1.x = 165;
         this._title1.y = 40;
         this._title1.opacity = 0;
         this._title2 = new Sprite();
-        this._title2.bitmap = ImageManager.loadInterfaceElement('menu_1/', '12', 0);
+        this._title2.bitmap = ImageManager.loadInterfaceElement('menu_1/', '12');
         this._title2.x = 165;
         this._title2.y = 40;
         this._title2.opacity = 0;
@@ -390,11 +390,11 @@
     
     NB_Interface_CharMenu.prototype._createLines = function() {
         this._line1 = new Sprite();
-        this._line1.bitmap = ImageManager.loadInterfaceElement('menu_1/', 'line1', 0);
+        this._line1.bitmap = ImageManager.loadInterfaceElement('menu_1/', 'line1');
         this._line1.x = 350;
         this._line1.opacity = 0;
         this._line2 = new Sprite();
-        this._line2.bitmap = ImageManager.loadInterfaceElement('menu_1/', 'line2', 0);
+        this._line2.bitmap = ImageManager.loadInterfaceElement('menu_1/', 'line2');
         this._line2.x = 118;
         this._line2.y = 68;
         this._line2.opacity = 0;
@@ -498,7 +498,7 @@
         this._exit = false;
         this._masterOpacity = 0;
         
-        this._line = new Sprite(ImageManager.loadInterfaceElement('menu_1/', 'line1', 0));
+        this._line = new Sprite(ImageManager.loadInterfaceElement('menu_1/', 'line1'));
         this._line.x = 350
         this._line.opacity = 0;
         this.addChild(this._line);

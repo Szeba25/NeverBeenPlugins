@@ -13,7 +13,7 @@
     var aliases = {};
     
     ImageManager.loadLight = function(filename) {
-        return this.loadBitmap('img/lights/', filename, 0, true);  
+        return this.loadBitmap('img/lights/', filename, 0, true);
     };
     
     /*********************************************
@@ -106,6 +106,27 @@
     };
     
     /*********************************************
+     * Load the shared lightingData on startup
+     *********************************************/
+    
+    var lightingData = {};
+    lightingData.lightMap = null;
+    lightingData.filter = null;
+    
+    SceneManager._loadLightingData = function() {
+        lightingData.lightMap = new PIXI.RenderTexture.create(Graphics.width, Graphics.height);
+        lightingData.filter = new NB_LightingFilter();
+        lightingData.filter.setResolution(Graphics.width, Graphics.height);
+        lightingData.filter.blendMode = PIXI.BLEND_MODES.NB_LIGHTING;
+    }
+    
+    aliases.SceneManager_static_initialize = SceneManager.initialize;
+    SceneManager.initialize = function() {
+        aliases.SceneManager_static_initialize.call(this);
+        this._loadLightingData();
+    };
+    
+    /*********************************************
      * The main lighting layer
      *********************************************/
     
@@ -116,22 +137,17 @@
     NB_Lighting.prototype.initialize = function() {
         this._lights = [];
         this._layer = new PIXI.Container();
-        this._lightMap = new PIXI.RenderTexture.create(Graphics.width, Graphics.height);
-        this._filter = new NB_LightingFilter();
-        this._filter.setResolution(Graphics.width, Graphics.height);
-        this._filter.blendMode = PIXI.BLEND_MODES.NB_LIGHTING;
-        this._layerSprite = new NB_Sprite(this._lightMap);
-        this._layerSprite.setFilter(this._filter);
-    };
-    
-    NB_Lighting.prototype.addLight = function(spriteLight) {
-        this._lights.push(spriteLight);
-        this._layer.addChild(spriteLight);
+        this._layerSprite = new NB_Sprite(lightingData.lightMap);
+        this._layerSprite.setFilter(lightingData.filter);
     };
     
     NB_Lighting.prototype.update = function() {
-        this._filter.setAmbientLight(40);
-        Graphics._renderer.render(this._layer, this._lightMap);
+        lightingData.filter.setAmbientLight(100);
+        Graphics._renderer.render(this._layer, lightingData.lightMap);
+    };
+    
+    NB_Lighting.prototype.layerSprite = function() {
+        return this._layerSprite;
     };
     
     /*********************************************
@@ -143,30 +159,25 @@
         aliases.Spriteset_Map_createLowerLayer.call(this);
         
         this._lighting = new NB_Lighting();
-        
-        this.sprite1 = new Sprite(ImageManager.loadLight('light_nb'));
-        this.sprite1.blendMode = PIXI.BLEND_MODES.NB_LIGHT;
-        this.sprite2 = new Sprite(ImageManager.loadLight('light_nb'));
-        this.sprite2.blendMode = PIXI.BLEND_MODES.NB_LIGHT;
-        this.sprite3 = new Sprite(ImageManager.loadLight('red'));
-        this.sprite3.blendMode = PIXI.BLEND_MODES.NB_LIGHT;
-        this.sprite2.x = 100;
-        this.sprite2.y = 95;
-        this.sprite3.x = 120;
-        this.sprite3.y = 300;
-        this._lighting.addLight(this.sprite1);
-        this._lighting.addLight(this.sprite2);
-        this._lighting.addLight(this.sprite3);
-        
-        this._baseSprite.addChild(this._lighting._layerSprite);
+        this._baseSprite.addChild(this._lighting.layerSprite());
     };
     
     aliases.Spriteset_Map_update = Spriteset_Map.prototype.update;
     Spriteset_Map.prototype.update = function() {
         aliases.Spriteset_Map_update.call(this);
-        this.sprite1.x = $gamePlayer.screenX()-300;
-        this.sprite1.y = $gamePlayer.screenY()-300;
         this._lighting.update();
+    };
+    
+    /*********************************************
+     * Fix for snapshots
+     *********************************************/
+    
+    aliases.SceneManager_static_snap = SceneManager.snap;
+    SceneManager.snap = function() {
+        if (this._scene instanceof Scene_Map) {
+            console.log('got it!!!');
+        }
+        return aliases.SceneManager_static_snap.call(this);
     };
     
 })();

@@ -3,190 +3,21 @@
 //=============================================================================
 
 /*:
- * @plugindesc Interface base objects
+ * @plugindesc Interface base objects.
  * All other UI scripts will be based on this plugin.
  * @author Scalytank
+ *
+ * @help DEPENDENCY:
+ * > NB_Mouse.js
  */
 
-(function() {
- 
-    var aliases = {};
-    document.body.style.cursor = 'none';
-    
-    /*********************************************
-     * Mouse position getters
-     *********************************************/
-    
-    Object.defineProperty(TouchInput, 'ncx', {
-        get: function() {
-            return Graphics.pageToCanvasX(this._ncx);
-        },
-        configurable: true
-    });
-    
-    Object.defineProperty(TouchInput, 'ncy', {
-        get: function() {
-            return Graphics.pageToCanvasY(this._ncy);
-        },
-        configurable: true
-    });
-    
-    aliases.TouchInput_static_onMouseMove = TouchInput._onMouseMove;
-    TouchInput._onMouseMove = function(event) {
-        aliases.TouchInput_static_onMouseMove.call(event);
-        TouchInput._ncx = event.pageX;
-        TouchInput._ncy = event.pageY;
-    };
-    
-    TouchInput.insideRegion = function(x, y, w, h) {
-        return (TouchInput.ncx > x && TouchInput.ncx < x + w &&
-                TouchInput.ncy > y && TouchInput.ncy < y + h);
-    };
+/*********************************************
+ * Interface graphics loader
+ *********************************************/
 
-    /*********************************************
-     * Better destination
-     *********************************************/
-    
-    // Override!
-    Sprite_Destination.prototype.createBitmap = function() {
-        var tileWidth = $gameMap.tileWidth();
-        var tileHeight = $gameMap.tileHeight();
-        this.bitmap = new Bitmap(tileWidth, tileHeight);
-        this.bitmap.drawCircle(tileWidth/2, tileHeight/2, 15,'white');
-        this.anchor.x = 0.5;
-        this.anchor.y = 0.5;
-        this.blendMode = Graphics.BLEND_ADD;
-    };
-    
-    // Override!
-    Sprite_Destination.prototype.updateAnimation = function() {
-        this._frameCount++;
-        this._frameCount %= 40;
-        this.opacity = (40 - this._frameCount) * 2;
-        this.scale.x = 1 + this._frameCount / 40;
-        this.scale.y = this.scale.x;
-    };
-    
-    /*********************************************
-     * Interface graphics loader
-     *********************************************/
-    
-    ImageManager.loadInterfaceElement = function(subpath, filename, hue) {
-        return this.loadBitmap('img/interface/' + subpath, filename, hue, true);
-    };
-    
-    /*********************************************
-     * Remove snapping completely...
-     *********************************************/
-    
-    // Override!
-    SceneManager.snapForBackground = function() {
-        this._backgroundBitmap = null;
-    };
-    
-    /*********************************************
-     * Mouse stuff
-     *********************************************/
-    
-    var mouseActive = false;
-    var mouseX = TouchInput.ncx;
-    var mouseY = TouchInput.ncy;
-    
-    aliases.Scene_Base_initialize = Scene_Base.prototype.initialize;
-    Scene_Base.prototype.initialize = function() {
-        aliases.Scene_Base_initialize.call(this);
-        this._mouseAvailable = false;
-        this._mouse = null;
-        this._mouseLight = null;
-    }
-    
-    Scene_Base.prototype.addMouse = function() {
-        this._mouseAvailable = true;
-        this._mouse = new Sprite();
-        this._mouse.bitmap = ImageManager.loadInterfaceElement('', 'cursor', 0);
-        this._mouseLight = new Sprite();
-        this._mouseLight.bitmap = ImageManager.loadInterfaceElement('', 'cursor_light', 0);
-        
-        mouseX = TouchInput.ncx;
-        mouseY = TouchInput.ncy;
-        this._mouse.x = mouseX;
-        this._mouse.y = mouseY;
-        this._mouseLight.x = mouseX;
-        this._mouseLight.y = mouseY;
-        
-        if (mouseActive) {
-            this._mouse.visible = true;
-            this._mouseLight.visible = true;
-            this._mouseLight.opacity = 0;
-        } else {
-            this._mouse.visible = false;
-            this._mouseLight.visible = false;
-            this._mouseLight.opacity = 0;
-        }
-        
-        this.addChild(this._mouse);
-        this.addChild(this._mouseLight);
-    };
-    
-    Scene_Base.prototype.updateMouse = function() {
-        if (Input.isTriggered('up') || Input.isTriggered('down')) {
-            mouseActive = false;
-            this._mouse.visible = false;
-            this._mouseLight.visible = false;
-            this._mouseLight.opacity = 0;
-        } else {
-            if (mouseX != TouchInput.ncx || mouseY != TouchInput.ncy) {
-                mouseActive = true;
-                mouseX = TouchInput.ncx;
-                mouseY = TouchInput.ncy;
-                this._mouse.x = mouseX;
-                this._mouse.y = mouseY;
-                this._mouseLight.x = mouseX;
-                this._mouseLight.y = mouseY;
-                this._mouse.visible = true;
-                this._mouseLight.visible = true;
-            }
-        }
-        if (TouchInput.isPressed()) {
-            this._mouseLight.opacity = 255;
-        } else {
-            if (this._mouseLight.opacity > 0) this._mouseLight.opacity -= 15;
-        }
-    };
-    
-    Scene_Base.prototype.isMouseActive = function() {
-        return mouseActive;
-    };
-    
-    Scene_Base.prototype.deactivateMouse = function() {
-        if (this._mouseAvailable) {
-            mouseActive = false;
-            this._mouse.visible = false;
-            this._mouseLight.visible = false;
-        }
-    };
-    
-    Scene_Base.prototype.activateMouse = function() {
-        if (this._mouseAvailable) {
-            mouseActive = true;
-            this._mouse.visible = true;
-            this._mouseLight.visible = true;
-        }
-    };
-    
-    aliases.Scene_Map_createDisplayObjects = Scene_Map.prototype.createDisplayObjects;
-    Scene_Map.prototype.createDisplayObjects = function() {
-        aliases.Scene_Map_createDisplayObjects.call(this);
-        this.addMouse();
-    };
-    
-    aliases.Scene_Map_update = Scene_Map.prototype.update;
-    Scene_Map.prototype.update = function() {
-        aliases.Scene_Map_update.call(this);
-        this.updateMouse();
-    };
-    
-})();
+ImageManager.loadInterfaceElement = function(subpath, filename) {
+    return this.loadBitmap('img/interface/' + subpath, filename, 0, true);
+};
 
 /****************************************************************
  * The base of all never been interface scenes!
@@ -207,7 +38,7 @@ NB_Interface.prototype.initialize = function() {
     Scene_Base.prototype.initialize.call(this);
     /** MEMBER VARIABLES
         _enterComplete
-        _backgroundSpriteset
+        _backgroundSprite
         _backgroundTint
         _pergamen
     */
@@ -223,17 +54,15 @@ NB_Interface.prototype.create = function() {
 
 NB_Interface.prototype.createBackground = function() {
     // Create all the background graphics
-    this._backgroundSpriteset = new Spriteset_Map();
+    this._backgroundSprite = new Sprite(SceneManager.backgroundBitmap());
     
-    this._backgroundTint = new Sprite();
-    this._backgroundTint.bitmap = new Bitmap(Graphics.width, Graphics.height);
+    this._backgroundTint = new Sprite(new Bitmap(Graphics.width, Graphics.height));
     this._backgroundTint.bitmap.fillAll('#240F00');
     this._backgroundTint.opacity = 130;
     
-    this._pergamen = new Sprite();
-    this._pergamen.bitmap = ImageManager.loadInterfaceElement('menu_1/', '13', 0);
+    this._pergamen = new Sprite(ImageManager.loadInterfaceElement('menu_1/', '13'));
     
-    this.addChild(this._backgroundSpriteset);
+    this.addChild(this._backgroundSprite);
     this.addChild(this._backgroundTint);
     this.addChild(this._pergamen);
 };
@@ -340,8 +169,8 @@ NB_Button.prototype.initialize = function(bkgPath, bkg, lightPath, light, text, 
         this._light.bitmap.blt(this._graphics.bitmap, 0, 0, w, h, 0, 0, w, h);
         this._light.filters = [NB_Button.blurFilter];
     } else {
-        this._graphics.bitmap = ImageManager.loadInterfaceElement(bkgPath, bkg, 0);
-        this._light.bitmap = ImageManager.loadInterfaceElement(lightPath, light, 0);
+        this._graphics.bitmap = ImageManager.loadInterfaceElement(bkgPath, bkg);
+        this._light.bitmap = ImageManager.loadInterfaceElement(lightPath, light);
     }
     
     this._x = x;
