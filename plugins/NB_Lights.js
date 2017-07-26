@@ -38,9 +38,9 @@
      *********************************************/
     
     var filtersSource = {};
-    filtersSource.VERTEX_GENERAL = "\n\n  attribute vec2 aVertexPosition;\n  attribute vec2 aTextureCoord;\n  \n  varying vec2 vTextureCoord;\n  \n  uniform mat3 projectionMatrix;\n  \n  void main(void) {\n    vTextureCoord = aTextureCoord;\n    gl_Position = vec4((projectionMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);\n  }\n";
-    filtersSource.VERTEX_FLIP_Y = "\n\n  attribute vec2 aVertexPosition;\n  attribute vec2 aTextureCoord;\n\n  varying vec2 vTextureCoord;\n  varying float flipY;\n\n  uniform mat3 projectionMatrix;\n\n  void main(void) {\n    flipY = projectionMatrix[1][1] < 0.0 ? 1.0 : 0.0;\n    vTextureCoord = aTextureCoord;\n    gl_Position = vec4((projectionMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);\n  }\n";
-    filtersSource.FRAGMENT_LIGHTING = "\n  varying vec2 vTextureCoord;\n\n  uniform vec2 screenResolution;\n  uniform sampler2D uSampler;\n  uniform float ambientLight;\n\n  void main(void) {\n    vec4 light = texture2D(uSampler, vTextureCoord);\n    gl_FragColor = light + vec4(ambientLight);\n  }\n";
+    filtersSource.VERTEX_GENERAL = '\n\n  attribute vec2 aVertexPosition;\n  attribute vec2 aTextureCoord;\n  \n  varying vec2 vTextureCoord;\n  \n  uniform mat3 projectionMatrix;\n  \n  void main(void) {\n    vTextureCoord = aTextureCoord;\n    gl_Position = vec4((projectionMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);\n  }\n';
+    filtersSource.VERTEX_FLIP_Y = '\n\n  attribute vec2 aVertexPosition;\n  attribute vec2 aTextureCoord;\n\n  varying vec2 vTextureCoord;\n  varying float flipY;\n\n  uniform mat3 projectionMatrix;\n\n  void main(void) {\n    flipY = projectionMatrix[1][1] < 0.0 ? 1.0 : 0.0;\n    vTextureCoord = aTextureCoord;\n    gl_Position = vec4((projectionMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);\n  }\n';
+    filtersSource.FRAGMENT_LIGHTING = '\n  varying vec2 vTextureCoord;\n\n  uniform vec2 screenResolution;\n  uniform sampler2D uSampler;\n  uniform float ambientLight;\n\n  void main(void) {\n    vec4 light = texture2D(uSampler, vTextureCoord);\n    gl_FragColor = light + vec4(ambientLight);\n  }\n';
     
     function NB_Filter() {
         this.initialize.apply(this, arguments);
@@ -324,19 +324,22 @@
                 }
                 break;
             case 'lights_change_intensity':
-                var id = parseInt(args[0]);
+                var id = null;
+                if (args[0] !== 'all') id = parseInt(args[0]);
                 var intensityTarget = percentToAlpha(parseInt(args[1]));
                 var intensityChangeDuration = parseInt(args[2]);
                 $gameMap.getLightingManager().changeLightsIntensity(id, intensityTarget, intensityChangeDuration);
                 break;
             case 'lights_set_flaring':
-                var id = parseInt(args[0]);
+                var id = null;
+                if (args[0] !== 'all') id = parseInt(args[0]);
                 var flaringMin = parseInt(args[1]);
                 var flaringChangeDuration = parseInt(args[2]);
                 $gameMap.getLightingManager().setLightsFlaring(id, flaringMin, flaringChangeDuration);
                 break;
             case 'lights_stop_flaring':
-                var id = parseInt(args[0]);
+                var id = null;
+                if (args[0] !== 'all') id = parseInt(args[0]);
                 var stopDuration = parseInt(args[1]);
                 $gameMap.getLightingManager().stopLightsFlaring(id, stopDuration);
                 break;
@@ -534,7 +537,7 @@ NB_LightingManager.prototype.addLight = function(light) {
 
 NB_LightingManager.prototype.changeLightsIntensity = function(id, intensityTarget, intensityChangeDuration) {
     for (var i = 0; i < this._lights.length; i++) {
-        if (this._lights[i].id === id) {
+        if (id === null || this._lights[i].id === id) {
             this._lights[i].setIntensityTarget(intensityTarget, intensityChangeDuration);
         }
     }
@@ -542,7 +545,7 @@ NB_LightingManager.prototype.changeLightsIntensity = function(id, intensityTarge
 
 NB_LightingManager.prototype.setLightsFlaring = function(id, flaringMin, flaringChangeDuration) {
     for (var i = 0; i < this._lights.length; i++) {
-        if (this._lights[i].id === id) {
+        if (id === null || this._lights[i].id === id) {
             this._lights[i].setFlaring(flaringMin, flaringChangeDuration);
         }
     }
@@ -550,7 +553,7 @@ NB_LightingManager.prototype.setLightsFlaring = function(id, flaringMin, flaring
 
 NB_LightingManager.prototype.stopLightsFlaring = function(id, stopDuration) {
     for (var i = 0; i < this._lights.length; i++) {
-        if (this._lights[i].id === id) {
+        if (id === null || this._lights[i].id === id) {
             this._lights[i].stopFlaring(stopDuration);
         }
     }
