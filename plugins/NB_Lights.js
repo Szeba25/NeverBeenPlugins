@@ -269,23 +269,28 @@
      * Plugin commands
      *********************************************/
     
+    function percentToAlpha(percent) {
+        return (percent / 100) * 255;
+    }
+    
     aliases.Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
     Game_Interpreter.prototype.pluginCommand = function(command, args) {
         aliases.Game_Interpreter_pluginCommand.call(this, command, args);
         switch (command) {
             case 'lights_set_ambient':
-                $gameMap.getLightingManager().changeAmbient(parseInt(args[0]), parseInt(args[1]));
+                var brightness = 100 - parseInt(args[0]);
+                $gameMap.getLightingManager().changeAmbient(brightness, parseInt(args[1]));
                 break;
             case 'lights_add_to_map':
                 var id = parseInt(args[0]);
                 var x = parseInt(args[1]);
                 var y = parseInt(args[2]);
                 var name = args[3];
-                var intensity = parseInt(args[4]);
+                var intensity = percentToAlpha(parseInt(args[4]));
                 var light = new NB_Light(id, null, x, y, name, intensity);
                 $gameMap.getLightingManager().addLight(light);
                 if (args.length == 7) {
-                    var intensityTarget = parseInt(args[5]);
+                    var intensityTarget = percentToAlpha(parseInt(args[5]));
                     var intensityChangeDuration = parseInt(args[6]);
                     light.setIntensityTarget(intensityTarget, intensityChangeDuration);
                 }
@@ -294,11 +299,11 @@
                 var id = parseInt(args[0]);
                 var event = $gameMap.event(parseInt(args[1]));
                 var name = args[2];
-                var intensity = parseInt(args[3]);
+                var intensity = percentToAlpha(parseInt(args[3]));
                 var light = new NB_Light(id, event, 0, 0, name, intensity);
                 $gameMap.getLightingManager().addLight(light);
                 if (args.length == 6) {
-                    var intensityTarget = parseInt(args[4]);
+                    var intensityTarget = percentToAlpha(parseInt(args[4]));
                     var intensityChangeDuration = parseInt(args[5]);
                     light.setIntensityTarget(intensityTarget, intensityChangeDuration);
                 }
@@ -306,20 +311,20 @@
             case 'lights_add_to_player':
                 var id = parseInt(args[0]);
                 var name = args[1];
-                var intensity = args[2];
+                var intensity = percentToAlpha(parseInt(args[2]));
                 var light = new NB_Light(id, $gamePlayer, 0, 0, name, intensity);
                 $gameMap.getLightingManager().addLight(light);
                 if (args.length == 5) {
-                    var intensityTarget = parseInt(args[3]);
+                    var intensityTarget = percentToAlpha(parseInt(args[3]));
                     var intensityChangeDuration = parseInt(args[4]);
                     light.setIntensityTarget(intensityTarget, intensityChangeDuration);
                 }
                 break;
             case 'lights_change':
                 var id = parseInt(args[0]);
-                var intensityTarget = parseInt(args[1]);
+                var intensityTarget = percentToAlpha(parseInt(args[1]));
                 var intensityChangeDuration = parseInt(args[2]);
-                $gameMap.getLightingManager().changeLight(id, intensityTarget, intensityChangeDuration);
+                $gameMap.getLightingManager().changeLights(id, intensityTarget, intensityChangeDuration);
                 break;
         }
     };
@@ -457,7 +462,7 @@ NB_LightingManager.prototype.addLight = function(light) {
     this._lights.push(light);
 };
 
-NB_LightingManager.prototype.changeLight = function(id, intensityTarget, intensityChangeDuration) {
+NB_LightingManager.prototype.changeLights = function(id, intensityTarget, intensityChangeDuration) {
     for (var i = 0; i < this._lights.length; i++) {
         if (this._lights[i].id === id) {
             this._lights[i].setIntensityTarget(intensityTarget, intensityChangeDuration);
