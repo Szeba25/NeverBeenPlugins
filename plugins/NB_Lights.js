@@ -42,8 +42,9 @@
  * - lights_change_basesize [id] [baseSizeTarget%] [baseSizeChangeDuration]
  *   id can be set to 'all' to affect all lights
  *
- * - lights_set_flaring [id] [flaringMin%] [flaringChangeDuration]
+ * - lights_set_flaring [id] [flaringMin%] [flaringChangeDuration] [affectsIntensity|]
  *   id can be set to 'all' to affect all lights
+ *   affectsIntensity is a boolean variable, true/false values are accepted!
  *
  * - lights_stop_flaring [id] [stopDuration]
  *   id can be set to 'all' to affect all lights
@@ -188,7 +189,7 @@
     NB_LightSprite.prototype.sync = function() {
         this.x = this._lightData.x;
         this.y = this._lightData.y;
-        this.opacity = this._lightData.intensity;
+        this.opacity = this._lightData.opacity;
         this.scale.x = this._lightData.scale;
         this.scale.y = this._lightData.scale;
     };
@@ -308,11 +309,6 @@
      * Plugin commands
      *********************************************/
     
-    function percentToAlpha(percent) {
-        var alpha = (percent / 100) * 255;
-        return alpha;
-    }
-    
     aliases.Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
     Game_Interpreter.prototype.pluginCommand = function(command, args) {
         aliases.Game_Interpreter_pluginCommand.call(this, command, args);
@@ -326,7 +322,7 @@
                 var x = parseInt(args[1]);
                 var y = parseInt(args[2]);
                 var name = args[3];
-                var intensity = percentToAlpha(parseInt(args[4]));
+                var intensity = parseInt(args[4]);
                 var light = new NB_Light(id, null, x, y, name, intensity);
                 $gameMap.getLightingManager().addLight(light);
                 if (args.length >= 6) {
@@ -334,7 +330,7 @@
                     light.setBaseSize(baseSize);
                 }
                 if (args.length == 8) {
-                    var intensityTarget = percentToAlpha(parseInt(args[6]));
+                    var intensityTarget = parseInt(args[6]);
                     var intensityChangeDuration = parseInt(args[7]);
                     light.setIntensityTarget(intensityTarget, intensityChangeDuration);
                 }
@@ -343,7 +339,7 @@
                 var id = parseInt(args[0]);
                 var event = $gameMap.event(parseInt(args[1]));
                 var name = args[2];
-                var intensity = percentToAlpha(parseInt(args[3]));
+                var intensity = parseInt(args[3]);
                 var light = new NB_Light(id, event, 0, 0, name, intensity);
                 $gameMap.getLightingManager().addLight(light);
                 if (args.length >= 5) {
@@ -351,7 +347,7 @@
                     light.setBaseSize(baseSize);
                 }
                 if (args.length == 7) {
-                    var intensityTarget = percentToAlpha(parseInt(args[5]));
+                    var intensityTarget = parseInt(args[5]);
                     var intensityChangeDuration = parseInt(args[6]);
                     light.setIntensityTarget(intensityTarget, intensityChangeDuration);
                 }
@@ -359,7 +355,7 @@
             case 'lights_add_to_player':
                 var id = parseInt(args[0]);
                 var name = args[1];
-                var intensity = percentToAlpha(parseInt(args[2]));
+                var intensity = parseInt(args[2]);
                 var light = new NB_Light(id, $gamePlayer, 0, 0, name, intensity);
                 $gameMap.getLightingManager().addLight(light);
                 if (args.length >= 4) {
@@ -367,7 +363,7 @@
                     light.setBaseSize(baseSize);
                 }
                 if (args.length == 6) {
-                    var intensityTarget = percentToAlpha(parseInt(args[4]));
+                    var intensityTarget = parseInt(args[4]);
                     var intensityChangeDuration = parseInt(args[5]);
                     light.setIntensityTarget(intensityTarget, intensityChangeDuration);
                 }
@@ -375,7 +371,7 @@
             case 'lights_change_intensity':
                 var id = null;
                 if (args[0] !== 'all') id = parseInt(args[0]);
-                var intensityTarget = percentToAlpha(parseInt(args[1]));
+                var intensityTarget = parseInt(args[1]);
                 var intensityChangeDuration = parseInt(args[2]);
                 $gameMap.getLightingManager().changeLightsIntensity(id, intensityTarget, intensityChangeDuration);
                 break;
@@ -391,7 +387,8 @@
                 if (args[0] !== 'all') id = parseInt(args[0]);
                 var flaringMin = parseInt(args[1]);
                 var flaringChangeDuration = parseInt(args[2]);
-                $gameMap.getLightingManager().setLightsFlaring(id, flaringMin, flaringChangeDuration);
+                var affectsIntensity = (args[3] == 'true');
+                $gameMap.getLightingManager().setLightsFlaring(id, flaringMin, flaringChangeDuration, affectsIntensity);
                 break;
             case 'lights_stop_flaring':
                 var id = null;
@@ -442,9 +439,13 @@ Object.defineProperty(NB_Light.prototype, 'name', {
     configurable: false
 });
 
-Object.defineProperty(NB_Light.prototype, 'intensity', {
+Object.defineProperty(NB_Light.prototype, 'opacity', {
     get: function() {
-        return this._intensity;
+        if (this._flaringAffectsIntensity) {
+            return ((this._intensity * this._flaringState) / 10000) * 255;
+        } else {
+            return (this._intensity / 100) * 255;
+        }
     },
     configurable: false
 });
@@ -486,6 +487,7 @@ NB_Light.prototype.initialize = function(id, character, x, y, name, intensity) {
     this._flaringChangeDuration = 0;
     this._flaringShrink = true;
     this._flaringState = 100;
+    this._flaringAffectsIntensity = false;
     this._addedToLightMap = false;
 };
 
@@ -505,12 +507,13 @@ NB_Light.prototype.setBaseSizeTarget = function(value, duration) {
     this._baseSizeChangeDuration = duration;
 };
 
-NB_Light.prototype.setFlaring = function(min, duration) {
+NB_Light.prototype.setFlaring = function(min, duration, affects) {
     this._flaring = true;
     this._flaringMin = min;
     this._flaringChangeDurationOriginal = duration;
     this._flaringChangeDuration = duration;
     this._flaringShrink = true;
+    this._flaringAffectsIntensity = affects;
 };
 
 NB_Light.prototype.stopFlaring = function(duration) {
@@ -631,10 +634,10 @@ NB_LightingManager.prototype.changeLightsBaseSize = function(id, baseSizeTarget,
     }
 };
 
-NB_LightingManager.prototype.setLightsFlaring = function(id, flaringMin, flaringChangeDuration) {
+NB_LightingManager.prototype.setLightsFlaring = function(id, flaringMin, flaringChangeDuration, affectsIntensity) {
     for (var i = 0; i < this._lights.length; i++) {
         if (id === null || this._lights[i].id === id) {
-            this._lights[i].setFlaring(flaringMin, flaringChangeDuration);
+            this._lights[i].setFlaring(flaringMin, flaringChangeDuration, affectsIntensity);
         }
     }
 };
