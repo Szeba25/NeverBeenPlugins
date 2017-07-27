@@ -192,6 +192,13 @@
         this.opacity = this._lightData.opacity;
         this.scale.x = this._lightData.scale;
         this.scale.y = this._lightData.scale;
+        // Make the sprite disappear if opacity is zero!
+        if (this.opacity === 0 && this.visible) {
+            this.visible = false;
+        }
+        if (this.opacity > 0 && !this.visible) {
+            this.visible = true;
+        }
     };
     
     /*********************************************
