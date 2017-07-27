@@ -6,6 +6,19 @@
  * @plugindesc Adds a fast lighting layer.
  * @author Khas / Scalytank
  * @help All credit goes to Khas, this plugin is based on his Advanced Lighting.
+ * The shader code, and rendering logic, which is the most important part
+ * of this plugin comes from Khas. The lighting management system is redesigned
+ * totally, to match the needs for this project.
+ * 
+ * Social Media:
+ * Blog: arcthunder.blogspot.com
+ * Patreon: patreon.com/khas
+ * Facebook: facebook.com/khasarc
+ * Twitter: twitter.com/arcthunder
+ * Youtube: youtube.com/c/khasarc
+ *
+ * Script Source:
+ * forums.rpgmakerweb.com/index.php?/forum/132-khas-scripts
  *
  * DEPENDENCY:
  * > NB_SmoothCamera.js
