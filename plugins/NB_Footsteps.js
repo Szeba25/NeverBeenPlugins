@@ -40,7 +40,7 @@
     aliases.Game_CharacterBase_updatePattern = Game_CharacterBase.prototype.updatePattern;
     Game_CharacterBase.prototype.updatePattern = function() {
         aliases.Game_CharacterBase_updatePattern.call(this);
-        if ($gamePlayer == this) {
+        if ($gamePlayer === this) {
             var tag = $gameMap.terrainTag(this._x, this._y);
             if (tag > 0 && this._pattern % 2 == 0) {
                 AudioManager.playStaticSe(footsteps[tag-1]);
