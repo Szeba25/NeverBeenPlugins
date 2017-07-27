@@ -25,6 +25,9 @@
  *
  * Plugin commands:
  *
+ * - lights_enable
+ *   must call this on every map to start the lighting system
+ *
  * - lights_set_ambient [ambient%] [duration]
  *
  * - lights_add_to_map [id] [x] [y] [name] [intensity%]
