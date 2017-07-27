@@ -329,7 +329,7 @@
                 var intensity = percentToAlpha(parseInt(args[4]));
                 var light = new NB_Light(id, null, x, y, name, intensity);
                 $gameMap.getLightingManager().addLight(light);
-                if (args.length == 6) {
+                if (args.length >= 6) {
                     var baseSize = parseInt(args[5]);
                     light.setBaseSize(baseSize);
                 }
@@ -346,7 +346,7 @@
                 var intensity = percentToAlpha(parseInt(args[3]));
                 var light = new NB_Light(id, event, 0, 0, name, intensity);
                 $gameMap.getLightingManager().addLight(light);
-                if (args.length == 5) {
+                if (args.length >= 5) {
                     var baseSize = parseInt(args[4]);
                     light.setBaseSize(baseSize);
                 }
@@ -362,7 +362,7 @@
                 var intensity = percentToAlpha(parseInt(args[2]));
                 var light = new NB_Light(id, $gamePlayer, 0, 0, name, intensity);
                 $gameMap.getLightingManager().addLight(light);
-                if (args.length == 4) {
+                if (args.length >= 4) {
                     var baseSize = parseInt(args[3]);
                     light.setBaseSize(baseSize);
                 }
