@@ -1,4 +1,4 @@
-PREFERRED PLUGIN ORDER:
+Preferred plugin order:
 
 Community_Basic
 NB_GameLoopFix
