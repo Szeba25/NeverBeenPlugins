@@ -27,11 +27,14 @@
  *
  * - lights_set_ambient [ambient%] [duration]
  *
- * - lights_add_to_map [id] [x] [y] [name] [intensity%] [#baseSize%] [#intensityTarget%] [#intensityChangeDuration]
+ * - lights_add_to_map [id] [x] [y] [name] [intensity%]
+ *   > Optional: [baseSize%] [intensityTarget%] [intensityChangeDuration]
  *
- * - lights_add_to_event [id] [eventId] [name] [intensity%] [#baseSize%] [#intensityTarget%] [#intensityChangeDuration]
+ * - lights_add_to_event [id] [eventId] [name] [intensity%]
+ *   > Optional: [baseSize%] [intensityTarget%] [intensityChangeDuration]
  *
- * - lights_add_to_player [id] [name] [intensity%] [#baseSize%] [#intensityTarget%] [#intensityChangeDuration]
+ * - lights_add_to_player [id] [name] [intensity%]
+ *   > Optional: [baseSize%] [intensityTarget%] [intensityChangeDuration]
  *
  * - lights_change_intensity [id] [intensityTarget%] [intensityChangeDuration]
  *   id can be set to 'all' to affect all lights
