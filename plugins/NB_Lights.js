@@ -124,25 +124,28 @@
     };
     
     /*********************************************
-     * Custom sprite
+     * Custom lightmap sprite
      *********************************************/
+    
+    var SHAKE_CORRECTION = 50;
      
-    function NB_Sprite() {
+    function NB_LightMapSprite() {
         this.initialize.apply(this, arguments);
     }
 
-    NB_Sprite.prototype = Object.create(PIXI.Sprite.prototype);
-    NB_Sprite.prototype.constructor = NB_Sprite;
+    NB_LightMapSprite.prototype = Object.create(PIXI.Sprite.prototype);
+    NB_LightMapSprite.prototype.constructor = NB_LightMapSprite;
 
-    NB_Sprite.prototype.initialize = function(texture) {
+    NB_LightMapSprite.prototype.initialize = function(texture) {
         PIXI.Sprite.call(this, texture);
+        this.x = -1 * SHAKE_CORRECTION;
     };
 
-    NB_Sprite.prototype.setFilter = function(filter) {
+    NB_LightMapSprite.prototype.setFilter = function(filter) {
         this.filters = [filter];
     };
 
-    NB_Sprite.prototype.resetFilter = function() {
+    NB_LightMapSprite.prototype.resetFilter = function() {
         this.filters = null;
     };
     
@@ -155,7 +158,7 @@
     lightingData.filter = null;
     
     SceneManager._loadLightingData = function() {
-        lightingData.lightMapTexture = new PIXI.RenderTexture.create(Graphics.width, Graphics.height);
+        lightingData.lightMapTexture = new PIXI.RenderTexture.create(Graphics.width + (SHAKE_CORRECTION * 2), Graphics.height);
         lightingData.filter = new NB_LightingFilter();
         lightingData.filter.setResolution(Graphics.width, Graphics.height);
         lightingData.filter.blendMode = PIXI.BLEND_MODES.NB_LIGHTING;
@@ -187,7 +190,7 @@
     };
     
     NB_LightSprite.prototype.sync = function() {
-        this.x = this._lightData.x;
+        this.x = this._lightData.x + SHAKE_CORRECTION;
         this.y = this._lightData.y;
         this.opacity = this._lightData.opacity;
         this.scale.x = this._lightData.scale;
@@ -212,7 +215,7 @@
     NB_LightMap.prototype.initialize = function(manager) {
         this._manager = manager;
         this._layer = new PIXI.Container();
-        this._layerSprite = new NB_Sprite(lightingData.lightMapTexture);
+        this._layerSprite = new NB_LightMapSprite(lightingData.lightMapTexture);
         this._layerSprite.setFilter(lightingData.filter);
     };
     
@@ -307,7 +310,7 @@
     };
     
     SceneManager.getLightAsSprite = function() {
-        var sprite = new NB_Sprite(lightingData.lightMapTexture);
+        var sprite = new NB_LightMapSprite(lightingData.lightMapTexture);
         sprite.setFilter(lightingData.filter);
         return sprite;
     };
