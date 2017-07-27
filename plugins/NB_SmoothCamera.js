@@ -34,6 +34,10 @@
     
     var aliases = {};
     
+    /**********************************************************************
+     * The camera class
+     **********************************************************************/
+    
     var CAMERA_LIMIT = 99;
     
     function NB_Camera() {
@@ -158,12 +162,20 @@
         this._x = newX;
         this._y = newY;
         
-        $gameMap.setDisplayPos(this._x, this._y);
+        $gameMap.setDisplayPosAndScrollParallax(this._x, this._y);
         
     };
     
-    // Create the shared camera instance!!!
+    /**********************************************************************
+     * Shared camera object
+     **********************************************************************/
+    
+    // Create the shared camera object!!!
     var camera = new NB_Camera();
+    
+    /**********************************************************************
+     * Game_Map additions
+     **********************************************************************/
     
     Game_Map.prototype.getPixelScrollX = function() {
         return Math.floor(this.displayX() * this.tileWidth());
@@ -171,6 +183,21 @@
     
     Game_Map.prototype.getPixelScrollY = function() {
         return Math.floor(this.displayY() * this.tileHeight());
+    };
+    
+    Game_Map.prototype.setDisplayPosAndScrollParallax = function(x, y) {
+        // Save old parallax positions
+        var px = this._parallaxX;
+        var py = this._parallaxY;
+        var oldDisplayX = this._displayX;
+        var oldDisplayY = this._displayY;
+        // Run the original command
+        this.setDisplayPos(x, y);
+        // Substract delta from old parallax positions
+        var displayDeltaX = oldDisplayX - this._displayX;
+        var displayDeltaY = oldDisplayY - this._displayY;
+        if (this._parallaxLoopX) this._parallaxX = px - displayDeltaX;
+        if (this._parallaxLoopY) this._parallaxY = py - displayDeltaY;
     };
     
     aliases.Game_Map_update = Game_Map.prototype.update;
@@ -181,14 +208,56 @@
         camera.lerpToTarget(this._displayX, this._displayY);
     };
     
+    /**********************************************************************
+     * Disabled functions:
+     * We use our own scrolling methods, no need for the default ones
+     **********************************************************************/
+    
+    // Override!
+    Game_Map.prototype.scrollDown = function(distance) {
+        // This function is disabled!
+    };
+    
+    // Override!
+    Game_Map.prototype.scrollLeft = function(distance) {
+        // This function is disabled!
+    };
+    
+    // Override!
+    Game_Map.prototype.scrollRight = function(distance) {
+        // This function is disabled!
+    };
+    
+    // Override!
+    Game_Map.prototype.scrollUp = function(distance) {
+        // This function is disabled!
+    };
+    
+    // Override!
+    Game_Map.prototype.updateScroll = function() {
+        // This function is disabled!
+    };
+    
+    // Override!
+    Game_Map.prototype.startScroll = function(direction, distance, speed) {
+        // This function is disabled!
+    };
+    
     // Override!
     Game_Player.prototype.updateScroll = function(lastScrolledX, lastScrolledY) {
         // This function is disabled!
     };
     
+    /**********************************************************************
+     * Default overrides:
+     * The following functions are overridden!
+     * Mainly for camera positioning, and eliminating rounding errors
+     **********************************************************************/
+    
     // Override!
     Game_Player.prototype.center = function(x, y) {
         camera.setPosition(x - 13, y - 7);
+        console.log('camera: center at player');
     };
     
     // Override!
@@ -217,6 +286,10 @@
         this._tilemap.origin.x = $gameMap.getPixelScrollX();
         this._tilemap.origin.y = $gameMap.getPixelScrollY();
     };
+    
+    /**********************************************************************
+     * Plugin commands
+     **********************************************************************/
     
     aliases.Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
     Game_Interpreter.prototype.pluginCommand = function(command, args) {
