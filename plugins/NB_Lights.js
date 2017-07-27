@@ -28,7 +28,10 @@
  * - lights_enable
  *   must call this on every map to start the lighting system
  *
- * - lights_set_ambient [ambient%] [duration]
+ * - lights_change_ambient [ambient%] [duration]
+ *   the ambient value is how bright the map is:
+ *   0 = total darkness
+ *   100 = no ambient
  *
  * - lights_add_to_map [id] [x] [y] [name] [intensity%]
  *   > Optional: [baseSize%] [intensityTarget%] [intensityChangeDuration]
@@ -50,6 +53,12 @@
  *   affectsIntensity is a boolean variable, true/false values are accepted!
  *
  * - lights_stop_flaring [id] [stopDuration]
+ *   id can be set to 'all' to affect all lights
+ *
+ * - lights_set_rotation [id] [rotation]
+ *   id can be set to 'all' to affect all lights
+ *
+ * - lights_set_rotation_delta [id] [rotationDelta]
  *   id can be set to 'all' to affect all lights
  */
 
@@ -198,6 +207,7 @@
         this.opacity = this._lightData.opacity;
         this.scale.x = this._lightData.scale;
         this.scale.y = this._lightData.scale;
+        this.rotation = this._lightData.rotation;
         // Make the sprite disappear if opacity is zero!
         if (this.opacity === 0 && this.visible) {
             this.visible = false;
@@ -336,9 +346,9 @@
             case 'lights_enable':
                 $gameMap.getLightingManager().enable();
                 break;
-            case 'lights_set_ambient':
-                var brightness = 100 - parseInt(args[0]);
-                $gameMap.getLightingManager().changeAmbient(brightness, parseInt(args[1]));
+            case 'lights_change_ambient':
+                var ambient = parseInt(args[0]);
+                $gameMap.getLightingManager().changeAmbient(ambient, parseInt(args[1]));
                 break;
             case 'lights_add_to_map':
                 var id = parseInt(args[0]);
@@ -419,6 +429,18 @@
                 var stopDuration = parseInt(args[1]);
                 $gameMap.getLightingManager().stopLightsFlaring(id, stopDuration);
                 break;
+            case 'lights_set_rotation':
+                var id = null;
+                if (args[0] !== 'all') id = parseInt(args[0]);
+                var rotation = parseInt(args[1]);
+                $gameMap.getLightingManager().setLightsRotation(id, rotation);
+                break;
+            case 'lights_set_rotation_delta':
+                var id = null;
+                if (args[0] !== 'all') id = parseInt(args[0]);
+                var rotationDelta = parseInt(args[1]);
+                $gameMap.getLightingManager().setLightsRotationDelta(id, rotationDelta);
+                break;
         }
     };
     
@@ -479,7 +501,14 @@ Object.defineProperty(NB_Light.prototype, 'scale', {
     },
     configurable: false
 });
- 
+
+Object.defineProperty(NB_Light.prototype, 'rotation', {
+    get: function() {
+        return this._rotation;
+    },
+    configurable: false
+});
+
 Object.defineProperty(NB_Light.prototype, 'addedToLightMap', {
     get: function() {
         return this._addedToLightMap;
@@ -511,6 +540,8 @@ NB_Light.prototype.initialize = function(id, character, x, y, name, intensity) {
     this._flaringShrink = true;
     this._flaringState = 100;
     this._flaringAffectsIntensity = false;
+    this._rotation = 0;
+    this._rotationDelta = 0;
     this._addedToLightMap = false;
 };
 
@@ -547,6 +578,14 @@ NB_Light.prototype.stopFlaring = function(duration) {
         this._flaringChangeDuration = duration;
         this._flaringShrink = false;
     }
+};
+
+NB_Light.prototype.setRotation = function(value) {
+    this._rotation = value;
+};
+
+NB_Light.prototype.setRotationDelta = function(value) {
+    this._rotationDelta = value;
 };
 
 NB_Light.prototype._updatePosition = function() {
@@ -599,11 +638,16 @@ NB_Light.prototype._updateFlaring = function() {
     }
 };
 
+NB_Light.prototype._updateRotation = function() {
+    this._rotation += this._rotationDelta;
+};
+
 NB_Light.prototype.update = function() {
     this._updatePosition();
     this._updateIntensity();
     this._updateBaseSize();
     this._updateFlaring();
+    this._updateRotation();
 };
  
 /*********************************************
@@ -677,6 +721,22 @@ NB_LightingManager.prototype.stopLightsFlaring = function(id, stopDuration) {
     for (var i = 0; i < this._lights.length; i++) {
         if (id === null || this._lights[i].id === id) {
             this._lights[i].stopFlaring(stopDuration);
+        }
+    }
+};
+
+NB_LightingManager.prototype.setLightsRotation = function(id, rotation) {
+    for (var i = 0; i < this._lights.length; i++) {
+        if (id === null || this._lights[i].id === id) {
+            this._lights[i].setRotation(rotation);
+        }
+    }
+};
+
+NB_LightingManager.prototype.setLightsRotationDelta = function(id, rotationDelta) {
+    for (var i = 0; i < this._lights.length; i++) {
+        if (id === null || this._lights[i].id === id) {
+            this._lights[i].setRotationDelta(rotationDelta);
         }
     }
 };
