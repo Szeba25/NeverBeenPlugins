@@ -1,0 +1,21 @@
+PREFERRED PLUGIN ORDER:
+
+Community_Basic
+NB_GameLoopFix
+NB_GameSizeChange
+NB_RegionBlock
+NB_StarPassability
+NB_CharacterStepFix
+NB_Messagebox
+NB_ShowChoices
+NB_EventOffset
+NB_Footsteps
+NB_OverlayImages
+NB_BetterDestination
+NB_Mouse
+NB_SmoothCamera
+NB_Lights
+NB_Interface
+NB_InterfaceMenu
+NB_MiniGameCombine
+NB_MiniGameMatchThree
