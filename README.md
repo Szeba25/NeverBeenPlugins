@@ -1,21 +1,21 @@
 Preferred plugin order:
 
-Community_Basic
-NB_GameLoopFix
-NB_GameSizeChange
-NB_RegionBlock
-NB_StarPassability
-NB_CharacterStepFix
-NB_Messagebox
-NB_ShowChoices
-NB_EventOffset
-NB_Footsteps
-NB_OverlayImages
-NB_BetterDestination
-NB_Mouse
-NB_SmoothCamera
-NB_Lights
-NB_Interface
-NB_InterfaceMenu
-NB_MiniGameCombine
-NB_MiniGameMatchThree
+Community_Basic <br />
+NB_GameLoopFix <br />
+NB_GameSizeChange <br />
+NB_RegionBlock <br />
+NB_StarPassability <br />
+NB_CharacterStepFix <br />
+NB_Messagebox <br />
+NB_ShowChoices <br />
+NB_EventOffset <br />
+NB_Footsteps <br />
+NB_OverlayImages <br />
+NB_BetterDestination <br />
+NB_Mouse <br />
+NB_SmoothCamera <br />
+NB_Lights <br />
+NB_Interface <br />
+NB_InterfaceMenu <br />
+NB_MiniGameCombine <br />
+NB_MiniGameMatchThree <br />
