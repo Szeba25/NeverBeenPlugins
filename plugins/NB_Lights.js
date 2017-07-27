@@ -45,7 +45,7 @@
  * - lights_change_intensity [id] [intensityTarget%] [intensityChangeDuration]
  *   id can be set to 'all' to affect all lights
  *
- * - lights_change_basesize [id] [baseSizeTarget%] [baseSizeChangeDuration]
+ * - lights_change_base_size [id] [baseSizeTarget%] [baseSizeChangeDuration]
  *   id can be set to 'all' to affect all lights
  *
  * - lights_set_flaring [id] [flaringMin%] [flaringChangeDuration] [affectsIntensity|]
@@ -410,7 +410,7 @@
                 var intensityChangeDuration = parseInt(args[2]);
                 $gameMap.getLightingManager().changeLightsIntensity(id, intensityTarget, intensityChangeDuration);
                 break;
-            case 'lights_change_basesize':
+            case 'lights_change_base_size':
                 var id = null;
                 if (args[0] !== 'all') id = parseInt(args[0]);
                 var baseSizeTarget = parseInt(args[1]);
