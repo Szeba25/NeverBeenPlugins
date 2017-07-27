@@ -56,9 +56,11 @@
  *   id can be set to 'all' to affect all lights
  *
  * - lights_set_rotation [id] [rotation]
+ *   rotation is in degrees
  *   id can be set to 'all' to affect all lights
  *
  * - lights_set_rotation_delta [id] [rotationDelta]
+ *   rotationDelta is in degrees
  *   id can be set to 'all' to affect all lights
  */
 
@@ -207,7 +209,7 @@
         this.opacity = this._lightData.opacity;
         this.scale.x = this._lightData.scale;
         this.scale.y = this._lightData.scale;
-        this.rotation = this._lightData.rotation;
+        this.rotation = this._lightData.rotationInRadian;
         // Make the sprite disappear if opacity is zero!
         if (this.opacity === 0 && this.visible) {
             this.visible = false;
@@ -502,9 +504,9 @@ Object.defineProperty(NB_Light.prototype, 'scale', {
     configurable: false
 });
 
-Object.defineProperty(NB_Light.prototype, 'rotation', {
+Object.defineProperty(NB_Light.prototype, 'rotationInRadian', {
     get: function() {
-        return this._rotation;
+        return (this._rotation * Math.PI) / 180;
     },
     configurable: false
 });
