@@ -27,11 +27,11 @@
  *
  * - lights_set_ambient [ambient%] [duration]
  *
- * - lights_add_to_map [id] [x] [y] [name] [intensity%] [#intensityTarget%] [#intensityChangeDuration]
+ * - lights_add_to_map [id] [x] [y] [name] [intensity%] [#baseSize%] [#intensityTarget%] [#intensityChangeDuration]
  *
- * - lights_add_to_event [id] [eventId] [name] [intensity%] [#intensityTarget%] [#intensityChangeDuration]
+ * - lights_add_to_event [id] [eventId] [name] [intensity%] [#baseSize%] [#intensityTarget%] [#intensityChangeDuration]
  *
- * - lights_add_to_player [id] [name] [intensity%] [#intensityTarget%] [#intensityChangeDuration]
+ * - lights_add_to_player [id] [name] [intensity%] [#baseSize%] [#intensityTarget%] [#intensityChangeDuration]
  *
  * - lights_change_intensity [id] [intensityTarget%] [intensityChangeDuration]
  *   id can be set to 'all' to affect all lights
@@ -326,9 +326,13 @@
                 var intensity = percentToAlpha(parseInt(args[4]));
                 var light = new NB_Light(id, null, x, y, name, intensity);
                 $gameMap.getLightingManager().addLight(light);
-                if (args.length == 7) {
-                    var intensityTarget = percentToAlpha(parseInt(args[5]));
-                    var intensityChangeDuration = parseInt(args[6]);
+                if (args.length == 6) {
+                    var baseSize = parseInt(args[5]);
+                    light.setBaseSize(baseSize);
+                }
+                if (args.length == 8) {
+                    var intensityTarget = percentToAlpha(parseInt(args[6]));
+                    var intensityChangeDuration = parseInt(args[7]);
                     light.setIntensityTarget(intensityTarget, intensityChangeDuration);
                 }
                 break;
@@ -339,9 +343,13 @@
                 var intensity = percentToAlpha(parseInt(args[3]));
                 var light = new NB_Light(id, event, 0, 0, name, intensity);
                 $gameMap.getLightingManager().addLight(light);
-                if (args.length == 6) {
-                    var intensityTarget = percentToAlpha(parseInt(args[4]));
-                    var intensityChangeDuration = parseInt(args[5]);
+                if (args.length == 5) {
+                    var baseSize = parseInt(args[4]);
+                    light.setBaseSize(baseSize);
+                }
+                if (args.length == 7) {
+                    var intensityTarget = percentToAlpha(parseInt(args[5]));
+                    var intensityChangeDuration = parseInt(args[6]);
                     light.setIntensityTarget(intensityTarget, intensityChangeDuration);
                 }
                 break;
@@ -351,9 +359,13 @@
                 var intensity = percentToAlpha(parseInt(args[2]));
                 var light = new NB_Light(id, $gamePlayer, 0, 0, name, intensity);
                 $gameMap.getLightingManager().addLight(light);
-                if (args.length == 5) {
-                    var intensityTarget = percentToAlpha(parseInt(args[3]));
-                    var intensityChangeDuration = parseInt(args[4]);
+                if (args.length == 4) {
+                    var baseSize = parseInt(args[3]);
+                    light.setBaseSize(baseSize);
+                }
+                if (args.length == 6) {
+                    var intensityTarget = percentToAlpha(parseInt(args[4]));
+                    var intensityChangeDuration = parseInt(args[5]);
                     light.setIntensityTarget(intensityTarget, intensityChangeDuration);
                 }
                 break;
@@ -477,6 +489,12 @@ NB_Light.prototype.initialize = function(id, character, x, y, name, intensity) {
 NB_Light.prototype.setIntensityTarget = function(value, duration) {
     this._intensityTarget = value;
     this._intensityChangeDuration = duration;
+};
+
+NB_Light.prototype.setBaseSize = function(value) {
+    this._baseSize = value;
+    this._baseSizeTarget = value;
+    this._baseSizeChangeDuration = 0;
 };
 
 NB_Light.prototype.setBaseSizeTarget = function(value, duration) {
