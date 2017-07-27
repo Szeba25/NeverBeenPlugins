@@ -36,6 +36,9 @@
  * - lights_change_intensity [id] [intensityTarget%] [intensityChangeDuration]
  *   id can be set to 'all' to affect all lights
  *
+ * - lights_change_basesize [id] [baseSizeTarget%] [baseSizeChangeDuration]
+ *   id can be set to 'all' to affect all lights
+ *
  * - lights_set_flaring [id] [flaringMin%] [flaringChangeDuration]
  *   id can be set to 'all' to affect all lights
  *
@@ -183,8 +186,8 @@
         this.x = this._lightData.x;
         this.y = this._lightData.y;
         this.opacity = this._lightData.intensity;
-        this.scale.x = this._lightData.flaringState / 100;
-        this.scale.y = this._lightData.flaringState / 100;
+        this.scale.x = this._lightData.scale;
+        this.scale.y = this._lightData.scale;
     };
     
     /*********************************************
@@ -361,6 +364,13 @@
                 var intensityChangeDuration = parseInt(args[2]);
                 $gameMap.getLightingManager().changeLightsIntensity(id, intensityTarget, intensityChangeDuration);
                 break;
+            case 'lights_change_basesize':
+                var id = null;
+                if (args[0] !== 'all') id = parseInt(args[0]);
+                var baseSizeTarget = parseInt(args[1]);
+                var baseSizeChangeDuration = parseInt(args[2]);
+                $gameMap.getLightingManager().changeLightsBaseSize(id, baseSizeTarget, baseSizeChangeDuration);
+                break;
             case 'lights_set_flaring':
                 var id = null;
                 if (args[0] !== 'all') id = parseInt(args[0]);
@@ -424,9 +434,9 @@ Object.defineProperty(NB_Light.prototype, 'intensity', {
     configurable: false
 });
 
-Object.defineProperty(NB_Light.prototype, 'flaringState', {
+Object.defineProperty(NB_Light.prototype, 'scale', {
     get: function() {
-        return this._flaringState;
+        return (this._baseSize * this._flaringState) / 10000;
     },
     configurable: false
 });
@@ -452,6 +462,9 @@ NB_Light.prototype.initialize = function(id, character, x, y, name, intensity) {
     this._intensity = intensity;
     this._intensityTarget = intensity;
     this._intensityChangeDuration = 0;
+    this._baseSize = 100;
+    this._baseSizeTarget = 100;
+    this._baseSizeChangeDuration = 0;
     this._flaring = false;
     this._flaringMin = 100;
     this._flaringChangeDurationOriginal = 0;
@@ -464,6 +477,11 @@ NB_Light.prototype.initialize = function(id, character, x, y, name, intensity) {
 NB_Light.prototype.setIntensityTarget = function(value, duration) {
     this._intensityTarget = value;
     this._intensityChangeDuration = duration;
+};
+
+NB_Light.prototype.setBaseSizeTarget = function(value, duration) {
+    this._baseSizeTarget = value;
+    this._baseSizeChangeDuration = duration;
 };
 
 NB_Light.prototype.setFlaring = function(min, duration) {
@@ -498,6 +516,15 @@ NB_Light.prototype._updateIntensity = function() {
     if (this._intensityChangeDuration > 0) {
         var d = this._intensityChangeDuration;
         this._intensity = (this._intensity * (d - 1) + this._intensityTarget) / d;
+        this._intensityChangeDuration--;
+    }
+};
+
+NB_Light.prototype._updateBaseSize = function() {
+    if (this._baseSizeChangeDuration > 0) {
+        var d = this._baseSizeChangeDuration;
+        this._baseSize = (this._baseSize * (d - 1) + this._baseSizeTarget) / d;
+        this._baseSizeChangeDuration--;
     }
 };
 
@@ -528,6 +555,7 @@ NB_Light.prototype._updateFlaring = function() {
 NB_Light.prototype.update = function() {
     this._updatePosition();
     this._updateIntensity();
+    this._updateBaseSize();
     this._updateFlaring();
 };
  
@@ -570,6 +598,14 @@ NB_LightingManager.prototype.changeLightsIntensity = function(id, intensityTarge
     for (var i = 0; i < this._lights.length; i++) {
         if (id === null || this._lights[i].id === id) {
             this._lights[i].setIntensityTarget(intensityTarget, intensityChangeDuration);
+        }
+    }
+};
+
+NB_LightingManager.prototype.changeLightsBaseSize = function(id, baseSizeTarget, baseSizeChangeDuration) {
+    for (var i = 0; i < this._lights.length; i++) {
+        if (id === null || this._lights[i].id === id) {
+            this._lights[i].setBaseSizeTarget(baseSizeTarget, baseSizeChangeDuration);
         }
     }
 };
