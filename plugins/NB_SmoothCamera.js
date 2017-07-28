@@ -35,136 +35,6 @@
     var aliases = {};
     
     /**********************************************************************
-     * The camera class
-     **********************************************************************/
-    
-    var CAMERA_LIMIT = 99;
-    
-    function NB_Camera() {
-        this.initialize.apply(this, arguments);
-    }
-    
-    NB_Camera.prototype.initialize = function() {
-        this._playerLock = true;
-        this._eventLockId = null;
-        this._x = 0;
-        this._y = 0;
-        this._targetX = 0;
-        this._targetY = 0;
-        this._limitX = CAMERA_LIMIT;
-        this._limitY = CAMERA_LIMIT;
-        this._alpha = 0.1;
-    };
-    
-    NB_Camera.prototype.setPosition = function(x, y) {
-        this.setTarget(x, y);
-        this._x = this._targetX;
-        this._y = this._targetY;
-        $gameMap.setDisplayPos(this._x, this._y);
-    };
-    
-    NB_Camera.prototype.setTarget = function(x, y) {
-        var maxX = $gameMap.width() - 27;
-        var maxY = $gameMap.height() - 15;
-        if (x < 0) x = 0;
-        if (y < 0) y = 0;
-        if (x > maxX) x = maxX;
-        if (y > maxY) y = maxY;
-        this._targetX = x;
-        this._targetY = y;
-    };
-    
-    NB_Camera.prototype.setTargetById = function(id) {
-        var character = null;
-        if (id === 'player') {
-            character = $gamePlayer;
-        } else {
-            character = $gameMap.event(id);
-        }
-        if (character != null) {
-            this.setTarget(character._realX - 13, character._realY - 7);
-        } else {
-            this.setTarget(0, 0);
-        }
-    };
-    
-    NB_Camera.prototype.lockToEvent = function(eventId) {
-        var event = $gameMap.event(eventId);
-        if (event != null) {
-            this._playerLock = false;
-            this._eventLockId = eventId;
-        } else {
-            console.log('camera: lock to null event error!');
-        }
-    };
-    
-    NB_Camera.prototype.lockToPlayer = function() {
-        this._playerLock = true;
-        this._eventLockId = null;
-    };
-    
-    NB_Camera.prototype.prepareForLookAt = function(limit) {
-        this._playerLock = false;
-        this._eventLockId = null;
-        var distX = Math.abs(this._targetX - this._x);
-        var distY = Math.abs(this._targetY - this._y);
-        this._limitX = distX * limit;
-        this._limitY = distY * limit;
-    };
-    
-    NB_Camera.prototype.setAlpha = function(alpha) {
-        this._alpha = alpha;
-    };
-    
-    NB_Camera.prototype.resetAlpha = function() {
-        this._alpha = 0.1;
-    }
-    
-    NB_Camera.prototype.resetLimits = function() {
-        this._limitX = CAMERA_LIMIT;
-        this._limitY = CAMERA_LIMIT;
-    };
-    
-    NB_Camera.prototype.decideTarget = function() {
-        if (!this._playerLock) {
-            if (this._eventLockId != null) {
-                this.setTargetById(this._eventLockId);
-            }
-        } else {
-            this.setTargetById('player');
-            this.resetLimits();
-        }
-    };
-    
-    NB_Camera.prototype.lerpToTarget = function(displayX, displayY) {
-        
-        var newX = displayX;
-        var newY = displayY;
-        
-        if (this._targetX < displayX) {
-            var distance = Math.abs(this._targetX - displayX) * this._alpha;
-            newX = displayX - Math.min(distance, this._limitX);
-        } else if (this._targetX > displayX) {
-            var distance = Math.abs(this._targetX - displayX) * this._alpha;
-            newX = displayX + Math.min(distance, this._limitX);
-        }
-        
-        if (this._targetY < displayY) {
-            var distance = Math.abs(this._targetY - displayY) * this._alpha;
-            newY = displayY - Math.min(distance, this._limitY);
-        } else if (this._targetY > displayY) {
-            var distance = Math.abs(this._targetY - displayY) * this._alpha;
-            newY = displayY + Math.min(distance, this._limitY);
-        }
-        
-        this._x = newX;
-        this._y = newY;
-        
-        $gameMap.setDisplayPosAndScrollParallax(this._x, this._y);
-        
-    };
-    
-    /**********************************************************************
      * Game_Map additions
      **********************************************************************/
     
@@ -322,3 +192,133 @@
     };
     
 })();
+
+/**********************************************************************
+ * The camera class
+ * > will be saved with $gameMap, so this needs global access!
+ **********************************************************************/
+
+function NB_Camera() {
+    this.initialize.apply(this, arguments);
+}
+
+NB_Camera.prototype.initialize = function() {
+    this.CAMERA_LIMIT = 99;
+    this._playerLock = true;
+    this._eventLockId = null;
+    this._x = 0;
+    this._y = 0;
+    this._targetX = 0;
+    this._targetY = 0;
+    this._limitX = this.CAMERA_LIMIT;
+    this._limitY = this.CAMERA_LIMIT;
+    this._alpha = 0.1;
+};
+
+NB_Camera.prototype.setPosition = function(x, y) {
+    this.setTarget(x, y);
+    this._x = this._targetX;
+    this._y = this._targetY;
+    $gameMap.setDisplayPos(this._x, this._y);
+};
+
+NB_Camera.prototype.setTarget = function(x, y) {
+    var maxX = $gameMap.width() - 27;
+    var maxY = $gameMap.height() - 15;
+    if (x < 0) x = 0;
+    if (y < 0) y = 0;
+    if (x > maxX) x = maxX;
+    if (y > maxY) y = maxY;
+    this._targetX = x;
+    this._targetY = y;
+};
+
+NB_Camera.prototype.setTargetById = function(id) {
+    var character = null;
+    if (id === 'player') {
+        character = $gamePlayer;
+    } else {
+        character = $gameMap.event(id);
+    }
+    if (character != null) {
+        this.setTarget(character._realX - 13, character._realY - 7);
+    } else {
+        this.setTarget(0, 0);
+    }
+};
+
+NB_Camera.prototype.lockToEvent = function(eventId) {
+    var event = $gameMap.event(eventId);
+    if (event != null) {
+        this._playerLock = false;
+        this._eventLockId = eventId;
+    } else {
+        console.log('camera: lock to null event error!');
+    }
+};
+
+NB_Camera.prototype.lockToPlayer = function() {
+    this._playerLock = true;
+    this._eventLockId = null;
+};
+
+NB_Camera.prototype.prepareForLookAt = function(limit) {
+    this._playerLock = false;
+    this._eventLockId = null;
+    var distX = Math.abs(this._targetX - this._x);
+    var distY = Math.abs(this._targetY - this._y);
+    this._limitX = distX * limit;
+    this._limitY = distY * limit;
+};
+
+NB_Camera.prototype.setAlpha = function(alpha) {
+    this._alpha = alpha;
+};
+
+NB_Camera.prototype.resetAlpha = function() {
+    this._alpha = 0.1;
+}
+
+NB_Camera.prototype.resetLimits = function() {
+    this._limitX = this.CAMERA_LIMIT;
+    this._limitY = this.CAMERA_LIMIT;
+};
+
+NB_Camera.prototype.decideTarget = function() {
+    if (!this._playerLock) {
+        if (this._eventLockId != null) {
+            this.setTargetById(this._eventLockId);
+        }
+    } else {
+        this.setTargetById('player');
+        this.resetLimits();
+    }
+};
+
+NB_Camera.prototype.lerpToTarget = function(displayX, displayY) {
+    
+    var newX = displayX;
+    var newY = displayY;
+    
+    if (this._targetX < displayX) {
+        var distance = Math.abs(this._targetX - displayX) * this._alpha;
+        newX = displayX - Math.min(distance, this._limitX);
+    } else if (this._targetX > displayX) {
+        var distance = Math.abs(this._targetX - displayX) * this._alpha;
+        newX = displayX + Math.min(distance, this._limitX);
+    }
+    
+    if (this._targetY < displayY) {
+        var distance = Math.abs(this._targetY - displayY) * this._alpha;
+        newY = displayY - Math.min(distance, this._limitY);
+    } else if (this._targetY > displayY) {
+        var distance = Math.abs(this._targetY - displayY) * this._alpha;
+        newY = displayY + Math.min(distance, this._limitY);
+    }
+    
+    this._x = newX;
+    this._y = newY;
+    
+    $gameMap.setDisplayPosAndScrollParallax(this._x, this._y);
+    
+};
