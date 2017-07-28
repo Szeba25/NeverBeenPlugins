@@ -46,7 +46,7 @@
     
     NB_Camera.prototype.initialize = function() {
         this._playerLock = true;
-        this._eventLock = null;
+        this._eventLockId = null;
         this._x = 0;
         this._y = 0;
         this._targetX = 0;
@@ -63,10 +63,6 @@
         $gameMap.setDisplayPos(this._x, this._y);
     };
     
-    NB_Camera.prototype.setPositionToEvent = function(event) {
-        this.setPosition(event._realX - 13, event._realY - 7);
-    };
-    
     NB_Camera.prototype.setTarget = function(x, y) {
         var maxX = $gameMap.width() - 27;
         var maxY = $gameMap.height() - 15;
@@ -78,40 +74,42 @@
         this._targetY = y;
     };
     
-    NB_Camera.prototype.setTargetToEvent = function(event) {
-        if (event != null) {
-            this.setTarget(event._realX - 13, event._realY - 7);
+    NB_Camera.prototype.setTargetById = function(id) {
+        var character = null;
+        if (id === 'player') {
+            character = $gamePlayer;
+        } else {
+            character = $gameMap.event(id);
+        }
+        if (character != null) {
+            this.setTarget(character._realX - 13, character._realY - 7);
         } else {
             this.setTarget(0, 0);
         }
     };
     
-    NB_Camera.prototype.lockToEvent = function(event) {
+    NB_Camera.prototype.lockToEvent = function(eventId) {
+        var event = $gameMap.event(eventId);
         if (event != null) {
             this._playerLock = false;
-            this._eventLock = event;
+            this._eventLockId = eventId;
         } else {
             console.log('camera: lock to null event error!');
         }
-        
     };
     
     NB_Camera.prototype.lockToPlayer = function() {
         this._playerLock = true;
-        this._eventLock = null;
+        this._eventLockId = null;
     };
     
     NB_Camera.prototype.prepareForLookAt = function(limit) {
         this._playerLock = false;
-        this._eventLock = null;
+        this._eventLockId = null;
         var distX = Math.abs(this._targetX - this._x);
         var distY = Math.abs(this._targetY - this._y);
         this._limitX = distX * limit;
         this._limitY = distY * limit;
-    };
-    
-    NB_Camera.prototype.alpha = function() {
-        return this._alpha;
     };
     
     NB_Camera.prototype.setAlpha = function(alpha) {
@@ -129,11 +127,11 @@
     
     NB_Camera.prototype.decideTarget = function() {
         if (!this._playerLock) {
-            if (this._eventLock != null) {
-                this.setTargetToEvent(this._eventLock);
+            if (this._eventLockId != null) {
+                this.setTargetById(this._eventLockId);
             }
         } else {
-            this.setTargetToEvent($gamePlayer);
+            this.setTargetById('player');
             this.resetLimits();
         }
     };
@@ -167,13 +165,6 @@
     };
     
     /**********************************************************************
-     * Shared camera object
-     **********************************************************************/
-    
-    // Create the shared camera object!!!
-    var camera = new NB_Camera();
-    
-    /**********************************************************************
      * Game_Map additions
      **********************************************************************/
     
@@ -200,12 +191,24 @@
         if (this._parallaxLoopY) this._parallaxY = py - displayDeltaY;
     };
     
+    Game_Map.prototype.getSmoothCamera = function() {
+        return this._smoothCamera;
+    };
+    
+    aliases.Game_Map_initialize = Game_Map.prototype.initialize;
+    Game_Map.prototype.initialize = function() {
+        aliases.Game_Map_initialize.call(this);
+        // Create the camera
+        this._smoothCamera = new NB_Camera();
+        console.log('camera: created');
+    };
+    
     aliases.Game_Map_update = Game_Map.prototype.update;
     Game_Map.prototype.update = function(sceneActive) {
         aliases.Game_Map_update.call(this, sceneActive);
         // Apply linear interpolation to the camera
-        camera.decideTarget();
-        camera.lerpToTarget(this._displayX, this._displayY);
+        this._smoothCamera.decideTarget();
+        this._smoothCamera.lerpToTarget(this._displayX, this._displayY);
     };
     
     /**********************************************************************
@@ -256,7 +259,7 @@
     
     // Override!
     Game_Player.prototype.center = function(x, y) {
-        camera.setPosition(x - 13, y - 7);
+        $gameMap.getSmoothCamera().setPosition(x - 13, y - 7);
         console.log('camera: center at player');
     };
     
@@ -296,24 +299,24 @@
         aliases.Game_Interpreter_pluginCommand.call(this, command, args);
         switch (command) {
             case 'camera_lookat':
-                camera.setTarget(parseInt(args[0]), parseInt(args[1]));
-                camera.prepareForLookAt(parseFloat(args[2]) / 100);
+                $gameMap.getSmoothCamera().setTarget(parseInt(args[0]), parseInt(args[1]));
+                $gameMap.getSmoothCamera().prepareForLookAt(parseFloat(args[2]) / 100);
                 break;
             case 'camera_lookat_event':
-                camera.setTargetToEvent($gameMap.event(parseInt(args[0])));
-                camera.prepareForLookAt(parseFloat(args[1]) / 100);
+                $gameMap.getSmoothCamera().setTargetById(parseInt(args[0]));
+                $gameMap.getSmoothCamera().prepareForLookAt(parseFloat(args[1]) / 100);
                 break;
             case 'camera_eventlock':
-                camera.lockToEvent($gameMap.event(parseInt(args[0])));
+                $gameMap.getSmoothCamera().lockToEvent(parseInt(args[0]));
                 break;
             case 'camera_playerlock':
-                camera.lockToPlayer();
+                $gameMap.getSmoothCamera().lockToPlayer();
                 break;
             case 'camera_alpha':
-                camera.setAlpha(parseFloat(args[0]));
+                $gameMap.getSmoothCamera().setAlpha(parseFloat(args[0]));
                 break;
             case 'camera_alpha_reset':
-                camera.resetAlpha();
+                $gameMap.getSmoothCamera().resetAlpha();
                 break;
         }
     };
