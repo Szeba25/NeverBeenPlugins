@@ -70,7 +70,6 @@
         aliases.Game_Map_initialize.call(this);
         // Create the camera
         this._smoothCamera = new NB_Camera();
-        console.log('camera: created');
     };
     
     aliases.Game_Map_update = Game_Map.prototype.update;
@@ -130,7 +129,6 @@
     // Override!
     Game_Player.prototype.center = function(x, y) {
         $gameMap.getSmoothCamera().setPosition(x - 13, y - 7);
-        console.log('camera: center at player');
     };
     
     // Override!
