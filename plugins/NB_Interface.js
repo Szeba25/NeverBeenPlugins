@@ -80,7 +80,7 @@ NB_Interface.prototype.createBackground = function() {
     this.addChild(this._pergamen);
 };
 
-NB_Interface.prototype.createBaseTitleAndLines = function(opacity, titleBase, titleLight) {
+NB_Interface.prototype.createBaseTitleAndLines = function(opacity, titleBase, titleLight, line1X) {
     this._title1 = new Sprite();
     this._title1.bitmap = ImageManager.loadInterfaceElement('menu_1/', titleBase);
     this._title1.x = 165;
@@ -93,7 +93,7 @@ NB_Interface.prototype.createBaseTitleAndLines = function(opacity, titleBase, ti
     this._title2.opacity = opacity;
     this._line1 = new Sprite();
     this._line1.bitmap = ImageManager.loadInterfaceElement('menu_1/', 'line1');
-    this._line1.x = 350;
+    this._line1.x = line1X || 350; // optional parameter!
     this._line1.opacity = opacity;
     this._line2 = new Sprite();
     this._line2.bitmap = ImageManager.loadInterfaceElement('menu_1/', 'line2');

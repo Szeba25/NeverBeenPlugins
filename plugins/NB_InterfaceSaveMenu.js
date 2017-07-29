@@ -23,6 +23,20 @@
     
     NB_Interface_SaveMenu.prototype.initialize = function() {
         NB_Interface.prototype.initialize.call(this);
+        /** MEMBER VARIABLES
+            # flow control
+            _exit
+            _masterOpacity
+            
+            # sprites and bitmaps
+            # interface
+        */
+    };
+    
+    NB_Interface_SaveMenu.prototype.create = function() {
+        this.createBackground();
+        this.createBaseTitleAndLines(255, '5', '6', 410);
+        NB_Interface.prototype.create.call(this);
     };
     
 })();
