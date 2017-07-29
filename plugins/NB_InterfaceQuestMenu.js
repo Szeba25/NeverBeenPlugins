@@ -33,11 +33,12 @@
             # sprites and bitmaps
             _title1
             _title2
-            _line
             _questInfo
             
             # interface
             _questList
+            _questNames
+            _completedFlags
             _questDescriptions
         */
     };
@@ -50,17 +51,12 @@
         this._activeQuest = 0;
         this._updatedQuest = null;
         
-        this._line = new Sprite(ImageManager.loadInterfaceElement('menu_1/', 'line1'));
-        this._line.x = 350
-        this._line.opacity = 0;
-        this.addChild(this._line);
-        
-        this._createTitle();
+        this.createBaseTitleAndLines(0, '7', '8');
         
         this._generateQuestList();
         this._questInfo = new Sprite(new Bitmap(500, 500));
         this._questInfo.x = 400;
-        this._questInfo.y = 130;
+        this._questInfo.y = 70;
         this.setBitmapFontStyle(this._questInfo.bitmap);
         this.addChild(this._questInfo);
         
@@ -71,6 +67,8 @@
     
     NB_Interface_QuestMenu.prototype._generateQuestList = function() {
         this._questList = new NB_List(200, 120, 10);
+        this._questNames = [];
+        this._completedFlags = [];
         this._questDescriptions = [];
         
         for (var i = 0; i < $dataQuests.length; i++) {
@@ -80,26 +78,13 @@
             if (variableValue > 0 && variableValue <= 8) {
                 this._questList.addListElement(name);
                 var description = this._getDescription($dataQuests[i], variableValue).split('\n');
+                this._questNames.push(name);
+                this._completedFlags.push(variableValue === 8);
                 this._questDescriptions.push(description);
             }
-            if (variableValue == 8) this._questList.invalidateById(i);
+            if (variableValue === 8) this._questList.invalidateById(i);
         }
         this._questList.addToContainer(this);
-    };
-    
-    NB_Interface_QuestMenu.prototype._createTitle = function() {
-        this._title1 = new Sprite();
-        this._title1.bitmap = ImageManager.loadInterfaceElement('menu_1/', '7');
-        this._title1.x = 165;
-        this._title1.y = 40;
-        this._title1.opacity = 0;
-        this._title2 = new Sprite();
-        this._title2.bitmap = ImageManager.loadInterfaceElement('menu_1/', '8');
-        this._title2.x = 165;
-        this._title2.y = 40;
-        this._title2.opacity = 0;
-        this.addChild(this._title1);
-        this.addChild(this._title2);
     };
     
     NB_Interface_QuestMenu.prototype._getDescription = function(data, variableValue) {
@@ -137,11 +122,21 @@
         if (!this._questList.isEmpty() && this._updatedQuest !== this._activeQuest) {
             this._updatedQuest = this._activeQuest;
             var bmp = this._questInfo.bitmap;
+            var name = this._questNames[this._activeQuest];
+            var completed = this._completedFlags[this._activeQuest];
             var description = this._questDescriptions[this._activeQuest];
             
             bmp.clear();
+            if (completed) {
+                bmp.paintOpacity = 128;
+                bmp.drawText('Állapot: teljesítve!', 0, 30, null, NB_Interface.lineHeight, 'left');
+            } else {
+                bmp.paintOpacity = 255;
+                bmp.drawText('Állapot: folyamatban', 0, 30, null, NB_Interface.lineHeight, 'left');
+            }
+            bmp.drawText('*' + name + '*', 0, 0, null, NB_Interface.lineHeight, 'left');
             for (var i = 0; i < description.length; i++) {
-                bmp.drawText(description[i], 20, i * 20, null, NB_Interface.lineHeight, 'left');
+                bmp.drawText(description[i], 0, 70+ i*20, null, NB_Interface.lineHeight, 'left');
             }
         }
     };
@@ -168,11 +163,9 @@
                 this.makeEnterComplete();
             }
         }
-        this._line.opacity = this._masterOpacity;
         this._questList.setMasterOpacity(this._masterOpacity);
         this._questInfo.opacity = this._masterOpacity;
-        this._title1.opacity = this._masterOpacity;
-        this._title2.opacity = this._masterOpacity;
+        this.setBaseTitleAndLinesOpacity(this._masterOpacity);
     };
     
     // Override!

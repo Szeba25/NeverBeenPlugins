@@ -48,6 +48,10 @@ NB_Interface.prototype.initialize = function() {
         _backgroundLight
         _backgroundTint
         _pergamen
+        _title1
+        _title2
+        _line1
+        _line2
     */
 };
 
@@ -74,6 +78,39 @@ NB_Interface.prototype.createBackground = function() {
     this.addChild(this._backgroundLight);
     this.addChild(this._backgroundTint);
     this.addChild(this._pergamen);
+};
+
+NB_Interface.prototype.createBaseTitleAndLines = function(opacity, titleBase, titleLight) {
+    this._title1 = new Sprite();
+    this._title1.bitmap = ImageManager.loadInterfaceElement('menu_1/', titleBase);
+    this._title1.x = 165;
+    this._title1.y = 40;
+    this._title1.opacity = opacity;
+    this._title2 = new Sprite();
+    this._title2.bitmap = ImageManager.loadInterfaceElement('menu_1/', titleLight);
+    this._title2.x = 165;
+    this._title2.y = 40;
+    this._title2.opacity = opacity;
+    this._line1 = new Sprite();
+    this._line1.bitmap = ImageManager.loadInterfaceElement('menu_1/', 'line1');
+    this._line1.x = 350;
+    this._line1.opacity = opacity;
+    this._line2 = new Sprite();
+    this._line2.bitmap = ImageManager.loadInterfaceElement('menu_1/', 'line2');
+    this._line2.x = 118;
+    this._line2.y = 68;
+    this._line2.opacity = opacity;
+    this.addChild(this._line1);
+    this.addChild(this._line2);
+    this.addChild(this._title1);
+    this.addChild(this._title2);
+};
+
+NB_Interface.prototype.setBaseTitleAndLinesOpacity = function(opacity) {
+    this._title1.opacity = opacity;
+    this._title2.opacity = opacity;
+    this._line1.opacity = opacity;
+    this._line2.opacity = opacity;
 };
 
 NB_Interface.prototype.setBitmapFontStyle = function(bitmap) {

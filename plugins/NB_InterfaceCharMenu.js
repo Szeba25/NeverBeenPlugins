@@ -33,10 +33,6 @@
             
             # sprites and bitmaps
             _graphicsSet
-            _title1
-            _title2
-            _line1
-            _line2
             _characterInfo
             _characterFace
             
@@ -60,8 +56,7 @@
         this.createBackground();
         this._loadBars();
         this._graphicsSet = [];
-        this._createTitle();
-        this._createLines();
+        this.createBaseTitleAndLines(0, '11', '12');
         this._setupActors();
         this._setupButtons();
         
@@ -187,39 +182,6 @@
         this.addChild(this._characterInfo);
     };
     
-    NB_Interface_CharMenu.prototype._createTitle = function() {
-        this._title1 = new Sprite();
-        this._title1.bitmap = ImageManager.loadInterfaceElement('menu_1/', '11');
-        this._title1.x = 165;
-        this._title1.y = 40;
-        this._title1.opacity = 0;
-        this._title2 = new Sprite();
-        this._title2.bitmap = ImageManager.loadInterfaceElement('menu_1/', '12');
-        this._title2.x = 165;
-        this._title2.y = 40;
-        this._title2.opacity = 0;
-        this._graphicsSet.push(this._title1);
-        this._graphicsSet.push(this._title2);
-        this.addChild(this._title1);
-        this.addChild(this._title2);
-    };
-    
-    NB_Interface_CharMenu.prototype._createLines = function() {
-        this._line1 = new Sprite();
-        this._line1.bitmap = ImageManager.loadInterfaceElement('menu_1/', 'line1');
-        this._line1.x = 350;
-        this._line1.opacity = 0;
-        this._line2 = new Sprite();
-        this._line2.bitmap = ImageManager.loadInterfaceElement('menu_1/', 'line2');
-        this._line2.x = 118;
-        this._line2.y = 68;
-        this._line2.opacity = 0;
-        this._graphicsSet.push(this._line1);
-        this._graphicsSet.push(this._line2);
-        this.addChild(this._line1);
-        this.addChild(this._line2);
-    };
-    
     // Override!
     NB_Interface_CharMenu.prototype.updateInput = function() {
         this._actorButtons.updateInput(this.isMouseActive());
@@ -248,6 +210,7 @@
                 this.makeEnterComplete();
             }
         }
+        this.setBaseTitleAndLinesOpacity(this._masterOpacity);
         this._actorButtons.setMasterOpactiy(this._masterOpacity);
         this._characterInfo.opacity = this._masterOpacity;
         if (this._characterFaceFadeOpacity < 255) {
