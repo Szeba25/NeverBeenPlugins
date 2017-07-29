@@ -31,6 +31,9 @@ Quests.json format: <br />
 {
 	"name": "példanév1",
 	"variableId": 170,
+	"graphics": "kepnevkiterjesztesnelkul",
+	"x": 100,
+	"y": 100,
 	"state_1": "Ez egy sornyi adat\nEz pedig egy új sor!",
 	"state_2": "Ez a második állapot",
 	"state_3": "Ez a harmadik állapot\nÉs van új sor is\nÉs egy harmadik is!",
@@ -43,6 +46,9 @@ Quests.json format: <br />
 {
 	"name": "példanév2",
 	"variableId": 171,
+	"graphics": "kepnevkiterjesztesnelkul",
+	"x": 100,
+	"y": 100,
 	"state_1": "",
 	"state_2": "",
 	"state_3": "",

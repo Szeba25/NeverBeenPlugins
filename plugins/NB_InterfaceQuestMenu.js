@@ -29,15 +29,16 @@
             _masterOpacity
             _activeQuest
             _updatedQuest
+            _questPictureMasterOpacity
             
             # sprites and bitmaps
             _title1
             _title2
             _questInfo
+            _questPicture
             
             # interface
             _questList
-            _questNames
             _completedFlags
             _questDescriptions
         */
@@ -53,12 +54,17 @@
         
         this.createBaseTitleAndLines(0, '7', '8');
         
-        this._generateQuestList();
         this._questInfo = new Sprite(new Bitmap(500, 500));
         this._questInfo.x = 400;
         this._questInfo.y = 70;
         this.setBitmapFontStyle(this._questInfo.bitmap);
         this.addChild(this._questInfo);
+        
+        this._questPictureMasterOpacity = 0;
+        this._questPicture = new Sprite();
+        this.addChild(this._questPicture);
+        
+        this._generateQuestList();
         
         this.makeEnterComplete();
         
@@ -67,18 +73,15 @@
     
     NB_Interface_QuestMenu.prototype._generateQuestList = function() {
         this._questList = new NB_List(200, 140, 10);
-        this._questNames = [];
         this._completedFlags = [];
         this._questDescriptions = [];
         
         for (var i = 0; i < $dataQuests.length; i++) {
-            var name = $dataQuests[i].name;
             var variableId = $dataQuests[i].variableId;
             var variableValue = $gameVariables.value(variableId);
             if (variableValue > 0 && variableValue <= 8) {
-                this._questList.addListElement(name);
+                this._questList.addListElement($dataQuests[i].name);
                 var description = this._getDescription($dataQuests[i], variableValue).split('\n');
-                this._questNames.push(name);
                 this._completedFlags.push(variableValue === 8);
                 this._questDescriptions.push(description);
             }
@@ -122,9 +125,19 @@
         if (!this._questList.isEmpty() && this._updatedQuest !== this._activeQuest) {
             this._updatedQuest = this._activeQuest;
             var bmp = this._questInfo.bitmap;
-            var name = this._questNames[this._activeQuest];
             var completed = this._completedFlags[this._activeQuest];
             var description = this._questDescriptions[this._activeQuest];
+            
+            var name = $dataQuests[this._activeQuest].name;
+            var questPictureName = $dataQuests[this._activeQuest].graphics;
+            var pictureX = $dataQuests[this._activeQuest].x;
+            var pictureY = $dataQuests[this._activeQuest].y;
+            
+            this._questPicture.bitmap = ImageManager.loadInterfaceElement('quests/', questPictureName);
+            this._questPicture.x = pictureX;
+            this._questPicture.y = pictureY;
+            this._questPicture.opacity = 0;
+            this._questPictureMasterOpacity = 0;
             
             bmp.clear();
             if (completed) {
@@ -162,6 +175,8 @@
                 this.makeEnterComplete();
             }
         }
+        if (this._questPictureMasterOpacity < 255) this._questPictureMasterOpacity += 15;
+        this._questPicture.opacity = (this._questPictureMasterOpacity * (this._masterOpacity/255));
         this._questList.setMasterOpacity(this._masterOpacity);
         this._questInfo.opacity = this._masterOpacity;
         this.setBaseTitleAndLinesOpacity(this._masterOpacity);
