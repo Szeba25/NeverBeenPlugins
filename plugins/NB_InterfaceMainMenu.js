@@ -184,6 +184,9 @@
             case 2:
                 SceneManager.goto(NB_Interface.classes['QuestMenu']);
                 break;
+            case 3:
+                SceneManager.goto(NB_Interface.classes['SaveMenu']);
+                break;
             default:
                 SceneManager.goto(Scene_Map);
                 break;

@@ -66,8 +66,6 @@
         
         this._generateQuestList();
         
-        this.makeEnterComplete();
-        
         NB_Interface.prototype.create.call(this);
     };
     
