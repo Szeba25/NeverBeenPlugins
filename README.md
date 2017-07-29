@@ -20,6 +20,7 @@ NB_InterfaceMainMenu <br />
 NB_InterfaceItemMenu <br />
 NB_InterfaceCharMenu <br />
 NB_InterfaceQuestMenu <br />
+NB_InterfaceSaveMenu <br />
 NB_MiniGameCombine <br />
 NB_MiniGameMatchThree <br />
 

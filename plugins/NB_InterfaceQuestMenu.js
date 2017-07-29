@@ -135,7 +135,7 @@
                 bmp.drawText(name, 0, 0, null, NB_Interface.lineHeight, 'left');
             }
             for (var i = 0; i < description.length; i++) {
-                bmp.drawText(description[i], 25, 35+ i*20, null, NB_Interface.lineHeight, 'left');
+                bmp.drawText(description[i], 15, 35+ i*20, null, NB_Interface.lineHeight, 'left');
             }
         }
     };
