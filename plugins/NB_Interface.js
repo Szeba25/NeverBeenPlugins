@@ -33,6 +33,10 @@ NB_Interface.fontColor = 'rgba(20, 7, 0, 1)';
 NB_Interface.fontSize = 26;
 NB_Interface.lineHeight = 30;
 
+NB_Interface.instantMainMenuFlag = false;
+NB_Interface.returnFrom = null;
+NB_Interface.classes = {};
+
 NB_Interface.prototype = Object.create(Scene_Base.prototype);
 NB_Interface.prototype.constructor = NB_Interface;
 
@@ -70,6 +74,13 @@ NB_Interface.prototype.createBackground = function() {
     this.addChild(this._backgroundLight);
     this.addChild(this._backgroundTint);
     this.addChild(this._pergamen);
+};
+
+NB_Interface.prototype.setBitmapFontStyle = function(bitmap) {
+    bitmap.fontSize = 26;
+    bitmap.textColor = 'rgba(20, 7, 0, 1)';
+    bitmap.outlineColor = 'rgba(0, 0, 0, 0)';
+    bitmap.outlineWidth = 0;
 };
 
 NB_Interface.prototype.start = function() {
@@ -329,7 +340,7 @@ function NB_ButtonGroup() {
 
 NB_ButtonGroup.prototype.initialize = function(onlyActiveMouse) {
     this._buttons = [];
-    this._active = 0;
+    this._activeId = 0;
     this._faded = false;
     this._onlyActiveMouse = onlyActiveMouse;
 };
@@ -352,21 +363,21 @@ NB_ButtonGroup.prototype.addToContainer = function(container) {
     }  
 };
 
-NB_ButtonGroup.prototype.getActiveID = function() {
-    return this._active;  
+NB_ButtonGroup.prototype.getActiveId = function() {
+    return this._activeId;
 };
 
 NB_ButtonGroup.prototype.setActive = function(id) {
-    this._active = id;
+    this._activeId = id;
 };
 
 NB_ButtonGroup.prototype.trigger = function(enlarge) {
-    this._buttons[this._active].fade(enlarge);
-    return this._active;
+    this._buttons[this._activeId].fade(enlarge);
+    return this._activeId;
 };
 
 NB_ButtonGroup.prototype.clickedOnActive = function() {
-    return (this._buttons[this._active].mouseInside() && TouchInput.isTriggered());
+    return (this._buttons[this._activeId].mouseInside() && TouchInput.isTriggered());
 };
 
 NB_ButtonGroup.prototype.fade = function() {
@@ -386,7 +397,7 @@ NB_ButtonGroup.prototype.completelyFaded = function() {
 NB_ButtonGroup.prototype.update = function() {
     // Control button opacity
     for (var i = 0; i < this._buttons.length; i++) {
-        if (this._active == i) {
+        if (this._activeId == i) {
             this._buttons[i].activate();
         } else {
             this._buttons[i].deactivate();
@@ -399,18 +410,18 @@ NB_ButtonGroup.prototype.updateInput = function(mouseActive) {
     // Control keyboard input
     if (Input.isTriggered('up')) {
         SoundManager.playCursor();
-        if (this._active == 0) {
-            this._active = this._buttons.length-1;
+        if (this._activeId == 0) {
+            this._activeId = this._buttons.length-1;
         } else {
-            this._active--;
+            this._activeId--;
         }
     }
     if (Input.isTriggered('down')) {
         SoundManager.playCursor();
-        if (this._active == this._buttons.length-1) {
-            this._active = 0;
+        if (this._activeId == this._buttons.length-1) {
+            this._activeId = 0;
         } else {
-            this._active++;
+            this._activeId++;
         }
     }
     // Control mouse input
@@ -418,7 +429,7 @@ NB_ButtonGroup.prototype.updateInput = function(mouseActive) {
         if (mouseActive) {
             if ((this._onlyActiveMouse && TouchInput.isTriggered() && this._buttons[i].mouseInside()) 
                 || (!this._onlyActiveMouse && this._buttons[i].mouseInside())) {
-                this._active = i;
+                this._activeId = i;
             }
         }
     }
@@ -541,6 +552,14 @@ NB_List.prototype.scrollDown = function(playSound) {
     }
 };
 
+NB_List.prototype.getActiveId = function() {
+    return this._activeId;
+};
+
+NB_List.prototype.isEmpty = function() {
+    return this._elements.length === 0;
+};
+
 NB_List.prototype.updateInput = function(mouseActive) {
     if (Input.isRepeated('up') || TouchInput.wheelY < 0) {
         this.scrollUp(TouchInput.wheelY == 0);
@@ -548,12 +567,14 @@ NB_List.prototype.updateInput = function(mouseActive) {
     if (Input.isRepeated('down') || TouchInput.wheelY > 0) {
         this.scrollDown(TouchInput.wheelY == 0);
     }
+    /*
     if (Input.isTriggered('ok')) {
         this.removeById(this._activeId);
     }
     if (Input.isTriggered('right')) {
         this.addListElementAtIndex('újelem!', this._activeId);
     }
+    */
     for (var i = 0; i < this._elements.length; i++) {
         if (mouseActive && this._elements[i].mouseInside() && TouchInput.isTriggered()) {
             this._activeId = i;
