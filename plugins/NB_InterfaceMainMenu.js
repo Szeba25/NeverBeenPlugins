@@ -178,9 +178,6 @@
             case 0:
                 SceneManager.goto(NB_Interface.classes['CharMenu']);
                 break;
-            case 1:
-                SceneManager.goto(NB_Interface.classes['ItemMenu']);
-                break;
             case 2:
                 SceneManager.goto(NB_Interface.classes['QuestMenu']);
                 break;
@@ -188,7 +185,7 @@
                 SceneManager.goto(NB_Interface.classes['SaveMenu']);
                 break;
             default:
-                SceneManager.goto(Scene_Map);
+                this._exit = true;
                 break;
         }
     };
