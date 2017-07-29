@@ -31,6 +31,8 @@
             _updatedQuest
             
             # sprites and bitmaps
+            _title1
+            _title2
             _line
             _questInfo
             
@@ -53,10 +55,12 @@
         this._line.opacity = 0;
         this.addChild(this._line);
         
+        this._createTitle();
+        
         this._generateQuestList();
         this._questInfo = new Sprite(new Bitmap(500, 500));
         this._questInfo.x = 400;
-        this._questInfo.y = 110;
+        this._questInfo.y = 130;
         this.setBitmapFontStyle(this._questInfo.bitmap);
         this.addChild(this._questInfo);
         
@@ -73,13 +77,29 @@
             var name = $dataQuests[i].name;
             var variableId = $dataQuests[i].variableId;
             var variableValue = $gameVariables.value(variableId);
-            if (variableValue > 0) {
+            if (variableValue > 0 && variableValue <= 8) {
                 this._questList.addListElement(name);
                 var description = this._getDescription($dataQuests[i], variableValue).split('\n');
                 this._questDescriptions.push(description);
             }
+            if (variableValue == 8) this._questList.invalidateById(i);
         }
         this._questList.addToContainer(this);
+    };
+    
+    NB_Interface_QuestMenu.prototype._createTitle = function() {
+        this._title1 = new Sprite();
+        this._title1.bitmap = ImageManager.loadInterfaceElement('menu_1/', '7');
+        this._title1.x = 165;
+        this._title1.y = 40;
+        this._title1.opacity = 0;
+        this._title2 = new Sprite();
+        this._title2.bitmap = ImageManager.loadInterfaceElement('menu_1/', '8');
+        this._title2.x = 165;
+        this._title2.y = 40;
+        this._title2.opacity = 0;
+        this.addChild(this._title1);
+        this.addChild(this._title2);
     };
     
     NB_Interface_QuestMenu.prototype._getDescription = function(data, variableValue) {
@@ -151,6 +171,8 @@
         this._line.opacity = this._masterOpacity;
         this._questList.setMasterOpacity(this._masterOpacity);
         this._questInfo.opacity = this._masterOpacity;
+        this._title1.opacity = this._masterOpacity;
+        this._title2.opacity = this._masterOpacity;
     };
     
     // Override!

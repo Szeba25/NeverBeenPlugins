@@ -200,6 +200,7 @@ NB_Button.prototype.initialize = function(bkgPath, bkg, lightPath, light, text, 
     this._fadedOpacity = 255;
     this._completelyFaded = false;
     this._enlargeIfFaded = false;
+    this._invalidated = false;
     this.updateOpacity();
 };
 
@@ -249,6 +250,10 @@ NB_Button.prototype.completelyFaded = function() {
     return this._completelyFaded;
 };
 
+NB_Button.prototype.invalidate = function() {
+    this._invalidated = true;
+};
+
 NB_Button.prototype._syncPosition = function() {
     // Lerp to target
     if (this._x < this._tx) {
@@ -287,8 +292,10 @@ NB_Button.prototype.deactivate = function() {
 };
 
 NB_Button.prototype.updateOpacity = function() {
-    this._graphics.opacity = this._masterOpacity * (this._fadedOpacity / 255);
-    this._light.opacity = Math.round(this._lightOpacity * (this._masterOpacity / 255) * (this._fadedOpacity / 255));
+    var invalidModifier = 1;
+    if (this._invalid) invalidModifier = 0.5;
+    this._graphics.opacity = this._masterOpacity * (this._fadedOpacity / 255) * invalidModifier;
+    this._light.opacity = Math.round(this._lightOpacity * (this._masterOpacity / 255) * (this._fadedOpacity / 255 * invalidModifier));
 };
 
 NB_Button.prototype.mouseInside = function() {
@@ -550,6 +557,10 @@ NB_List.prototype.scrollDown = function(playSound) {
         this._firstVisibleId = 0;
         this.unfoldFromFirstVisible();
     }
+};
+
+NB_List.prototype.invalidateById = function(id) {
+    this._elements[id].invalidate();
 };
 
 NB_List.prototype.getActiveId = function() {
