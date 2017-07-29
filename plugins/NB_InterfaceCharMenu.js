@@ -32,7 +32,6 @@
             _currentCharUpdated
             
             # sprites and bitmaps
-            _graphicsSet
             _characterInfo
             _characterFace
             
@@ -41,7 +40,7 @@
             
             # interface elements
             _actorButtons
-            _equipmentButtons
+            _equipmentList
             
             # bar bitmaps
             bar
@@ -55,7 +54,6 @@
     NB_Interface_CharMenu.prototype.create = function() {
         this.createBackground();
         this._loadBars();
-        this._graphicsSet = [];
         this.createBaseTitleAndLines(0, '11', '12');
         this._setupActors();
         this._setupButtons();
@@ -75,21 +73,13 @@
     };
     
     NB_Interface_CharMenu.prototype._setupButtons = function() {
-        this._equipmentButtons = [];
-        this._equipmentButtons.push(new NB_Button(null, null, null, null, 'Fegyver:', 
-                                    NB_Interface.fontColor, 610, 405, 255));
-        this._equipmentButtons.push(new NB_Button(null, null, null, null, 'Pajzs:', 
-                                    NB_Interface.fontColor, 610, 425, 255));
-        this._equipmentButtons.push(new NB_Button(null, null, null, null, 'Sisak:', 
-                                    NB_Interface.fontColor, 610, 445, 255));
-        this._equipmentButtons.push(new NB_Button(null, null, null, null, 'Páncél:', 
-                                    NB_Interface.fontColor, 610, 465, 255));
-        this._equipmentButtons.push(new NB_Button(null, null, null, null, 'Egyéb:', 
-                                    NB_Interface.fontColor, 610, 485, 255));
-        for (var i = 0; i < 5; i++) {
-            this.addChild(this._equipmentButtons[i]._graphics);
-            this.addChild(this._equipmentButtons[i]._light);
-        }
+        this._equipmentList = new NB_List(610, 405, 5, 25);
+        this._equipmentList.addListElement('Fegyver:');
+        this._equipmentList.addListElement('Pajzs:');
+        this._equipmentList.addListElement('Sisak:');
+        this._equipmentList.addListElement('Páncél:');
+        this._equipmentList.addListElement('Egyéb:');
+        this._equipmentList.addToContainer(this);
     };
     
     NB_Interface_CharMenu.prototype._generateBar = function(current, max, width, height, original) {
@@ -185,6 +175,7 @@
     // Override!
     NB_Interface_CharMenu.prototype.updateInput = function() {
         this._actorButtons.updateInput(this.isMouseActive());
+        this._equipmentList.updateInput(this.isMouseActive());
         this._currentChar = this._actorButtons.getActiveId();
         if (Input.isTriggered('menu') && !this._exit) {
             this._exit = true;
@@ -195,23 +186,18 @@
     NB_Interface_CharMenu.prototype.updateOpacity = function() {
         if (this._exit) {
             if (this._masterOpacity > 0) {
-                for (var i = 0; i < this._graphicsSet.length; i++) {
-                    this._graphicsSet[i].opacity -= 15;
-                }
                 this._masterOpacity -= 15;
             }
         } else {
             if (this._masterOpacity < 255) {
-                for (var i = 0; i < this._graphicsSet.length; i++) {
-                    this._graphicsSet[i].opacity += 15;
-                }
                 this._masterOpacity += 15;
             } else if (!this.isEnterComplete()) {
                 this.makeEnterComplete();
             }
         }
         this.setBaseTitleAndLinesOpacity(this._masterOpacity);
-        this._actorButtons.setMasterOpactiy(this._masterOpacity);
+        this._actorButtons.setMasterOpacity(this._masterOpacity);
+        this._equipmentList.setMasterOpacity(this._masterOpacity);
         this._characterInfo.opacity = this._masterOpacity;
         if (this._characterFaceFadeOpacity < 255) {
             this._characterFaceFadeOpacity += 15;
@@ -235,14 +221,7 @@
         if (this._characterFaceFadeOpacity < 255) {
             this._characterFace.x += (255-this._characterFaceFadeOpacity)/60;
         }
-        for (var i = 0; i < 5; i++) {
-            this._equipmentButtons[i].update();
-            if (this._equipmentButtons[i].mouseInside()) {
-                this._equipmentButtons[i].activate();
-            } else {
-                this._equipmentButtons[i].deactivate();
-            }
-        }
+        this._equipmentList.update();
     };
     
 })();

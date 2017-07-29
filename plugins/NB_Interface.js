@@ -330,7 +330,7 @@ NB_Button.prototype.deactivate = function() {
 
 NB_Button.prototype.updateOpacity = function() {
     var invalidModifier = 1;
-    if (this._invalid) invalidModifier = 0.5;
+    if (this._invalidated) invalidModifier = 0.5;
     this._graphics.opacity = this._masterOpacity * (this._fadedOpacity / 255) * invalidModifier;
     this._light.opacity = Math.round(this._lightOpacity * (this._masterOpacity / 255) * (this._fadedOpacity / 255 * invalidModifier));
 };
@@ -394,7 +394,7 @@ NB_ButtonGroup.prototype.add = function(button, activate) {
     if (activate) this._buttons[this._buttons.length-1].activate();
 };
 
-NB_ButtonGroup.prototype.setMasterOpactiy = function(value) {
+NB_ButtonGroup.prototype.setMasterOpacity = function(value) {
     for (var i = 0; i < this._buttons.length; i++) {
         this._buttons[i].setMasterOpacity(value);
     }
@@ -487,13 +487,14 @@ function NB_List() {
     this.initialize.apply(this, arguments);
 }
 
-NB_List.prototype.initialize = function(x, y, visibleSize) {
+NB_List.prototype.initialize = function(x, y, visibleSize, lineHeight) {
     this._elements = [];
     this._container = new PIXI.Container();
     this._x = x;
     this._y = y;
     this._activeId = 0;
     this._visibleSize = visibleSize;
+    this._lineHeight = lineHeight || 30; // optional parameter!
     this._firstVisibleId = 0;
 };
 
@@ -536,15 +537,15 @@ NB_List.prototype.addToContainer = function(container) {
 NB_List.prototype.unfoldFromFirstVisible = function() {
     for (var i = 0; i < this._elements.length; i++) {
         if (i < this._firstVisibleId) {
-            this._elements[i].setTarget(this._x, this._y - 30);
+            this._elements[i].setTarget(this._x, this._y - this._lineHeight);
             this._elements[i].fade(true);
         } else {
             var relativeId = i - this._firstVisibleId;
             if (relativeId < this._visibleSize) {
-                this._elements[i].setTarget(this._x, this._y + (relativeId * 30));
+                this._elements[i].setTarget(this._x, this._y + (relativeId * this._lineHeight));
                 this._elements[i].unFade();
             } else {
-                this._elements[i].setTarget(this._x, this._y + (this._visibleSize * 30));
+                this._elements[i].setTarget(this._x, this._y + (this._visibleSize * this._lineHeight));
                 this._elements[i].fade(true);
             }
         }

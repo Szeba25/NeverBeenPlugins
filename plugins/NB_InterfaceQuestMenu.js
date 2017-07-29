@@ -66,7 +66,7 @@
     };
     
     NB_Interface_QuestMenu.prototype._generateQuestList = function() {
-        this._questList = new NB_List(200, 120, 10);
+        this._questList = new NB_List(200, 140, 10);
         this._questNames = [];
         this._completedFlags = [];
         this._questDescriptions = [];
@@ -129,14 +129,13 @@
             bmp.clear();
             if (completed) {
                 bmp.paintOpacity = 128;
-                bmp.drawText('Állapot: teljesítve!', 0, 30, null, NB_Interface.lineHeight, 'left');
+                bmp.drawText(name + ' (teljesítve)', 0, 0, null, NB_Interface.lineHeight, 'left');
             } else {
                 bmp.paintOpacity = 255;
-                bmp.drawText('Állapot: folyamatban', 0, 30, null, NB_Interface.lineHeight, 'left');
+                bmp.drawText(name, 0, 0, null, NB_Interface.lineHeight, 'left');
             }
-            bmp.drawText('*' + name + '*', 0, 0, null, NB_Interface.lineHeight, 'left');
             for (var i = 0; i < description.length; i++) {
-                bmp.drawText(description[i], 0, 70+ i*20, null, NB_Interface.lineHeight, 'left');
+                bmp.drawText(description[i], 25, 35+ i*20, null, NB_Interface.lineHeight, 'left');
             }
         }
     };

@@ -119,7 +119,7 @@
             if (this._backgroundTint.opacity > 0) this._backgroundTint.opacity -= 10;
         }
         // This is the best looking option...
-        this._buttonGroup.setMasterOpactiy(this._pergamenMark.opacity);
+        this._buttonGroup.setMasterOpacity(this._pergamenMark.opacity);
     };
     
     // Override!
