@@ -567,18 +567,9 @@ NB_List.prototype.updateInput = function(mouseActive) {
     if (Input.isRepeated('down') || TouchInput.wheelY > 0) {
         this.scrollDown(TouchInput.wheelY == 0);
     }
-    /*
-    if (Input.isTriggered('ok')) {
-        this.removeById(this._activeId);
-    }
-    if (Input.isTriggered('right')) {
-        this.addListElementAtIndex('újelem!', this._activeId);
-    }
-    */
     for (var i = 0; i < this._elements.length; i++) {
         if (mouseActive && this._elements[i].mouseInside() && TouchInput.isTriggered()) {
             this._activeId = i;
-            this.removeById(i);
         }
     }
 };
