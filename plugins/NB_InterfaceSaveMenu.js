@@ -43,6 +43,8 @@
         this.createBaseTitleAndLines(255, '5', '6', 410);
         this.removeChild(this._line1);
         
+        DataManager.loadAllSavefileImages();
+        
         this._exit = false;
         this._masterOpacity = 0;
         this._createSlotList();
