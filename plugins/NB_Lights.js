@@ -251,6 +251,7 @@
         this.x = this._lightData.x;
         this.y = this._lightData.y;
         this.opacity = this._lightData.shadeOpacity;
+        console.log(this.opacity);
         this.scale.x = this._lightData.scale;
         this.scale.y = this._lightData.scale;
         this.rotation = this._lightData.rotationInRadian;
@@ -287,6 +288,7 @@
                 if (light.shadeName !== 'none') {
                     var shadeSprite = new NB_LightShadeSprite(light);
                     this._shadeLayer.addChild(shadeSprite);
+                    console.log('shade sprite added');
                 }
                 light.addedToLightMap = true;
             }
