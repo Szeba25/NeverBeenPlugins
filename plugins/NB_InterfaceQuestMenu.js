@@ -84,9 +84,9 @@
                 this._questDescriptions.push(description);
                 var otherData = {};
                 otherData['name'] = $dataQuests[i].name;
-                otherData['pictureName'] = $dataQuests[i].graphics;
-                otherData['pictureX'] = $dataQuests[i].pictureX;
-                otherData['pictureY'] = $dataQuests[i].pictureY;
+                otherData['graphics'] = $dataQuests[i].graphics;
+                otherData['x'] = $dataQuests[i].x;
+                otherData['y'] = $dataQuests[i].y;
                 this._questOtherData.push(otherData);
             }
             if (variableValue === 8) this._questList.invalidateById(i);
@@ -131,28 +131,21 @@
             var bmp = this._questInfo.bitmap;
             var completed = this._completedFlags[this._activeQuest];
             var description = this._questDescriptions[this._activeQuest];
-            
             var otherData = this._questOtherData[this._activeQuest];
-            var name = otherData.name;
-            var questPictureName = otherData.pictureName;
-            var pictureX = otherData.pictureX;
-            var pictureY = otherData.pictureY;
-            console.log(questPictureName);
             
-            this._questPicture.bitmap = ImageManager.loadInterfaceElement('quests/', questPictureName);
-            this._questPicture.x = pictureX;
-            this._questPicture.y = pictureY;
+            this._questPicture.bitmap = ImageManager.loadInterfaceElement('quests/', otherData.graphics);
+            this._questPicture.x = otherData.x;
+            this._questPicture.y = otherData.y;
             this._questPicture.opacity = 0;
             this._questPictureMasterOpacity = 0;
-            console.log(this._questPicture.bitmap);
             
             bmp.clear();
             if (completed) {
                 bmp.paintOpacity = 128;
-                bmp.drawText(name + ' (teljesítve)', 0, 0, null, NB_Interface.lineHeight, 'left');
+                bmp.drawText(otherData.name + ' (teljesítve)', 0, 0, null, NB_Interface.lineHeight, 'left');
             } else {
                 bmp.paintOpacity = 255;
-                bmp.drawText(name, 0, 0, null, NB_Interface.lineHeight, 'left');
+                bmp.drawText(otherData.name, 0, 0, null, NB_Interface.lineHeight, 'left');
             }
             for (var i = 0; i < description.length; i++) {
                 bmp.drawText(description[i], 15, 35+ i*20, null, NB_Interface.lineHeight, 'left');
