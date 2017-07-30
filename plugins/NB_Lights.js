@@ -333,12 +333,10 @@
         
         $gameMap.prepareLightMapRefresh();
         this._lighting = new NB_LightMap($gameMap.getLightingManager());
-        console.log('create lower layer:');
-        console.log($gameMap.getLightingManager());
         this._baseSprite.addChild(this._lighting.getShadeLayer());
         this._baseSprite.addChild(this._lighting.getLayerSprite());
         
-        //console.log('Spriteset_Map created');
+        console.log('lights: Spriteset_Map created');
     };
     
     aliases.Spriteset_Map_update = Spriteset_Map.prototype.update;
@@ -352,10 +350,8 @@
     aliases.Game_Map_setup = Game_Map.prototype.setup;
     Game_Map.prototype.setup = function(mapId) {
         aliases.Game_Map_setup.call(this, mapId);
-        console.log('manager???');
-        console.log(this._lightingManager);
         this._lightingManager = new NB_LightingManager();
-        console.log('Game_Map setup: ' + mapId);
+        console.log('lights: Game_Map setup: ' + mapId);
     };
     
     Game_Map.prototype.getLightingManager = function() {
@@ -374,7 +370,7 @@
     SceneManager.snap = function() {
         if (this._scene instanceof Scene_Map) {
             this._scene._spriteset._lighting.getLayerSprite().visible = false;
-            //console.log('Escaped from Scene_Map!');
+            console.log('lights: Escaped from Scene_Map!');
         }
         return aliases.SceneManager_static_snap.call(this);
     };
