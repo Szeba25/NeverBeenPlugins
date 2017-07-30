@@ -333,6 +333,7 @@
         
         $gameMap.prepareLightMapRefresh();
         this._lighting = new NB_LightMap($gameMap.getLightingManager());
+        console.log($gameMap.getLightingManager());
         this._baseSprite.addChild(this._lighting.getShadeLayer());
         this._baseSprite.addChild(this._lighting.getLayerSprite());
         

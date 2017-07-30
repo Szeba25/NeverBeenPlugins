@@ -41,6 +41,7 @@
     NB_Interface_SaveMenu.prototype.create = function() {
         this.createBackground();
         this.createBaseTitleAndLines(255, '5', '6', 410);
+        this.removeChild(this._line1);
         
         this._exit = false;
         this._masterOpacity = 0;
@@ -58,9 +59,9 @@
     };
     
     NB_Interface_SaveMenu.prototype._createSlotList = function() {
-        this._slotList = new NB_List(200, 140, 10);
+        this._slotList = new NB_List(200, 140, 3, 120);
         for (var i = 1; i <= 20; i++) {
-            this._slotList.addListElement('slot ' + i);
+            this._slotList.addGraphicalListElement('load_save/', 'box', 'load_save/', 'box_light');
             
             var valid = DataManager.isThisGameFile(i);
             var elementId = i-1;
