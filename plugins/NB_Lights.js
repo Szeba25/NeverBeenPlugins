@@ -352,7 +352,7 @@
     Game_Map.prototype.setup = function(mapId) {
         aliases.Game_Map_setup.call(this, mapId);
         this._lightingManager = new NB_LightingManager();
-        //console.log('Game_Map setup: ' + mapId);
+        console.log('Game_Map setup: ' + mapId);
     };
     
     Game_Map.prototype.getLightingManager = function() {
