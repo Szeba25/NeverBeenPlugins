@@ -89,7 +89,7 @@
                 otherData['y'] = $dataQuests[i].y;
                 this._questOtherData.push(otherData);
             }
-            if (variableValue === 8) this._questList.invalidateById(i);
+            if (variableValue === 8) this._questList.invalidateById(this._questList.getLength()-1);
         }
         this._questList.addToContainer(this);
     };

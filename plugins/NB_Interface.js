@@ -723,6 +723,10 @@ NB_List.prototype.isEmpty = function() {
     return this._elements.length === 0;
 };
 
+NB_List.prototype.getLength = function() {
+    return this._elements.length;
+};
+
 NB_List.prototype.updateInput = function(mouseActive) {
     if (Input.isRepeated('up') || TouchInput.wheelY < 0) {
         this.scrollUp(TouchInput.wheelY == 0);
