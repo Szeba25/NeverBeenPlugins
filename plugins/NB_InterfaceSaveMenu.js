@@ -28,12 +28,12 @@
             _exit
             _masterOpacity
             _currentSaveId
+            _slotsOpacity
             
             # sprites and bitmaps
+            _slots
             
             # interface
-            _slots
-            _slotsOpacity
             _slotList
         */
     };

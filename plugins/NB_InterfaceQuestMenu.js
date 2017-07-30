@@ -39,6 +39,7 @@
             _questList
             _completedFlags
             _questDescriptions
+            _questOtherData
         */
     };
     
@@ -71,6 +72,7 @@
         this._questList = new NB_List(200, 140, 10);
         this._completedFlags = [];
         this._questDescriptions = [];
+        this._questOtherData = [];
         
         for (var i = 0; i < $dataQuests.length; i++) {
             var variableId = $dataQuests[i].variableId;
@@ -80,6 +82,12 @@
                 var description = this._getDescription($dataQuests[i], variableValue).split('\n');
                 this._completedFlags.push(variableValue === 8);
                 this._questDescriptions.push(description);
+                var otherData = {};
+                otherData['name'] = $dataQuests[i].name;
+                otherData['pictureName'] = $dataQuests[i].graphics;
+                otherData['pictureX'] = $dataQuests[i].pictureX;
+                otherData['pictureY'] = $dataQuests[i].pictureY;
+                this._questOtherData.push(otherData);
             }
             if (variableValue === 8) this._questList.invalidateById(i);
         }
@@ -124,16 +132,19 @@
             var completed = this._completedFlags[this._activeQuest];
             var description = this._questDescriptions[this._activeQuest];
             
-            var name = $dataQuests[this._activeQuest].name;
-            var questPictureName = $dataQuests[this._activeQuest].graphics;
-            var pictureX = $dataQuests[this._activeQuest].x;
-            var pictureY = $dataQuests[this._activeQuest].y;
+            var otherData = this._questOtherData[this._activeQuest];
+            var name = otherData.name;
+            var questPictureName = otherData.pictureName;
+            var pictureX = otherData.pictureX;
+            var pictureY = otherData.pictureY;
+            console.log(questPictureName);
             
             this._questPicture.bitmap = ImageManager.loadInterfaceElement('quests/', questPictureName);
             this._questPicture.x = pictureX;
             this._questPicture.y = pictureY;
             this._questPicture.opacity = 0;
             this._questPictureMasterOpacity = 0;
+            console.log(this._questPicture.bitmap);
             
             bmp.clear();
             if (completed) {
