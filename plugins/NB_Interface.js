@@ -375,6 +375,22 @@ NB_Button.prototype.update = function() {
 };
 
 /****************************************************************
+ * CanvasButton: A general button interface element
+ ****************************************************************/
+
+function NB_CanvasButton() {
+    this.initialize.apply(this, arguments);
+}
+
+NB_CanvasButton.prototype = Object.create(NB_Button.prototype);
+NB_CanvasButton.prototype.constructor = NB_Button;
+
+NB_CanvasButton.prototype.initialize = function(bkgPath, bkg, lightPath, light, cw, ch, x, y, masterOpacity) {
+    NB_Button.prototype.initialize.call(this, bkgPath, bkg, lightPath, light, null, null, x, y, masterOpacity);
+    this._upperCanvas = new Sprite(new Bitmap(cw, ch));
+};
+ 
+/****************************************************************
  * Button group
  ****************************************************************/
 
@@ -506,12 +522,12 @@ NB_List.prototype.addListElementAtIndex = function(text, id) {
     if (id >= 0 && id <= this._elements.length) this._addListElement(text, id);
 };
 
-NB_List.prototype.addGraphicalListElement = function(basePath, base, lightPath, light) {
-    this._addGraphicalListElement(basePath, base, lightPath, light, this._elements.length);
+NB_List.prototype.addCanvasListElement = function(basePath, base, lightPath, light, cw, ch) {
+    this._addCanvasListElement(basePath, base, lightPath, light, cw, ch, this._elements.length);
 };
 
-NB_List.prototype.addGraphicalListElementAtIndex = function(basePath, base, lightPath, light, id) {
-    if (id >= 0 && id <= this._elements.length) this._addGraphicalListElement(basePath, base, lightPath, light, id);
+NB_List.prototype.addCanvasListElementAtIndex = function(basePath, base, lightPath, light, cw, ch, id) {
+    if (id >= 0 && id <= this._elements.length) this._addCanvasListElement(basePath, base, lightPath, light, cw, ch, id);
 };
 
 NB_List.prototype._addListElement = function(text, id) {
@@ -523,11 +539,12 @@ NB_List.prototype._addListElement = function(text, id) {
     this.unfoldFromFirstVisible();
 };
 
-NB_List.prototype._addGraphicalListElement = function(basePath, base, lightPath, light, id) {
-    var elem = new NB_Button(basePath, base, lightPath, light, null, null, this._x, this._y, 0);
+NB_List.prototype._addCanvasListElement = function(basePath, base, lightPath, light, cw, ch, id) {
+    var elem = new NB_CanvasButton(basePath, base, lightPath, light, cw, ch, this._x, this._y, 0);
     this._elements.splice(id, 0, elem);
     this._container.addChild(elem._graphics);
     this._container.addChild(elem._light);
+    this._container.addChild(elem._upperCanvas);
     elem.hide();
     this.unfoldFromFirstVisible();
 };

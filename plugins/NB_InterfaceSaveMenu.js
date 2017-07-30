@@ -61,11 +61,11 @@
     NB_Interface_SaveMenu.prototype._createSlotList = function() {
         this._slotList = new NB_List(200, 140, 3, 120);
         for (var i = 1; i <= 20; i++) {
-            this._slotList.addGraphicalListElement('load_save/', 'box', 'load_save/', 'box_light');
+            this._slotList.addCanvasListElement('load_save/', 'box2', 'load_save/', 'box2_light', 470, 165);
             
             var valid = DataManager.isThisGameFile(i);
             var elementId = i-1;
-            if (!valid) this._slotList.invalidateById(elementId);
+            //if (!valid) this._slotList.invalidateById(elementId);
             
         }
         this._slotList.addToContainer(this);
