@@ -33,14 +33,20 @@
  *   0 = total darkness
  *   100 = no ambient
  *
- * - lights_add_to_map [id] [x] [y] [name] [intensity%]
+ * - lights_add_to_map [id] [x] [y] [name] [intensity%] [shadeName] [shadeIntensity%]
  *   > Optional: [baseSize%] [intensityTarget%] [intensityChangeDuration]
+ *   if shadeName is 'none' there wont be any shade added.
+ *   if shadeName is 'same' the shade image will be the same as the light image, but with different blend mode.
  *
- * - lights_add_to_event [id] [eventId] [name] [intensity%]
+ * - lights_add_to_event [id] [eventId] [name] [intensity%] [shadeName] [shadeIntensity%]
  *   > Optional: [baseSize%] [intensityTarget%] [intensityChangeDuration]
+ *   if shadeName is 'none' there wont be any shade added.
+ *   if shadeName is 'same' the shade image will be the same as the light image, but with different blend mode.
  *
- * - lights_add_to_player [id] [name] [intensity%]
+ * - lights_add_to_player [id] [name] [intensity%] [shadeName] [shadeIntensity%]
  *   > Optional: [baseSize%] [intensityTarget%] [intensityChangeDuration]
+ *   if shadeName is 'none' there wont be any shade added.
+ *   if shadeName is 'same' the shade image will be the same as the light image, but with different blend mode.
  *
  * - lights_change_intensity [id] [intensityTarget%] [intensityChangeDuration]
  *   id can be set to 'all' to affect all lights
@@ -61,6 +67,9 @@
  *
  * - lights_set_rotation_delta [id] [rotationDelta]
  *   rotationDelta is in degrees
+ *   id can be set to 'all' to affect all lights
+ *
+ * - lights_change_shade_intensity [id] [shadeIntensityTarget%] [shadeIntensityChangeDuration]
  *   id can be set to 'all' to affect all lights
  */
 
@@ -210,13 +219,43 @@
         this.scale.x = this._lightData.scale;
         this.scale.y = this._lightData.scale;
         this.rotation = this._lightData.rotationInRadian;
-        // Make the sprite disappear if opacity is zero!
-        if (this.opacity === 0 && this.visible) {
-            this.visible = false;
+        if (this.opacity === 0 && this.visible) this.visible = false;
+        if (this.opacity > 0 && !this.visible) this.visible = true;
+    };
+    
+    /*********************************************
+     * Sprite for light shades
+     *********************************************/
+    
+    function NB_LightShadeSprite() {
+        this.initialize.apply(this, arguments);
+    }
+    
+    NB_LightShadeSprite.prototype = Object.create(Sprite.prototype);
+    NB_LightShadeSprite.prototype.constructor = NB_LightShadeSprite;
+    
+    NB_LightShadeSprite.prototype.initialize = function(lightData) {
+        var finalShadeName = null;
+        if (lightData.shadeName === 'same') {
+            finalShadeName = lightData.name;
+        } else {
+            finalShadeName = lightData.shadeName;
         }
-        if (this.opacity > 0 && !this.visible) {
-            this.visible = true;
-        }
+        Sprite.prototype.initialize.call(this, ImageManager.loadLight(finalShadeName));
+        this.anchor.x = 0.5;
+        this.anchor.y = 0.5;
+        this._lightData = lightData;
+    };
+    
+    NB_LightShadeSprite.prototype.sync = function() {
+        this.x = this._lightData.x + SHAKE_CORRECTION;
+        this.y = this._lightData.y;
+        this.opacity = this._lightData.shadeOpacity;
+        this.scale.x = this._lightData.scale;
+        this.scale.y = this._lightData.scale;
+        this.rotation = this._lightData.rotationInRadian;
+        if (this.opacity === 0 && this.visible) this.visible = false;
+        if (this.opacity > 0 && !this.visible) this.visible = true;
     };
     
     /*********************************************
@@ -233,6 +272,8 @@
         this._layerSprite = new NB_LightMapSprite(lightingData.lightMapTexture);
         this._layerSprite.setFilter(lightingData.filter);
         this._layerSprite.visible = false;
+        this._shadeLayer = new PIXI.Container();
+        this._shadeLayer.visible = false;
         lightingData.filter.setAmbientLight(100);
     };
     
@@ -243,28 +284,39 @@
             if (!light.addedToLightMap) {
                 var sprite = new NB_LightSprite(light);
                 this._layer.addChild(sprite);
+                if (light.shadeName !== 'none') {
+                    var shadeSprite = new NB_LightShadeSprite(light);
+                    this._shadeLayer.addChild(shadeSprite);
+                }
                 light.addedToLightMap = true;
             }
         }
     };
     
     NB_LightMap.prototype._updateLights = function() {
-        var allSprites = this._layer.children;
-        for (var i = 0; i < allSprites.length; i++) {
-            allSprites[i].sync();
+        var layerSprites = this._layer.children;
+        for (var i = 0; i < layerSprites.length; i++) {
+            layerSprites[i].sync();
+        }
+        var shadeLayerSprites = this._shadeLayer.children;
+        for (var i = 0; i < shadeLayerSprites.length; i++) {
+            shadeLayerSprites[i].sync();
         }
     };
     
     NB_LightMap.prototype.update = function() {
         if (this._manager.enabled) {
-            if (!this._layerSprite.visible) {
-                this._layerSprite.visible = true;
-            }
+            if (!this._layerSprite.visible) this._layerSprite.visible = true;
+            if (!this._shadeLayer.visible) this._shadeLayer.visible = true;    
             lightingData.filter.setAmbientLight(this._manager.ambient);
             this._addNewLights();
             this._updateLights();
             Graphics._renderer.render(this._layer, lightingData.lightMapTexture);
         }
+    };
+    
+    NB_LightMap.prototype.getShadeLayer = function() {
+        return this._shadeLayer;
     };
     
     NB_LightMap.prototype.getLayerSprite = function() {
@@ -281,6 +333,7 @@
         
         $gameMap.prepareLightMapRefresh();
         this._lighting = new NB_LightMap($gameMap.getLightingManager());
+        this._baseSprite.addChild(this._lighting.getShadeLayer());
         this._baseSprite.addChild(this._lighting.getLayerSprite());
         
         //console.log('Spriteset_Map created');
@@ -358,15 +411,17 @@
                 var y = parseInt(args[2]);
                 var name = args[3];
                 var intensity = parseInt(args[4]);
-                var light = new NB_Light(id, null, x, y, name, intensity);
+                var shadeName = args[5];
+                var shadeIntensity = parseInt(args[6]);
+                var light = new NB_Light(id, null, x, y, name, intensity, shadeName, shadeIntensity);
                 $gameMap.getLightingManager().addLight(light);
-                if (args.length >= 6) {
-                    var baseSize = parseInt(args[5]);
+                if (args.length >= 8) {
+                    var baseSize = parseInt(args[7]);
                     light.setBaseSize(baseSize);
                 }
-                if (args.length == 8) {
-                    var intensityTarget = parseInt(args[6]);
-                    var intensityChangeDuration = parseInt(args[7]);
+                if (args.length == 10) {
+                    var intensityTarget = parseInt(args[8]);
+                    var intensityChangeDuration = parseInt(args[9]);
                     light.setIntensityTarget(intensityTarget, intensityChangeDuration);
                 }
                 break;
@@ -375,15 +430,17 @@
                 var event = $gameMap.event(parseInt(args[1]));
                 var name = args[2];
                 var intensity = parseInt(args[3]);
-                var light = new NB_Light(id, event, 0, 0, name, intensity);
+                var shadeName = args[4];
+                var shadeIntensity = parseInt(args[5]);
+                var light = new NB_Light(id, event, 0, 0, name, intensity, shadeName, shadeIntensity);
                 $gameMap.getLightingManager().addLight(light);
-                if (args.length >= 5) {
-                    var baseSize = parseInt(args[4]);
+                if (args.length >= 7) {
+                    var baseSize = parseInt(args[6]);
                     light.setBaseSize(baseSize);
                 }
-                if (args.length == 7) {
-                    var intensityTarget = parseInt(args[5]);
-                    var intensityChangeDuration = parseInt(args[6]);
+                if (args.length == 9) {
+                    var intensityTarget = parseInt(args[7]);
+                    var intensityChangeDuration = parseInt(args[8]);
                     light.setIntensityTarget(intensityTarget, intensityChangeDuration);
                 }
                 break;
@@ -391,15 +448,17 @@
                 var id = parseInt(args[0]);
                 var name = args[1];
                 var intensity = parseInt(args[2]);
-                var light = new NB_Light(id, $gamePlayer, 0, 0, name, intensity);
+                var shadeName = args[3];
+                var shadeIntensity = parseInt(args[4]);
+                var light = new NB_Light(id, $gamePlayer, 0, 0, name, intensity, shadeName, shadeIntensity);
                 $gameMap.getLightingManager().addLight(light);
-                if (args.length >= 4) {
-                    var baseSize = parseInt(args[3]);
+                if (args.length >= 6) {
+                    var baseSize = parseInt(args[5]);
                     light.setBaseSize(baseSize);
                 }
-                if (args.length == 6) {
-                    var intensityTarget = parseInt(args[4]);
-                    var intensityChangeDuration = parseInt(args[5]);
+                if (args.length == 8) {
+                    var intensityTarget = parseInt(args[6]);
+                    var intensityChangeDuration = parseInt(args[7]);
                     light.setIntensityTarget(intensityTarget, intensityChangeDuration);
                 }
                 break;
@@ -442,6 +501,13 @@
                 if (args[0] !== 'all') id = parseInt(args[0]);
                 var rotationDelta = parseInt(args[1]);
                 $gameMap.getLightingManager().setLightsRotationDelta(id, rotationDelta);
+                break;
+            case 'lights_change_shade_intensity':
+                var id = null;
+                if (args[0] !== 'all') id = parseInt(args[0]);
+                var shadeIntensityTarget = parseInt(args[1]);
+                var shadeIntensityChangeDuration = parseInt(args[2]);
+                $gameMap.getLightingManager().changeLightsShadeIntensity(id, shadeIntensityTarget, shadeIntensityChangeDuration);
                 break;
         }
     };
@@ -486,6 +552,13 @@ Object.defineProperty(NB_Light.prototype, 'name', {
     configurable: false
 });
 
+Object.defineProperty(NB_Light.prototype, 'shadeName', {
+    get: function() {
+        return this._shadeName;
+    },
+    configurable: false
+});
+
 Object.defineProperty(NB_Light.prototype, 'opacity', {
     get: function() {
         if (this._flaringAffectsIntensity) {
@@ -493,6 +566,13 @@ Object.defineProperty(NB_Light.prototype, 'opacity', {
         } else {
             return (this._intensity / 100) * 255;
         }
+    },
+    configurable: false
+});
+
+Object.defineProperty(NB_Light.prototype, 'shadeOpacity', {
+    get: function() {
+        return (this._shadeIntensity / 100) * this.opacity;
     },
     configurable: false
 });
@@ -521,7 +601,7 @@ Object.defineProperty(NB_Light.prototype, 'addedToLightMap', {
     configurable: true
 });
  
-NB_Light.prototype.initialize = function(id, character, x, y, name, intensity) {
+NB_Light.prototype.initialize = function(id, character, x, y, name, intensity, shadeName, shadeIntensity) {
     this._id = id;
     this._character = character;
     this._originX = x;
@@ -544,6 +624,10 @@ NB_Light.prototype.initialize = function(id, character, x, y, name, intensity) {
     this._flaringAffectsIntensity = false;
     this._rotation = 0;
     this._rotationDelta = 0;
+    this._shadeName = shadeName;
+    this._shadeIntensity = shadeIntensity;
+    this._shadeIntensityTarget = shadeIntensity;
+    this._shadeIntensityChangeDuration = 0;
     this._addedToLightMap = false;
 };
 
@@ -588,6 +672,11 @@ NB_Light.prototype.setRotation = function(value) {
 
 NB_Light.prototype.setRotationDelta = function(value) {
     this._rotationDelta = value;
+};
+
+NB_Light.prototype.setShadeIntensityTarget = function(shadeIntensityTarget, shadeIntensityChangeDuration) {
+    this._shadeIntensityTarget = shadeIntensityTarget;
+    this._shadeIntensityChangeDuration = shadeIntensityChangeDuration;
 };
 
 NB_Light.prototype._updatePosition = function() {
@@ -644,12 +733,21 @@ NB_Light.prototype._updateRotation = function() {
     this._rotation += this._rotationDelta;
 };
 
+NB_Light.prototype._updateShadeIntensity = function() {
+    if (this._shadeIntensityChangeDuration > 0) {
+        var d = this._shadeIntensityChangeDuration;
+        this._shadeIntensity = (this._shadeIntensity * (d - 1) + this._shadeIntensityTarget) / d;
+        this._shadeIntensityChangeDuration--;
+    }
+};
+
 NB_Light.prototype.update = function() {
     this._updatePosition();
     this._updateIntensity();
     this._updateBaseSize();
     this._updateFlaring();
     this._updateRotation();
+    this._updateShadeIntensity();
 };
  
 /*********************************************
@@ -739,6 +837,14 @@ NB_LightingManager.prototype.setLightsRotationDelta = function(id, rotationDelta
     for (var i = 0; i < this._lights.length; i++) {
         if (id === null || this._lights[i].id === id) {
             this._lights[i].setRotationDelta(rotationDelta);
+        }
+    }
+};
+
+NB_LightingManager.prototype.changeLightsShadeIntensity = function(id, shadeIntensityTarget, shadeIntensityChangeDuration) {
+    for (var i = 0; i < this._lights.length; i++) {
+        if (id === null || this._lights[i].id === id) {
+            this._lights[i].setShadeIntensityTarget(shadeIntensityTarget, shadeIntensityChangeDuration);
         }
     }
 };
