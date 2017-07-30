@@ -209,6 +209,7 @@ NB_Button.prototype.initialize = function(bkgPath, bkg, lightPath, light, text, 
     
     if (text != null) {
         this._graphics.bitmap = new Bitmap();
+        this._graphics.bitmap.smooth = true;
         this._graphics.bitmap.textColor = textColor;
         this._graphics.bitmap.outlineColor = 'rgba(0, 0, 0, 0)';
         this._graphics.bitmap.fontSize = NB_Interface.fontSize;
@@ -219,6 +220,7 @@ NB_Button.prototype.initialize = function(bkgPath, bkg, lightPath, light, text, 
         this._graphics.height = h;
         this._graphics.bitmap.drawText(text, 0, 0, w, NB_Interface.lineHeight, 'left');
         this._light.bitmap = new Bitmap(w, h);
+        this._light.bitmap.smooth = true;
         this._light.bitmap.blt(this._graphics.bitmap, 0, 0, w, h, 0, 0, w, h);
         this._light.filters = [NB_Button.blurFilter];
     } else {
