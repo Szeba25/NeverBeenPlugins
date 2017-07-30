@@ -216,6 +216,7 @@
         this.x = this._lightData.x + SHAKE_CORRECTION;
         this.y = this._lightData.y;
         this.opacity = this._lightData.opacity;
+        console.log('light: ' + this._lightData.id + ': ' + this.opacity);
         this.scale.x = this._lightData.scale;
         this.scale.y = this._lightData.scale;
         this.rotation = this._lightData.rotationInRadian;
@@ -251,7 +252,7 @@
         this.x = this._lightData.x;
         this.y = this._lightData.y;
         this.opacity = this._lightData.shadeOpacity;
-        console.log(this.opacity);
+        console.log('shade: ' + this._lightData.id + ': '  + this.opacity);
         this.scale.x = this._lightData.scale;
         this.scale.y = this._lightData.scale;
         this.rotation = this._lightData.rotationInRadian;
