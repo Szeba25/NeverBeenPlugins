@@ -333,6 +333,7 @@
         
         $gameMap.prepareLightMapRefresh();
         this._lighting = new NB_LightMap($gameMap.getLightingManager());
+        console.log('create lower layer:');
         console.log($gameMap.getLightingManager());
         this._baseSprite.addChild(this._lighting.getShadeLayer());
         this._baseSprite.addChild(this._lighting.getLayerSprite());
@@ -351,6 +352,8 @@
     aliases.Game_Map_setup = Game_Map.prototype.setup;
     Game_Map.prototype.setup = function(mapId) {
         aliases.Game_Map_setup.call(this, mapId);
+        console.log('manager???');
+        console.log(this._lightingManager);
         this._lightingManager = new NB_LightingManager();
         console.log('Game_Map setup: ' + mapId);
     };
