@@ -178,7 +178,7 @@ NB_Interface.prototype.isEnterComplete = function() {
 
 NB_Interface.prototype.makeEnterComplete = function() {
     this._enterComplete = true;
-}
+};
 
 /****************************************************************
  * Button: A general button interface element
@@ -507,14 +507,14 @@ NB_ButtonGroup.prototype.fade = function() {
         this._buttons[i].fade(false);
     }
     this._faded = true;
-}
+};
 
 NB_ButtonGroup.prototype.completelyFaded = function() {
     for (var i = 0; i < this._buttons.length; i++) {
         if (this._buttons[i].completelyFaded()) return true;
     }
     return false;
-}
+};
 
 NB_ButtonGroup.prototype.update = function() {
     // Control button opacity
@@ -555,7 +555,7 @@ NB_ButtonGroup.prototype.updateInput = function(mouseActive) {
             }
         }
     }
-}
+};
 
 /****************************************************************
  * List
