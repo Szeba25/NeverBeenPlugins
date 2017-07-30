@@ -241,6 +241,16 @@ NB_Button.prototype.initialize = function(bkgPath, bkg, lightPath, light, text, 
     this.updateOpacity();
 };
 
+NB_Button.prototype.addToContainer = function(container) {
+    container.addChild(this._graphics);
+    container.addChild(this._light)
+};
+
+NB_Button.prototype.removeFromContainer = function(container) {
+    container.removeChild(this._graphics);
+    container.removeChild(this._light);
+};
+
 NB_Button.prototype.hide = function() {
     if (!this._faded) {
         this._faded = true;
@@ -310,10 +320,10 @@ NB_Button.prototype._syncPosition = function() {
         this._y -= dist * 0.2;
     }
     // Set to graphics
-    this._graphics.x = this._x + this._graphics.width / 2;
-    this._graphics.y = this._y + this._graphics.height / 2;
-    this._light.x = this._x + this._light.width / 2;
-    this._light.y = this._y + this._light.height / 2;
+    this._graphics.x = Math.floor(this._x + this._graphics.width / 2);
+    this._graphics.y = Math.floor(this._y + this._graphics.height / 2);
+    this._light.x = Math.floor(this._x + this._light.width / 2);
+    this._light.y = Math.floor(this._y + this._light.height / 2);
 };
 
 NB_Button.prototype.setMasterOpacity = function(opc) {
@@ -375,7 +385,7 @@ NB_Button.prototype.update = function() {
 };
 
 /****************************************************************
- * CanvasButton: A general button interface element
+ * A special paintable button
  ****************************************************************/
 
 function NB_CanvasButton() {
@@ -386,8 +396,61 @@ NB_CanvasButton.prototype = Object.create(NB_Button.prototype);
 NB_CanvasButton.prototype.constructor = NB_Button;
 
 NB_CanvasButton.prototype.initialize = function(bkgPath, bkg, lightPath, light, cw, ch, x, y, masterOpacity) {
-    NB_Button.prototype.initialize.call(this, bkgPath, bkg, lightPath, light, null, null, x, y, masterOpacity);
     this._upperCanvas = new Sprite(new Bitmap(cw, ch));
+    this._upperCanvas.anchor.x = 0.5;
+    this._upperCanvas.anchor.y = 0.5;
+    this._upperCanvas.bitmap.smooth = true;
+    NB_Button.prototype.initialize.call(this, bkgPath, bkg, lightPath, light, null, null, x, y, masterOpacity);
+};
+
+NB_CanvasButton.prototype.addToContainer = function(container) {
+    NB_Button.prototype.addToContainer.call(this, container);
+    container.addChild(this._upperCanvas);
+};
+
+NB_CanvasButton.prototype.removeFromContainer = function(container) {
+    NB_Button.prototype.removeFromContainer.call(this, container);
+    container.removeChild(this._upperCanvas);
+};
+ 
+NB_CanvasButton.prototype._syncPosition = function() {
+    NB_Button.prototype._syncPosition.call(this);
+    this._upperCanvas.x = Math.floor(this._x + this._upperCanvas.width / 2);
+    this._upperCanvas.y = Math.floor(this._y + this._upperCanvas.height / 2);
+};
+
+NB_CanvasButton.prototype.updateOpacity = function() {
+    NB_Button.prototype.updateOpacity.call(this);
+    var invalidModifier = 1;
+    if (this._invalidated) invalidModifier = 0.5;
+    this._upperCanvas.opacity = this._masterOpacity * (this._fadedOpacity / 255) * invalidModifier;
+};
+ 
+NB_CanvasButton.prototype.getUpperCanvasBitmap = function() {
+    return this._upperCanvas.bitmap;
+};
+
+/****************************************************************
+ * Save Load button!
+ ****************************************************************/
+
+function NB_SaveLoadMenuButton () {
+    this.initialize.apply(this, arguments);
+}
+ 
+NB_SaveLoadMenuButton.prototype = Object.create(NB_CanvasButton.prototype);
+NB_SaveLoadMenuButton.prototype.constructor = NB_CanvasButton;
+
+NB_SaveLoadMenuButton.prototype.initialize = function(bkgPath, bkg, lightPath, light, cw, ch, x, y, masterOpacity) {
+    NB_CanvasButton.prototype.initialize.call(this, bkgPath, bkg, lightPath, light, cw, ch, x, y, masterOpacity);
+};
+
+NB_SaveLoadMenuButton.prototype.updateOpacity = function() {
+    NB_Button.prototype.updateOpacity.call(this);
+};
+
+NB_SaveLoadMenuButton.prototype.setUpperCanvasOpacity = function(opacity) {
+    this._upperCanvas.opacity = opacity;
 };
  
 /****************************************************************
@@ -418,8 +481,7 @@ NB_ButtonGroup.prototype.setMasterOpacity = function(value) {
 
 NB_ButtonGroup.prototype.addToContainer = function(container) {
     for (var i = 0; i < this._buttons.length; i++) {
-        container.addChild(this._buttons[i]._graphics);
-        container.addChild(this._buttons[i]._light);
+        this._buttons[i].addToContainer(container);
     }  
 };
 
@@ -514,6 +576,14 @@ NB_List.prototype.initialize = function(x, y, visibleSize, lineHeight) {
     this._firstVisibleId = 0;
 };
 
+NB_List.prototype.addAbstractListElement = function(elem) {
+    this._addAbstractListElement(elem, this._elements.length);
+};
+
+NB_List.prototype.addAbstractListElementAtIndex = function(elem, id) {
+    if (id >= 0 && id <= this._elements.length) this._addAbstractListElement(elem, id);
+};
+
 NB_List.prototype.addListElement = function(text) {
     this._addListElement(text, this._elements.length);
 };
@@ -530,11 +600,20 @@ NB_List.prototype.addCanvasListElementAtIndex = function(basePath, base, lightPa
     if (id >= 0 && id <= this._elements.length) this._addCanvasListElement(basePath, base, lightPath, light, cw, ch, id);
 };
 
+NB_List.prototype._addAbstractListElement = function(elem, id) {
+    this._elements.splice(id, 0, elem);
+    elem.setPosition(this._x, this._y);
+    elem.setTarget(this._x, this._y);
+    elem.setMasterOpacity(0);
+    elem.addToContainer(this._container);
+    elem.hide();
+    this.unfoldFromFirstVisible();
+};
+
 NB_List.prototype._addListElement = function(text, id) {
     var elem = new NB_Button(null, null, null, null, text, NB_Interface.fontColor, this._x, this._y, 0);
     this._elements.splice(id, 0, elem);
-    this._container.addChild(elem._graphics);
-    this._container.addChild(elem._light);
+    elem.addToContainer(this._container);
     elem.hide();
     this.unfoldFromFirstVisible();
 };
@@ -542,9 +621,7 @@ NB_List.prototype._addListElement = function(text, id) {
 NB_List.prototype._addCanvasListElement = function(basePath, base, lightPath, light, cw, ch, id) {
     var elem = new NB_CanvasButton(basePath, base, lightPath, light, cw, ch, this._x, this._y, 0);
     this._elements.splice(id, 0, elem);
-    this._container.addChild(elem._graphics);
-    this._container.addChild(elem._light);
-    this._container.addChild(elem._upperCanvas);
+    elem.addToContainer(this._container);
     elem.hide();
     this.unfoldFromFirstVisible();
 };
@@ -552,8 +629,7 @@ NB_List.prototype._addCanvasListElement = function(basePath, base, lightPath, li
 NB_List.prototype.removeById = function(id) {
     if (id >= 0 && id < this._elements.length) {
         var elem = this._elements.splice(id, 1)[0];
-        this._container.removeChild(elem._graphics);
-        this._container.removeChild(elem._light);
+        elem.removeFromContainer(this._container);
         if (this._activeId == this._elements.length) {
             if (this._activeId > 0) this._activeId--;
         }
@@ -637,6 +713,10 @@ NB_List.prototype.invalidateById = function(id) {
 
 NB_List.prototype.getActiveId = function() {
     return this._activeId;
+};
+
+NB_List.prototype.getElementById = function(id) {
+    return this._elements[id];
 };
 
 NB_List.prototype.isEmpty = function() {

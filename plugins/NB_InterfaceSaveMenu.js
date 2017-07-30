@@ -28,12 +28,12 @@
             _exit
             _masterOpacity
             _currentSaveId
-            _updatedSaveId
             
             # sprites and bitmaps
-            _saveInfo
             
             # interface
+            _slots
+            _slotsOpacity
             _slotList
         */
     };
@@ -47,54 +47,64 @@
         this._masterOpacity = 0;
         this._createSlotList();
         
-        this._saveInfo = new Sprite(new Bitmap(500, 500));
-        this._saveInfo.x = 470;
-        this._saveInfo.y = 70;
-        this.setBitmapFontStyle(this._saveInfo.bitmap);
-        this.addChild(this._saveInfo);
         this._currentSaveId = 0;
-        this._updatedSaveId = null;
         
         NB_Interface.prototype.create.call(this);
     };
     
     NB_Interface_SaveMenu.prototype._createSlotList = function() {
-        this._slotList = new NB_List(200, 140, 3, 120);
+        this._slots = [];
+        this._slotsOpacity = [];
+        this._slotList = new NB_List(330, 125, 3, 120);
         for (var i = 1; i <= 20; i++) {
-            this._slotList.addCanvasListElement('load_save/', 'box2', 'load_save/', 'box2_light', 470, 165);
+            // create elements
+            var elem = new NB_SaveLoadMenuButton('load_save/', 'box', 'load_save/', 'box_light', 419, 138, 0, 0, 0);
+            this._slots.push(elem);
+            this._slotsOpacity.push(0);
+            this._slotList.addAbstractListElement(elem);
             
-            var valid = DataManager.isThisGameFile(i);
-            var elementId = i-1;
-            //if (!valid) this._slotList.invalidateById(elementId);
+            var bmp = elem.getUpperCanvasBitmap();
+            this.setBitmapFontStyle(bmp);
+            var info = DataManager.loadSavefileInfo(i);
             
+            bmp.clear();
+            if (info) {
+                bmp.drawText(i + '. Prológus:', 20, 20, null, NB_Interface.lineHeight, 'left');
+                bmp.drawText('Játékidő: ' + info.playtime, 240, 20, null, NB_Interface.lineHeight, 'left');
+                this._drawCharacters(info.characters, bmp, 45, 55);
+            } else {
+                bmp.drawText(i + '. Üres.', 20, 20, null, NB_Interface.lineHeight, 'left');
+            }
         }
         this._slotList.addToContainer(this);
     };
     
-    NB_Interface_SaveMenu.prototype._updateSaveInfo = function() {
-        if (this._updatedSaveId !== this._currentSaveId) {
-            this._updatedSaveId = this._currentSaveId;
-            
-            var info = DataManager.loadSavefileInfo(this._currentSaveId + 1);
-            var bmp = this._saveInfo.bitmap;
-            
-            bmp.clear();
-            if (info) {
-                bmp.drawText('Béna kis mentés információ:', 0, 0, null, NB_Interface.lineHeight, 'left');
-                bmp.drawText('Játékidő: ' + info.playtime, 30, 30, null, NB_Interface.lineHeight, 'left');
-                if (info.characters) {
-                    for (var i = 0; i < info.characters.length; i++) {
-                        var data = info.characters[i];
-                        var bitmap = ImageManager.loadCharacter(data[0]);
-                        var big = ImageManager.isBigCharacter(data[0]);
-                        var pw = bitmap.width / (big ? 3 : 12);
-                        var ph = bitmap.height / (big ? 4 : 8);
-                        var n = data[1];
-                        var sx = (n % 4 * 3 + 1) * pw;
-                        var sy = (Math.floor(n / 4) * 4) * ph;
-                        bmp.blt(bitmap, sx, sy, pw, ph, (50 + i*48) - pw / 2, 70);
-                    }
-                }
+    NB_Interface_SaveMenu.prototype._updateSlotsOpacity = function(masterOpacity) {
+        for (var i = 0; i < 20; i++) {
+            if (this._currentSaveId === i) {
+                if (this._slotsOpacity[i] < 255) this._slotsOpacity[i] += 15;
+            } else {
+                var lowerLimit = 135;
+                if (this._slots[i].isFaded()) lowerLimit = 0;
+                if (this._slotsOpacity[i] > lowerLimit) this._slotsOpacity[i] -= 15;
+                if (this._slotsOpacity[i] < lowerLimit) this._slotsOpacity[i] += 15;
+            }
+            this._slots[i].setUpperCanvasOpacity(this._slotsOpacity[i] * (masterOpacity/255));
+        }
+    };
+    
+    NB_Interface_SaveMenu.prototype._drawCharacters = function(characters, bmp, x, y) {
+        if (characters) {
+            for (var i = 0; i < characters.length; i++) {
+                var data = characters[i];
+                var bitmap = ImageManager.loadCharacter(data[0]);
+                var big = ImageManager.isBigCharacter(data[0]);
+                var pw = bitmap.width / (big ? 3 : 12);
+                var ph = bitmap.height / (big ? 4 : 8);
+                var n = data[1];
+                var sx = (n % 4 * 3 + 1) * pw;
+                var sy = (Math.floor(n / 4) * 4) * ph;
+                bmp.blt(bitmap, sx, sy, pw, ph, (x + i*48) - pw / 2, y);
             }
         }
     };
@@ -139,8 +149,8 @@
             }
         }
         this._slotList.setMasterOpacity(this._masterOpacity);
-        this._saveInfo.opacity = this._masterOpacity;
         this.setBaseTitleAndLinesOpacity(this._masterOpacity);
+        this._updateSlotsOpacity(this._masterOpacity);
     };
     
     // Override!
@@ -155,7 +165,6 @@
     // Override!
     NB_Interface_SaveMenu.prototype.updateElements = function() {
         this._slotList.update();
-        this._updateSaveInfo();
     };
     
 })();
