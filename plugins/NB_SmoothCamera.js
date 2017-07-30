@@ -35,7 +35,7 @@
     var aliases = {};
     
     /**********************************************************************
-     * Game_Map additions
+     * Game_Map and Spriteset_Map additions
      **********************************************************************/
     
     Game_Map.prototype.getPixelScrollX = function() {
@@ -72,12 +72,13 @@
         this._smoothCamera = new NB_Camera();
     };
     
-    aliases.Game_Map_update = Game_Map.prototype.update;
-    Game_Map.prototype.update = function(sceneActive) {
-        aliases.Game_Map_update.call(this, sceneActive);
+    aliases.Spriteset_Map_update = Spriteset_Map.prototype.update;
+    Spriteset_Map.prototype.update = function() {
         // Apply linear interpolation to the camera
-        this._smoothCamera.decideTarget();
-        this._smoothCamera.lerpToTarget(this._displayX, this._displayY);
+        $gameMap.getSmoothCamera().decideTarget();
+        $gameMap.getSmoothCamera().lerpToTarget($gameMap._displayX, $gameMap._displayY);
+        // Update the rest of the spriteset
+        aliases.Spriteset_Map_update.call(this);
     };
     
     /**********************************************************************
@@ -298,20 +299,25 @@ NB_Camera.prototype.lerpToTarget = function(displayX, displayY) {
     var newX = displayX;
     var newY = displayY;
     
-    if (this._targetX < displayX) {
-        var distance = Math.abs(this._targetX - displayX) * this._alpha;
-        newX = displayX - Math.min(distance, this._limitX);
-    } else if (this._targetX > displayX) {
-        var distance = Math.abs(this._targetX - displayX) * this._alpha;
-        newX = displayX + Math.min(distance, this._limitX);
-    }
-    
-    if (this._targetY < displayY) {
-        var distance = Math.abs(this._targetY - displayY) * this._alpha;
-        newY = displayY - Math.min(distance, this._limitY);
-    } else if (this._targetY > displayY) {
-        var distance = Math.abs(this._targetY - displayY) * this._alpha;
-        newY = displayY + Math.min(distance, this._limitY);
+    if (this._alpha < 1) {
+        if (this._targetX < displayX) {
+            var distance = Math.abs(this._targetX - displayX) * this._alpha;
+            newX = displayX - Math.min(distance, this._limitX);
+        } else if (this._targetX > displayX) {
+            var distance = Math.abs(this._targetX - displayX) * this._alpha;
+            newX = displayX + Math.min(distance, this._limitX);
+        }
+        
+        if (this._targetY < displayY) {
+            var distance = Math.abs(this._targetY - displayY) * this._alpha;
+            newY = displayY - Math.min(distance, this._limitY);
+        } else if (this._targetY > displayY) {
+            var distance = Math.abs(this._targetY - displayY) * this._alpha;
+            newY = displayY + Math.min(distance, this._limitY);
+        }
+    } else {
+        newX = this._targetX;
+        newY = this._targetY;
     }
     
     this._x = newX;

@@ -4,6 +4,8 @@
 
 /*:
  * @plugindesc Fixes the game loop to not update in an inner while loop.
+ * And fixes the renderer to properly use performance.now(), and made one frame
+ * 16 ms, not 15... -.-
  * @author Scalytank
  */
 
@@ -31,6 +33,26 @@
         }
         this.renderScene();
         this.requestUpdate();
+    };
+    
+    Graphics.render = function(stage) {
+        if (this._skipCount === 0) {
+            var startTime = performance.now();
+            if (stage) {
+                this._renderer.render(stage);
+                if (this._renderer.gl && this._renderer.gl.flush) {
+                    this._renderer.gl.flush();
+                }
+            }
+            var endTime = performance.now();
+            var elapsed = endTime - startTime;
+            this._skipCount = Math.min(Math.floor(elapsed / 16), this._maxSkip);
+            this._rendered = true;
+        } else {
+            this._skipCount--;
+            this._rendered = false;
+        }
+        this.frameCount++;
     };
     
 })();

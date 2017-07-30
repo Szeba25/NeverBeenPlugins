@@ -248,7 +248,7 @@
     };
     
     NB_LightShadeSprite.prototype.sync = function() {
-        this.x = this._lightData.x + SHAKE_CORRECTION;
+        this.x = this._lightData.x;
         this.y = this._lightData.y;
         this.opacity = this._lightData.shadeOpacity;
         this.scale.x = this._lightData.scale;
@@ -342,6 +342,8 @@
     aliases.Spriteset_Map_update = Spriteset_Map.prototype.update;
     Spriteset_Map.prototype.update = function() {
         aliases.Spriteset_Map_update.call(this);
+        // We update lights in the spriteset to avoid delay!
+        $gameMap.getLightingManager().update();
         this._lighting.update();
     };
     
@@ -351,12 +353,6 @@
         this._lightingManager = new NB_LightingManager();
         //console.log('Game_Map setup: ' + mapId);
     };
-    
-    aliases.Game_Map_update = Game_Map.prototype.update;
-    Game_Map.prototype.update = function(sceneActive) {
-        aliases.Game_Map_update.call(this, sceneActive);
-        this._lightingManager.update();
-    }
     
     Game_Map.prototype.getLightingManager = function() {
         return this._lightingManager;
