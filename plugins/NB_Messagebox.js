@@ -17,15 +17,8 @@
     };
     
     // Override!
-    Window_Message.prototype.initialize = function() {
-        var width = this.windowWidth();
-        var height = this.windowHeight();
-        var x = (Graphics.boxWidth - width) / 2;
-        Window_Base.prototype.initialize.call(this, x, 0, width-350, height);
-        this.openness = 0;
-        this.initMembers();
-        this.createSubWindows();
-        this.updatePlacement();
+    Window_Message.prototype.windowWidth = function() {
+        return Graphics.boxWidth - 350;
     };
     
     aliases.Window_Base_calcTextHeight = Window_Base.prototype.calcTextHeight;
@@ -45,6 +38,28 @@
         aliases.Window_Message_updatePlacement.call(this);
         this.y = this.y - 12;
         this.x = 175;
+    };
+    
+    aliases.Window_Base_processCharacter = Window_Base.prototype.processCharacter;
+    Window_Base.prototype.processCharacter = function(textState) {
+        if (textState.text[textState.index] === '@') {
+            this.processCentering(textState);
+        } else {
+            aliases.Window_Base_processCharacter.call(this, textState);
+        }
+    };
+    
+    // New!
+    Window_Base.prototype.processCentering = function(textState) {
+        var textLines = textState.text.split('\n');
+        var lineId = 0;
+        for (var i = 0; i < textState.index; i++) {
+            if (textState.text[i] === '\n') lineId++;
+        }
+        var lineWidth = this.textWidth(textLines[lineId]);
+        var centerPoint = this.windowWidth() / 2;
+        textState.x += (centerPoint - (lineWidth/2) - 10);
+        textState.index++;
     };
     
 })();
