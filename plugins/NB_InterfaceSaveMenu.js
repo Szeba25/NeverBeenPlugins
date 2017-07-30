@@ -56,6 +56,7 @@
         this._slots = [];
         this._slotsOpacity = [];
         this._slotList = new NB_List(330, 125, 3, 120);
+        console.log('Save file info:');
         for (var i = 1; i <= 20; i++) {
             // create elements
             var elem = new NB_SaveLoadMenuButton('load_save/', 'box', 'load_save/', 'box_light', 419, 138, 0, 0, 0);
@@ -66,6 +67,7 @@
             var bmp = elem.getUpperCanvasBitmap();
             this.setBitmapFontStyle(bmp);
             var info = DataManager.loadSavefileInfo(i);
+            console.log(info);
             
             bmp.clear();
             if (info) {
@@ -97,6 +99,7 @@
         if (characters) {
             for (var i = 0; i < characters.length; i++) {
                 var data = characters[i];
+                console.log(data[0]);
                 var bitmap = ImageManager.loadCharacter(data[0]);
                 var big = ImageManager.isBigCharacter(data[0]);
                 var pw = bitmap.width / (big ? 3 : 12);
