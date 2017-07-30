@@ -16,6 +16,9 @@
  *   look at the event with the given id
  *   limit the camera movement by total distance traveled every frame
  *
+ * - camera_lookat_player [limit%]
+ *   look at the player
+ *
  * - camera_eventlock [id]
  *   lock the camera at the event with the given id
  *
@@ -174,6 +177,10 @@
             case 'camera_lookat_event':
                 $gameMap.getSmoothCamera().setTargetById(parseInt(args[0]));
                 $gameMap.getSmoothCamera().prepareForLookAt(parseFloat(args[1]) / 100);
+                break;
+            case 'camera_lookat_player':
+                $gameMap.getSmoothCamera().setTargetById('player');
+                $gameMap.getSmoothCamera().prepareForLookAt(parseFloat(args[0]) / 100);
                 break;
             case 'camera_eventlock':
                 $gameMap.getSmoothCamera().lockToEvent(parseInt(args[0]));
