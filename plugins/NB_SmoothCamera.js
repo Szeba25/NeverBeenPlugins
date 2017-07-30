@@ -135,14 +135,14 @@
     // Override!
     Game_CharacterBase.prototype.screenX = function() {
         var tw = $gameMap.tileWidth();
-        var px = this._realX * tw - $gameMap.getPixelScrollX();
+        var px = Math.floor(this._realX * tw) - $gameMap.getPixelScrollX();
         return Math.floor(px + tw/2);
     };
     
     // Override!
     Game_CharacterBase.prototype.screenY = function() {
         var th = $gameMap.tileHeight();
-        var py = this._realY * th - $gameMap.getPixelScrollY();
+        var py = Math.floor(this._realY * th) - $gameMap.getPixelScrollY();
         return Math.floor(py + th - this.shiftY() - this.jumpHeight());
     };
     
