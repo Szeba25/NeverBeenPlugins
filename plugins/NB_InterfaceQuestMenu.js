@@ -32,8 +32,6 @@
             _questPictureMasterOpacity
             
             # sprites and bitmaps
-            _title1
-            _title2
             _questInfo
             _questPicture
             

@@ -178,6 +178,9 @@
             case 0:
                 SceneManager.goto(NB_Interface.classes['CharMenu']);
                 break;
+            case 1:
+                SceneManager.goto(NB_Interface.classes['ItemMenu']);
+                break;
             case 2:
                 SceneManager.goto(NB_Interface.classes['QuestMenu']);
                 break;
