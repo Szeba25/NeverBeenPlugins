@@ -9,11 +9,11 @@ NB_CharacterStepFix <br />
 NB_Messagebox <br />
 NB_ShowChoices <br />
 NB_EventOffset <br />
-NB_Footsteps <br />
 NB_OverlayImages <br />
 NB_BetterDestination <br />
 NB_Mouse <br />
 NB_SmoothCamera <br />
+NB_Footsteps <br />
 NB_Lights <br />
 NB_Interface <br />
 NB_InterfaceMainMenu <br />

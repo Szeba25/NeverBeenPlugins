@@ -29,6 +29,7 @@
             _masterOpacity
             _currentSaveId
             _slotsOpacity
+            _slotListRefreshed
             
             # sprites and bitmaps
             _slots
@@ -48,6 +49,7 @@
         this._exit = false;
         this._masterOpacity = 0;
         this._createSlotList();
+        this._slotListRefreshed = false;
         
         this._currentSaveId = 0;
         
@@ -58,29 +60,33 @@
         this._slots = [];
         this._slotsOpacity = [];
         this._slotList = new NB_List(330, 125, 3, 120);
-        console.log('Save file info:');
         for (var i = 1; i <= 20; i++) {
-            // create elements
             var elem = new NB_SaveLoadMenuButton('load_save/', 'box', 'load_save/', 'box_light', 419, 138, 0, 0, 0);
             this._slots.push(elem);
             this._slotsOpacity.push(0);
             this._slotList.addAbstractListElement(elem);
-            
-            var bmp = elem.getUpperCanvasBitmap();
-            this.setBitmapFontStyle(bmp);
-            var info = DataManager.loadSavefileInfo(i);
-            console.log(info);
-            
-            bmp.clear();
-            if (info) {
-                bmp.drawText(i + '. Prológus:', 20, 20, null, NB_Interface.lineHeight, 'left');
-                bmp.drawText('Játékidő: ' + info.playtime, 240, 20, null, NB_Interface.lineHeight, 'left');
-                this._drawCharacters(info.characters, bmp, 45, 55);
-            } else {
-                bmp.drawText(i + '. Üres.', 20, 20, null, NB_Interface.lineHeight, 'left');
-            }
         }
         this._slotList.addToContainer(this);
+    };
+    
+    NB_Interface_SaveMenu.prototype._refreshSlotList = function() {
+        if (!this._slotListRefreshed) {
+            this._slotListRefreshed = true;
+            for (var i = 0; i < 20; i++) {
+                var elem = this._slots[i];
+                var info = DataManager.loadSavefileInfo(i + 1);
+                var bmp = elem.getUpperCanvasBitmap();
+                this.setBitmapFontStyle(bmp);
+                bmp.clear();
+                if (info) {
+                    bmp.drawText((i+1) + '. Prológus:', 20, 20, null, NB_Interface.lineHeight, 'left');
+                    bmp.drawText('Játékidő: ' + info.playtime, 240, 20, null, NB_Interface.lineHeight, 'left');
+                    this._drawCharacters(info.characters, bmp, 45, 55);
+                } else {
+                    bmp.drawText((i+1) + '. Üres.', 20, 20, null, NB_Interface.lineHeight, 'left');
+                }
+            }
+        }
     };
     
     NB_Interface_SaveMenu.prototype._updateSlotsOpacity = function(masterOpacity) {
@@ -169,6 +175,7 @@
     
     // Override!
     NB_Interface_SaveMenu.prototype.updateElements = function() {
+        this._refreshSlotList();
         this._slotList.update();
     };
     

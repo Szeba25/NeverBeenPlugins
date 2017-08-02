@@ -81,8 +81,8 @@
         if (generateFootstep) {
             for (var i = 0; i < footstepsCount; i++) {
                 if (this._footstepsData[i].opacity == 0) {
-                    this._footstepsData[i].x = $gamePlayer._realX * $gameMap.tileWidth();
-                    this._footstepsData[i].y = $gamePlayer._realY * $gameMap.tileHeight();
+                    this._footstepsData[i].x = Math.floor($gamePlayer._realX * $gameMap.tileWidth());
+                    this._footstepsData[i].y = Math.floor($gamePlayer._realY * $gameMap.tileHeight());
                     this._footstepsData[i].opacity = 254;
                     var tag = $gameMap.terrainTag($gamePlayer._x, $gamePlayer._y);
                     
@@ -107,8 +107,8 @@
         
         // Scroll footsteps
         for (var i = 0; i < footstepsCount; i++) {
-            this._footsteps[i].x = this._footstepsData[i].x - Math.round($gameMap.displayX()*$gameMap.tileWidth());
-            this._footsteps[i].y = this._footstepsData[i].y - Math.round($gameMap.displayY()*$gameMap.tileHeight());
+            this._footsteps[i].x = this._footstepsData[i].x - $gameMap.getPixelScrollX();
+            this._footsteps[i].y = this._footstepsData[i].y - $gameMap.getPixelScrollY();
             if (this._footstepsData[i].opacity > 0) {
                 this._footstepsData[i].opacity -= 2;
                 this._footsteps[i].opacity = this._footstepsData[i].opacity;
