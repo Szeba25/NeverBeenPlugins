@@ -27,36 +27,75 @@
             # flow control
             _exit
             _masterOpacity
+            _selectedCategory
             
             # sprites and bitmaps
+            
             # interface
-            _itemList
+            _categories
+            _itemLists
         */
     };
     
     NB_Interface_ItemMenu.prototype.create = function() {
         this.createBackground();
         this.createBaseTitleAndLines(0, '9', '10');
+        this._title1.x = 190;
+        this._title2.x = 190;
         this._exit = false;
         this._masterOpacity = 0;
+        this._selectedCategory = 0;
         
-        this._createList();
+        this._createCategories();
+        this._createLists();
         
         NB_Interface.prototype.create.call(this);
     };
     
-    NB_Interface_ItemMenu.prototype._createList = function() {
-        this._itemList = new NB_List(200, 125, 10);
-        var items = $gameParty.allItems();
+    NB_Interface_ItemMenu.prototype._createCategories = function() {
+        this._categories = new NB_ButtonGroup(true);
+        this._categories.add(new NB_Button('menu_1/', 'item_1', 'menu_1/', 'item_1_light', null, null, 380, 60, 255), true);
+        this._categories.add(new NB_Button('menu_1/', 'item_2', 'menu_1/', 'item_2_light', null, null, 525, 60, 255), false);
+        this._categories.add(new NB_Button('menu_1/', 'item_3', 'menu_1/', 'item_3_light', null, null, 700, 60, 255), false);
+        this._categories.addToContainer(this);
+    };
+    
+    NB_Interface_ItemMenu.prototype._createLists = function() {
+        this._itemLists = [];
+        
+        var regularList = new NB_List(200, 125, 10);
+        var equipmentList = new NB_List(200, 125, 10);
+        var keyList = new NB_List(200, 125, 10);
+        
+        var items = $gameParty.items();
         for (var i = 0; i < items.length; i++) {
-            this._itemList.addListElement(items[i].name);
+            if (items[i].itypeId === 1) {
+                regularList.addListElement(items[i].name);
+            } else if (items[i].itypeId === 2) {
+                keyList.addListElement(items[i].name);
+            }
+            console.log(items[i]);
         }
-        this._itemList.addToContainer(this);
+        
+        var equips = $gameParty.equipItems();
+        for (var i = 0; i < equips.length; i++) {
+            equipmentList.addListElement(equips[i].name);
+        }
+        
+        regularList.addToContainer(this);
+        equipmentList.addToContainer(this);
+        keyList.addToContainer(this);
+        
+        this._itemLists.push(regularList);
+        this._itemLists.push(equipmentList);
+        this._itemLists.push(keyList);
     };
     
     // Override!
     NB_Interface_ItemMenu.prototype.updateInput = function() {
-        this._itemList.updateInput(this.isMouseActive());
+        this._categories.updateInput(this.isMouseActive(), 'left', 'right');
+        this._selectedCategory = this._categories.getActiveId();
+        this._itemLists[this._selectedCategory].updateInput(this.isMouseActive());
         if (!this._exit) {
             if (Input.isTriggered('menu') && !this._exit) {
                 this._exit = true;
@@ -78,7 +117,14 @@
             }
         }
         this.setBaseTitleAndLinesOpacity(this._masterOpacity);
-        this._itemList.setMasterOpacity(this._masterOpacity);
+        this._categories.setMasterOpacity(this._masterOpacity);
+        for (var i = 0; i < 3; i++) {
+            if (i === this._selectedCategory) {
+                this._itemLists[i].setMasterOpacity(this._masterOpacity);
+            } else {
+                this._itemLists[i].setMasterOpacity(0);
+            }
+        }
     };
     
     // Override!
@@ -92,7 +138,10 @@
     
     // Override!
     NB_Interface_ItemMenu.prototype.updateElements = function() {
-        this._itemList.update();
+        this._categories.update();
+        for (var i = 0; i < 3; i++) {
+            this._itemLists[i].update();
+        }
     };
     
 })();

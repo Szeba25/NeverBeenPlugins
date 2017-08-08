@@ -41,7 +41,8 @@
     
     NB_Interface_SaveMenu.prototype.create = function() {
         this.createBackground();
-        this.createBaseTitleAndLines(255, '5', '6', 410);
+        this.createBaseTitleAndLines(255, '5', '6');
+        this._line2.x = 145;
         this.removeChild(this._line1);
         
         DataManager.loadAllSavefileImages();
