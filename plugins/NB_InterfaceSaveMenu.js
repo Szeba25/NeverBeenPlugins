@@ -107,7 +107,7 @@
         if (characters) {
             for (var i = 0; i < characters.length; i++) {
                 var data = characters[i];
-                console.log(data[0]);
+                //console.log(data[0]);
                 var bitmap = ImageManager.loadCharacter(data[0]);
                 var big = ImageManager.isBigCharacter(data[0]);
                 var pw = bitmap.width / (big ? 3 : 12);
