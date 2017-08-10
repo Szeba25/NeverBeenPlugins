@@ -30,6 +30,7 @@
             _characterFaceFadeOpacity
             _currentChar
             _currentCharUpdated
+            _subCategory
             
             # sprites and bitmaps
             _characterInfo
@@ -58,7 +59,7 @@
         this.createBaseTitleAndLines(0, '11', '12');
         this._setupActors();
         this._setupCategories();
-        this._setupButtons();
+        this._createEquipmentList();
         
         this._masterOpacity = 0;
         this._exit = false;
@@ -74,8 +75,8 @@
         this.bar_atk = ImageManager.loadInterfaceElement('menu_1/', 'bar_atk');
     };
     
-    NB_Interface_CharMenu.prototype._setupButtons = function() {
-        this._equipmentList = new NB_List(610, 405, 5, 25);
+    NB_Interface_CharMenu.prototype._createEquipmentList = function() {
+        this._equipmentList = new NB_List(560, 125, 5, 25);
         this._equipmentList.addListElement('Fegyver:');
         this._equipmentList.addListElement('Pajzs:');
         this._equipmentList.addListElement('Sisak:');
@@ -92,19 +93,19 @@
         return bitmap;
     };
     
-    NB_Interface_CharMenu.prototype._drawStatusBars = function(actor, bmp) {
+    NB_Interface_CharMenu.prototype._drawStatusBars = function(actor, bmp, x, y) {
         // HP
-        bmp.blt(this._generateBar(actor.hp, actor.mhp, 200, 15, this.bar_hp), 0, 0, 200, 15, 278, 192, 200, 15);
-        bmp.blt(this.bar, 0, 0, 200, 15, 278, 192, 200, 15);
+        bmp.blt(this._generateBar(actor.hp, actor.mhp, 200, 15, this.bar_hp), 0, 0, 200, 15, x, y, 200, 15);
+        bmp.blt(this.bar, 0, 0, 200, 15, x, y, 200, 15);
         // MP
-        bmp.blt(this._generateBar(actor.mp, actor.mmp, 200, 15, this.bar_mp), 0, 0, 200, 15, 278, 217, 200, 15);
-        bmp.blt(this.bar, 0, 0, 200, 15, 278, 217, 200, 15);
+        bmp.blt(this._generateBar(actor.mp, actor.mmp, 200, 15, this.bar_mp), 0, 0, 200, 15, x, y + 25, 200, 15);
+        bmp.blt(this.bar, 0, 0, 200, 15, x, y + 25, 200, 15);
         // ATK
-        bmp.blt(this._generateBar(actor.atk, 100, 200, 15, this.bar_atk), 0, 0, 200, 15, 278, 242, 200, 15);
-        bmp.blt(this.bar, 0, 0, 200, 15, 278, 242, 200, 15);
+        bmp.blt(this._generateBar(actor.atk, 100, 200, 15, this.bar_atk), 0, 0, 200, 15, x, y + 50, 200, 15);
+        bmp.blt(this.bar, 0, 0, 200, 15, x, y + 50, 200, 15);
         // DEF
-        bmp.blt(this._generateBar(actor.def, 100, 200, 15, this.bar_def), 0, 0, 200, 15, 278, 267, 200, 15);
-        bmp.blt(this.bar, 0, 0, 200, 15, 278, 267, 200, 15);
+        bmp.blt(this._generateBar(actor.def, 100, 200, 15, this.bar_def), 0, 0, 200, 15, x, y + 75, 200, 15);
+        bmp.blt(this.bar, 0, 0, 200, 15, x, y + 75, 200, 15);
     };
     
     NB_Interface_CharMenu.prototype._drawEquipment = function(actor, bmp) {
@@ -131,18 +132,15 @@
             this._characterFaceFadeOpacity = 0;
             // Draw!
             bmp.clear();
-            bmp.drawText('Név: ' + actor.name(), 0, 0, null, NB_Interface.lineHeight, 'left');
             for (var i = 0; i < bio.length; i++) {
-                bmp.drawText(bio[i], 185, (i*20), null, NB_Interface.lineHeight, 'left');
+                bmp.drawText(bio[i], 0, (i*20), null, NB_Interface.lineHeight, 'left');
             }
-            bmp.drawText('Életerő:', 185, 180, null, NB_Interface.lineHeight, 'left');
-            bmp.drawText('Energia:', 185, 205, null, NB_Interface.lineHeight, 'left');
-            bmp.drawText('Támadás:', 185, 230, null, NB_Interface.lineHeight, 'left');
-            bmp.drawText('Védekezés:', 185, 255, null, NB_Interface.lineHeight, 'left');
-            bmp.drawText('Képesség:', 185, 285, null, NB_Interface.lineHeight, 'left');
-            bmp.drawText('Felszerelés:', 185, 320, null, NB_Interface.lineHeight, 'left');
-            this._drawStatusBars(actor, bmp);
-            this._drawEquipment(actor, bmp);
+            var start_y = (bio.length * 20) + 25
+            bmp.drawText('Életerő:', 0, start_y, null, NB_Interface.lineHeight, 'left');
+            bmp.drawText('Energia:', 0, start_y + 25, null, NB_Interface.lineHeight, 'left');
+            bmp.drawText('Támadás:', 0, start_y + 50, null, NB_Interface.lineHeight, 'left');
+            bmp.drawText('Védekezés:', 0, start_y + 75, null, NB_Interface.lineHeight, 'left');
+            this._drawStatusBars(actor, bmp, 100, start_y+10);
         }
     };
     
@@ -151,6 +149,7 @@
         this._currentChar = 0;
         this._currentCharUpdated = -1;
         this._characterFaceFadeOpacity = 0;
+        this._subCategory = 0;
         this._party = $gameParty.allMembers();
         // Buttons and other data
         this._actorButtons = new NB_ButtonGroup(true);
@@ -166,9 +165,9 @@
         this.addChild(this._characterFace);
         
         this._characterInfo = new Sprite();
-        this._characterInfo.x = 400;
-        this._characterInfo.y = 60;
-        this._characterInfo.bitmap = new Bitmap(500, 500);
+        this._characterInfo.x = 560;
+        this._characterInfo.y = 125;
+        this._characterInfo.bitmap = new Bitmap(400, 400);
         this.setBitmapFontStyle(this._characterInfo.bitmap);
         
         this.addChild(this._characterInfo);
@@ -185,8 +184,19 @@
     // Override!
     NB_Interface_CharMenu.prototype.updateInput = function() {
         this._categories.updateInput(this.isMouseActive(), 'left', 'right');
+        this._subCategory = this._categories.getActiveId();
         this._actorButtons.updateInput(this.isMouseActive());
-        this._equipmentList.updateInput(this.isMouseActive());
+        
+        switch(this._subCategory) {
+            case 0:
+                break;
+            case 1:
+                //this._equipmentList.updateInput(this.isMouseActive());
+                break;
+            case 2:
+                break;
+        }
+        
         this._currentChar = this._actorButtons.getActiveId();
         if (Input.isTriggered('menu') && !this._exit) {
             this._exit = true;
@@ -209,8 +219,22 @@
         this.setBaseTitleAndLinesOpacity(this._masterOpacity);
         this._actorButtons.setMasterOpacity(this._masterOpacity);
         this._categories.setMasterOpacity(this._masterOpacity);
-        this._equipmentList.setMasterOpacity(this._masterOpacity);
-        this._characterInfo.opacity = this._masterOpacity;
+        
+        switch(this._subCategory) {
+            case 0:
+                this._characterInfo.opacity = this._masterOpacity;
+                this._equipmentList.setMasterOpacity(0);
+                break;
+            case 1:
+                this._characterInfo.opacity = 0;
+                this._equipmentList.setMasterOpacity(this._masterOpacity);
+                break;
+            case 2:
+                this._characterInfo.opacity = 0;
+                this._equipmentList.setMasterOpacity(0);
+                break;
+        }
+        
         if (this._characterFaceFadeOpacity < 255) {
             this._characterFaceFadeOpacity += 15;
         }
