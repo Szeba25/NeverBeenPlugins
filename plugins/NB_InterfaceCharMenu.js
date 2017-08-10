@@ -39,6 +39,7 @@
             _party
             
             # interface elements
+            _categories
             _actorButtons
             _equipmentList
             
@@ -56,6 +57,7 @@
         this._loadBars();
         this.createBaseTitleAndLines(0, '11', '12');
         this._setupActors();
+        this._setupCategories();
         this._setupButtons();
         
         this._masterOpacity = 0;
@@ -172,8 +174,17 @@
         this.addChild(this._characterInfo);
     };
     
+    NB_Interface_CharMenu.prototype._setupCategories = function() {
+        this._categories = new NB_ButtonGroup(true);
+        this._categories.add(new NB_Button('menu_1/', 'char_1', 'menu_1/', 'char_1_light', null, null, 380, 60, 255), true);
+        this._categories.add(new NB_Button('menu_1/', 'item_2', 'menu_1/', 'item_2_light', null, null, 525, 60, 255), false);
+        this._categories.add(new NB_Button('menu_1/', 'char_2', 'menu_1/', 'char_2_light', null, null, 700, 60, 255), false);
+        this._categories.addToContainer(this);
+    };
+    
     // Override!
     NB_Interface_CharMenu.prototype.updateInput = function() {
+        this._categories.updateInput(this.isMouseActive(), 'left', 'right');
         this._actorButtons.updateInput(this.isMouseActive());
         this._equipmentList.updateInput(this.isMouseActive());
         this._currentChar = this._actorButtons.getActiveId();
@@ -197,6 +208,7 @@
         }
         this.setBaseTitleAndLinesOpacity(this._masterOpacity);
         this._actorButtons.setMasterOpacity(this._masterOpacity);
+        this._categories.setMasterOpacity(this._masterOpacity);
         this._equipmentList.setMasterOpacity(this._masterOpacity);
         this._characterInfo.opacity = this._masterOpacity;
         if (this._characterFaceFadeOpacity < 255) {
@@ -217,6 +229,7 @@
     // Override!
     NB_Interface_CharMenu.prototype.updateElements = function() {
         this._actorButtons.update();
+        this._categories.update();
         this._updateCharacterInfo();
         if (this._characterFaceFadeOpacity < 255) {
             this._characterFace.x += (255-this._characterFaceFadeOpacity)/60;
