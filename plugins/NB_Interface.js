@@ -21,23 +21,6 @@ ImageManager.loadInterfaceElement = function(subpath, filename) {
     return this.loadBitmap('img/interface/' + subpath, filename, 0, true);
 };
 
-/*********************************************
- * Custom background spriteset
- * Currently is the same as Spriteset_Map
- * but some optimizations may take place!
- *********************************************/
- 
-function NB_Spriteset_Map_Background() {
-    this.initialize.apply(this, arguments);
-}
-
-NB_Spriteset_Map_Background.prototype = Object.create(Spriteset_Map.prototype);
-NB_Spriteset_Map_Background.prototype.constructor = NB_Spriteset_Map_Background;
-
-NB_Spriteset_Map_Background.prototype.initialize = function() {
-    Spriteset_Map.prototype.initialize.call(this);
-};
-
 /****************************************************************
  * The base of all never been interface scenes!
  ****************************************************************/
@@ -81,7 +64,7 @@ NB_Interface.prototype.create = function() {
 
 NB_Interface.prototype.createBackground = function() {
     // Create all the background graphics
-    this._backgroundSpriteset = new NB_Spriteset_Map_Background();
+    this._backgroundSpriteset = SceneManager.getBackgroundSpriteset();
     
     this._backgroundTint = new Sprite(new Bitmap(Graphics.width, Graphics.height));
     this._backgroundTint.bitmap.fillAll('#240F00');

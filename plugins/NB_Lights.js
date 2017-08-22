@@ -334,7 +334,8 @@
         $gameMap.prepareLightMapRefresh();
         this._lighting = new NB_LightMap($gameMap.getLightingManager());
         this._baseSprite.addChild(this._lighting.getShadeLayer());
-        this._baseSprite.addChild(this._lighting.getLayerSprite());
+        
+        this.addChild(this._lighting.getLayerSprite());
         
         console.log('lights: Spriteset_Map created');
     };
@@ -365,12 +366,36 @@
     };
     
     /*********************************************
-     * Disable snapshots!
+     * Fix snapshots!
      *********************************************/
     
     // Override!
     SceneManager.snapForBackground = function() {
+        // Make a partial snap from the map!
+        if (this._scene instanceof Scene_Map) {
+            console.log("Escaped from Scene_Map, create snapshots!");
+            var spriteset = this._scene._spriteset;
+            this._mapLowerLayer = Bitmap.snap(spriteset._baseSprite);
+            this._mapUpperLayer = Bitmap.snap(spriteset._pictureContainer);
+        }
+        // Ensure that background bitmap is always null...
         this._backgroundBitmap = null;
+    };
+    
+    SceneManager.getBackgroundSpriteset = function() {
+        var container = new PIXI.Container();
+        // Create the sprites
+        var lowerLayer = new Sprite(this._mapLowerLayer);
+        var lightLayer = new NB_LightMapSprite(lightingData.lightMapTexture)
+        var upperLayer = new Sprite(this._mapUpperLayer);
+        // Set the filter for the light sprite
+        lightLayer.setFilter(lightingData.filter);
+        // Add them to the spriteset
+        container.addChild(lowerLayer);
+        container.addChild(lightLayer);
+        container.addChild(upperLayer);
+        // The end!
+        return container;
     };
     
     /*********************************************
