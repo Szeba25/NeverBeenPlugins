@@ -342,8 +342,10 @@
     aliases.Spriteset_Map_update = Spriteset_Map.prototype.update;
     Spriteset_Map.prototype.update = function() {
         aliases.Spriteset_Map_update.call(this);
+        
         // We update lights in the spriteset to avoid delay!
         $gameMap.getLightingManager().update();
+        
         this._lighting.update();
     };
     
@@ -363,27 +365,12 @@
     };
     
     /*********************************************
-     * Fix for snapshots
+     * Disable snapshots!
      *********************************************/
-    
-    aliases.SceneManager_static_snap = SceneManager.snap;
-    SceneManager.snap = function() {
-        if (this._scene instanceof Scene_Map) {
-            this._scene._spriteset._lighting.getLayerSprite().visible = false;
-            console.log('lights: Escaped from Scene_Map!');
-        }
-        return aliases.SceneManager_static_snap.call(this);
-    };
     
     // Override!
     SceneManager.snapForBackground = function() {
-        this._backgroundBitmap = this.snap();
-    };
-    
-    SceneManager.getLightAsSprite = function() {
-        var sprite = new NB_LightMapSprite(lightingData.lightMapTexture);
-        sprite.setFilter(lightingData.filter);
-        return sprite;
+        this._backgroundBitmap = null;
     };
     
     /*********************************************

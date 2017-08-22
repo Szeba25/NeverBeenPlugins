@@ -21,6 +21,21 @@ ImageManager.loadInterfaceElement = function(subpath, filename) {
     return this.loadBitmap('img/interface/' + subpath, filename, 0, true);
 };
 
+/*********************************************
+ * Custom background spriteset
+ *********************************************/
+ 
+function NB_Spriteset_Map_Background() {
+    this.initialize.apply(this, arguments);
+}
+
+NB_Spriteset_Map_Background.prototype = Object.create(Spriteset_Map.prototype);
+NB_Spriteset_Map_Background.prototype.constructor = NB_Spriteset_Map_Background;
+
+NB_Spriteset_Map_Background.prototype.initialize = function() {
+    Spriteset_Map.prototype.initialize.call(this);
+};
+
 /****************************************************************
  * The base of all never been interface scenes!
  ****************************************************************/
@@ -44,8 +59,7 @@ NB_Interface.prototype.initialize = function() {
     Scene_Base.prototype.initialize.call(this);
     /** MEMBER VARIABLES
         _enterComplete
-        _backgroundSprite
-        _backgroundLight
+        _backgroundSpriteset
         _backgroundTint
         _pergamen
         _title1
@@ -65,8 +79,7 @@ NB_Interface.prototype.create = function() {
 
 NB_Interface.prototype.createBackground = function() {
     // Create all the background graphics
-    this._backgroundSprite = new Sprite(SceneManager.backgroundBitmap());
-    this._backgroundLight = SceneManager.getLightAsSprite();
+    this._backgroundSpriteset = new NB_Spriteset_Map_Background();
     
     this._backgroundTint = new Sprite(new Bitmap(Graphics.width, Graphics.height));
     this._backgroundTint.bitmap.fillAll('#240F00');
@@ -74,8 +87,7 @@ NB_Interface.prototype.createBackground = function() {
     
     this._pergamen = new Sprite(ImageManager.loadInterfaceElement('menu_1/', '13'));
     
-    this.addChild(this._backgroundSprite);
-    this.addChild(this._backgroundLight);
+    this.addChild(this._backgroundSpriteset);
     this.addChild(this._backgroundTint);
     this.addChild(this._pergamen);
 };
