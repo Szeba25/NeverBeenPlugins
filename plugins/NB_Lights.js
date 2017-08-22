@@ -852,6 +852,7 @@ NB_LightingManager.prototype.update = function() {
         if (this._ambientChangeDuration > 0) {
             var d = this._ambientChangeDuration;
             this._ambient = (this._ambient * (d - 1) + this._ambientTarget) / d;
+            this._ambientChangeDuration--;
         }
         for (var i = 0; i < this._lights.length; i++) {
             this._lights[i].update();
