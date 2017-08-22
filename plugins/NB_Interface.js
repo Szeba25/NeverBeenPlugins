@@ -23,6 +23,8 @@ ImageManager.loadInterfaceElement = function(subpath, filename) {
 
 /*********************************************
  * Custom background spriteset
+ * Currently is the same as Spriteset_Map
+ * but some optimizations may take place!
  *********************************************/
  
 function NB_Spriteset_Map_Background() {
