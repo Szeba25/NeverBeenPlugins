@@ -30,8 +30,6 @@
             _characterFaceFadeOpacity
             _currentChar
             _currentCharUpdated
-            _subCategory
-            _enterCharacter
             
             # sprites and bitmaps
             _characterInfo
@@ -41,9 +39,7 @@
             _party
             
             # interface elements
-            _categories
             _actorButtons
-            _equipmentList
             
             # bar bitmaps
             bar
@@ -56,11 +52,9 @@
     
     NB_Interface_CharMenu.prototype.create = function() {
         this.createBackground();
-        this._loadBars();
         this.createBaseTitleAndLines(0, '11', '12');
+        this._loadBars();
         this._setupActors();
-        this._setupCategories();
-        this._createEquipmentList();
         
         this._masterOpacity = 0;
         this._exit = false;
@@ -74,17 +68,6 @@
         this.bar_mp = ImageManager.loadInterfaceElement('menu_1/', 'bar_mp');
         this.bar_def = ImageManager.loadInterfaceElement('menu_1/', 'bar_def');
         this.bar_atk = ImageManager.loadInterfaceElement('menu_1/', 'bar_atk');
-    };
-    
-    NB_Interface_CharMenu.prototype._createEquipmentList = function() {
-        this._equipmentList = new NB_List(560, 150, 5, 25);
-        this._equipmentList.addListElement('Fegyver:');
-        this._equipmentList.addListElement('Pajzs:');
-        this._equipmentList.addListElement('Sisak:');
-        this._equipmentList.addListElement('Páncél:');
-        this._equipmentList.addListElement('Egyéb:');
-        this._equipmentList.addToContainer(this);
-        this._equipmentList.deactivate();
     };
     
     NB_Interface_CharMenu.prototype._generateBar = function(current, max, width, height, original) {
@@ -155,8 +138,6 @@
         this._currentChar = 0;
         this._currentCharUpdated = -1;
         this._characterFaceFadeOpacity = 0;
-        this._subCategory = 0;
-        this._enterCharacter = false;
         this._party = $gameParty.allMembers();
         // Buttons and other data
         this._actorButtons = new NB_ButtonGroup(true);
@@ -180,65 +161,12 @@
         this.addChild(this._characterInfo);
     };
     
-    NB_Interface_CharMenu.prototype._setupCategories = function() {
-        this._categories = new NB_ButtonGroup(true);
-        this._categories.add(new NB_Button('menu_1/', 'char_1', 'menu_1/', 'char_1_light', null, null, 380, 60, 255), true);
-        this._categories.add(new NB_Button('menu_1/', 'item_2', 'menu_1/', 'item_2_light', null, null, 525, 60, 255), false);
-        this._categories.add(new NB_Button('menu_1/', 'char_2', 'menu_1/', 'char_2_light', null, null, 700, 60, 255), false);
-        this._categories.addToContainer(this);
-        this._categories.deactivate();
-    };
-    
-    NB_Interface_CharMenu.prototype._updateSubCategoryInput = function() {
-        this._categories.updateInput(this.isMouseActive(), 'left', 'right');
-        switch(this._subCategory) {
-            case 0:
-                break;
-            case 1:
-                this._equipmentList.updateInput(this.isMouseActive());
-                break;
-            case 2:
-                break;
-        }
-    };
-    
-    NB_Interface_CharMenu.prototype._enterCharacterTrigger = function() {
-        SoundManager.playOk();
-        this._categories.activate();
-        this._equipmentList.activate();
-        this._enterCharacter = true;
-    };
-    
-    NB_Interface_CharMenu.prototype._leaveCharacterTrigger = function() {
-        SoundManager.playCancel();
-        this._categories.deactivate();
-        this._equipmentList.deactivate();
-        this._enterCharacter = false;
-    };
-    
     // Override!
     NB_Interface_CharMenu.prototype.updateInput = function() {
-        if (this._categories.getActiveId() !== -1) {
-            this._subCategory = this._categories.getActiveId();
-        } else {
-            this._subCategory = 0;
-        }
-        
         this._currentChar = this._actorButtons.getActiveId();
-        
-        if (this._enterCharacter) {
-            this._updateSubCategoryInput();
-            if (Input.isTriggered('menu') && !this._exit) {
-                this._leaveCharacterTrigger();
-            }
-        } else {
-            this._actorButtons.updateInput(this.isMouseActive());
-            if (Input.isTriggered('ok')) {
-                this._enterCharacterTrigger();
-            }
-            if (Input.isTriggered('menu') && !this._exit) {
-                this._exit = true;
-            }
+        this._actorButtons.updateInput(this.isMouseActive());
+        if (Input.isTriggered('menu') && !this._exit) {
+            this._exit = true;
         }
     };
     
@@ -257,22 +185,7 @@
         }
         this.setBaseTitleAndLinesOpacity(this._masterOpacity);
         this._actorButtons.setMasterOpacity(this._masterOpacity);
-        this._categories.setMasterOpacity(this._masterOpacity);
-        
-        switch(this._subCategory) {
-            case 0:
-                this._characterInfo.opacity = this._masterOpacity;
-                this._equipmentList.setMasterOpacity(0);
-                break;
-            case 1:
-                this._characterInfo.opacity = 0;
-                this._equipmentList.setMasterOpacity(this._masterOpacity);
-                break;
-            case 2:
-                this._characterInfo.opacity = 0;
-                this._equipmentList.setMasterOpacity(0);
-                break;
-        }
+        this._characterInfo.opacity = this._masterOpacity;
         
         if (this._characterFaceFadeOpacity < 255) {
             this._characterFaceFadeOpacity += 15;
@@ -292,12 +205,10 @@
     // Override!
     NB_Interface_CharMenu.prototype.updateElements = function() {
         this._actorButtons.update();
-        this._categories.update();
         this._updateCharacterInfo();
         if (this._characterFaceFadeOpacity < 255) {
             this._characterFace.x += (255-this._characterFaceFadeOpacity)/60;
         }
-        this._equipmentList.update();
     };
     
 })();
