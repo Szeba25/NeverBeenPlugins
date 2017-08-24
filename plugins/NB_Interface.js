@@ -463,8 +463,19 @@ function NB_ButtonGroup() {
 NB_ButtonGroup.prototype.initialize = function(onlyActiveMouse) {
     this._buttons = [];
     this._activeId = 0;
+    this._active = true;
     this._faded = false;
     this._onlyActiveMouse = onlyActiveMouse;
+};
+
+NB_ButtonGroup.prototype.activate = function() {
+    this._activeId = 0;
+    this._active = true;
+};
+
+NB_ButtonGroup.prototype.deactivate = function() {
+    this._activeId = -1;
+    this._active = false;
 };
 
 NB_ButtonGroup.prototype.add = function(button, activate) {
@@ -528,6 +539,9 @@ NB_ButtonGroup.prototype.update = function() {
 };
 
 NB_ButtonGroup.prototype.updateInput = function(mouseActive, customUp, customDown) {
+    if (!this._active) {
+        return;
+    }
     // Control keyboard input
     if (Input.isTriggered(customUp || 'up')) {
         SoundManager.playCursor();
@@ -570,9 +584,20 @@ NB_List.prototype.initialize = function(x, y, visibleSize, lineHeight) {
     this._x = x;
     this._y = y;
     this._activeId = 0;
+    this._active = true;
     this._visibleSize = visibleSize;
     this._lineHeight = lineHeight || 30; // optional parameter!
     this._firstVisibleId = 0;
+};
+
+NB_List.prototype.activate = function() {
+    this._activeId = 0;
+    this._active = true;
+};
+
+NB_List.prototype.deactivate = function() {
+    this._activeId = -1;
+    this._active = false;
 };
 
 NB_List.prototype.addAbstractListElement = function(elem) {
@@ -727,6 +752,9 @@ NB_List.prototype.getLength = function() {
 };
 
 NB_List.prototype.updateInput = function(mouseActive) {
+    if (!this._active) {
+        return;
+    }
     if (Input.isRepeated('up') || TouchInput.wheelY < 0) {
         this.scrollUp(TouchInput.wheelY == 0);
     }
