@@ -31,6 +31,7 @@
             _currentChar
             _currentCharUpdated
             _characterEntered
+            _subCategoryFadeOpacity
             
             # sprites and bitmaps
             _characterInfo
@@ -141,6 +142,7 @@
         this._currentCharUpdated = -1;
         this._characterEntered = false;
         this._characterFaceFadeOpacity = 0;
+        this._subCategoryFadeOpacity = 0;
         this._party = $gameParty.allMembers();
         // Buttons and other data
         this._actorButtons = new NB_ButtonGroup(true);
@@ -154,7 +156,7 @@
         this._subCategoryButtons = new NB_ButtonGroup(true);
         
         this._subCategoryButtons.add(new NB_Button('menu_1/', 'char_1', 'menu_1/', 'char_1_light', null, null, 690, 42));
-        this._subCategoryButtons.add(new NB_Button('menu_1/', 'char_2', 'menu_1/', 'char_2_light', null, null, 684, 80));
+        this._subCategoryButtons.add(new NB_Button('menu_1/', 'char_2', 'menu_1/', 'char_2_light', null, null, 684, 42));
         this._subCategoryButtons.addToContainer(this);
         
         this._characterFace = new Sprite();
@@ -170,6 +172,22 @@
         this.addChild(this._characterInfo);
     };
     
+    NB_Interface_CharMenu.prototype._enterCharacterTrigger = function() {
+        SoundManager.playOk();
+        this._subCategoryButtons.setActive(0);
+        this._subCategoryButtons.get(1).setLerpAlpha(0.3);
+        this._subCategoryButtons.get(1).setPosition(684, 42);
+        this._subCategoryButtons.get(1).setTarget(684, 80);
+        this._actorButtons.invalidateAllButActive();
+        this._characterEntered = true;
+    };
+    
+    NB_Interface_CharMenu.prototype._leaveCharacterTrigger = function() {
+        SoundManager.playCancel();
+        this._actorButtons.validateAll();
+        this._characterEntered = false;
+    };
+    
     // Override!
     NB_Interface_CharMenu.prototype.updateInput = function() {
         this._currentChar = this._actorButtons.getActiveId();
@@ -177,7 +195,7 @@
         if (this._characterEntered) {
             
             if (this.backKeyTrigger()) {
-                this._characterEntered = false;
+                this._leaveCharacterTrigger();
             }
             
             this._subCategoryButtons.updateInput(this.isMouseActive());
@@ -185,10 +203,11 @@
         } else {
             
             if (this.backKeyTrigger() && !this._exit) {
+                SoundManager.playCancel();
                 this._exit = true;
             }
             if (this.okKeyTrigger(this._actorButtons) && !this._exit) {
-                this._characterEntered = true;
+                this._enterCharacterTrigger();
             }
             
             this._actorButtons.updateInput(this.isMouseActive());
@@ -214,10 +233,15 @@
         this._characterInfo.opacity = this._masterOpacity;
         
         if (this._characterEntered) {
-            this._subCategoryButtons.setMasterOpacity(this._masterOpacity);
+            if (this._subCategoryFadeOpacity < 255) {
+                this._subCategoryFadeOpacity += 15;
+            }
         } else {
-            this._subCategoryButtons.setMasterOpacity(0);
+            if (this._subCategoryFadeOpacity > 0) {
+                this._subCategoryFadeOpacity -= 15;
+            }
         }
+        this._subCategoryButtons.setMasterOpacity(this._subCategoryFadeOpacity * (this._masterOpacity / 255));
         
         if (this._characterFaceFadeOpacity < 255) {
             this._characterFaceFadeOpacity += 15;

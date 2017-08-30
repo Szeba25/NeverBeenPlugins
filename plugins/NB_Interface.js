@@ -238,6 +238,7 @@ NB_Button.prototype.initialize = function(bkgPath, bkg, lightPath, light, text, 
     this._tx = x;
     this._ty = y;
     this._lightOpacity = 0;
+    this._lerpAlpha = 0.2;
     this._active = false;
     this._masterOpacity = masterOpacity;
     this._faded = false;
@@ -245,7 +246,12 @@ NB_Button.prototype.initialize = function(bkgPath, bkg, lightPath, light, text, 
     this._completelyFaded = false;
     this._enlargeIfFaded = false;
     this._invalidated = false;
+    this._invalidatedModifier = 100;
     this.updateOpacity();
+};
+
+NB_Button.prototype.setLerpAlpha = function(value) {
+    this._lerpAlpha = value;
 };
 
 NB_Button.prototype.addToContainer = function(container) {
@@ -308,23 +314,27 @@ NB_Button.prototype.invalidate = function() {
     this._invalidated = true;
 };
 
+NB_Button.prototype.validate = function() {
+    this._invalidated = false;
+};
+
 NB_Button.prototype._syncPosition = function() {
     // Lerp to target
     if (this._x < this._tx) {
         var dist = Math.abs(this._x - this._tx);
-        this._x += dist * 0.2;
+        this._x += dist * this._lerpAlpha;
     }
     if (this._x > this._tx) {
         var dist = Math.abs(this._x - this._tx);
-        this._x -= dist * 0.2;
+        this._x -= dist * this._lerpAlpha;
     }
     if (this._y < this._ty) {
         var dist = Math.abs(this._y - this._ty);
-        this._y += dist * 0.2;
+        this._y += dist * this._lerpAlpha;
     }
     if (this._y > this._ty) {
         var dist = Math.abs(this._y - this._ty);
-        this._y -= dist * 0.2;
+        this._y -= dist * this._lerpAlpha;
     }
     // Set to graphics
     this._graphics.x = Math.floor(this._x + this._graphics.width / 2);
@@ -346,8 +356,7 @@ NB_Button.prototype.deactivate = function() {
 };
 
 NB_Button.prototype.updateOpacity = function() {
-    var invalidModifier = 1;
-    if (this._invalidated) invalidModifier = 0.5;
+    var invalidModifier = this._invalidatedModifier / 100;
     this._graphics.opacity = this._masterOpacity * (this._fadedOpacity / 255) * invalidModifier;
     this._light.opacity = Math.round(this._lightOpacity * (this._masterOpacity / 255) * (this._fadedOpacity / 255 * invalidModifier));
 };
@@ -358,6 +367,17 @@ NB_Button.prototype.mouseInside = function() {
 
 NB_Button.prototype.update = function() {
     this._syncPosition();
+    
+    if (this._invalidated) {
+        if (this._invalidatedModifier > 50) {
+            this._invalidatedModifier -= 2;
+        }
+    } else {
+        if (this._invalidatedModifier < 100) {
+            this._invalidatedModifier += 2;
+        }
+    }
+    
     if (this._faded) {
         if (this._enlargeIfFaded) {
             this._graphics.scale.x += 0.005;
@@ -491,6 +511,14 @@ NB_ButtonGroup.prototype.add = function(button, activate) {
     if (activate) this._buttons[this._buttons.length-1].activate();
 };
 
+NB_ButtonGroup.prototype.get = function(id) {
+    return this._buttons[id];
+};
+
+NB_ButtonGroup.prototype.size = function() {
+    return this._buttons.length;
+};
+
 NB_ButtonGroup.prototype.setMasterOpacity = function(value) {
     for (var i = 0; i < this._buttons.length; i++) {
         this._buttons[i].setMasterOpacity(value);
@@ -518,6 +546,20 @@ NB_ButtonGroup.prototype.trigger = function(enlarge) {
 
 NB_ButtonGroup.prototype.clickedOnActive = function() {
     return (this._buttons[this._activeId].mouseInside() && TouchInput.isTriggered());
+};
+
+NB_ButtonGroup.prototype.invalidateAllButActive = function() {
+    for (var i = 0; i < this._buttons.length; i++) {
+        if (i != this._activeId) {
+            this._buttons[i].invalidate();
+        }
+    }
+};
+
+NB_ButtonGroup.prototype.validateAll = function() {
+    for (var i = 0; i < this._buttons.length; i++) {
+        this._buttons[i].validate();
+    }
 };
 
 NB_ButtonGroup.prototype.fade = function() {

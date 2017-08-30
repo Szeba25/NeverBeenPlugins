@@ -138,6 +138,7 @@
         if (!this._exit) {
             
             if (this.backKeyTrigger() && !this._exit) {
+                SoundManager.playCancel();
                 this._exit = true;
             }
             if (this.okKeyTrigger(this._slotList)) {

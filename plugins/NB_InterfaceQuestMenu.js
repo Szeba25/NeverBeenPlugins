@@ -158,6 +158,7 @@
         this._questList.updateInput(this.isMouseActive());
         this._activeQuest = this._questList.getActiveId();
         if (this.backKeyTrigger() && !this._exit) {
+            SoundManager.playCancel();
             this._exit = true;
         }
     };

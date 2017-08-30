@@ -98,6 +98,7 @@
         this._itemLists[this._selectedCategory].updateInput(this.isMouseActive());
         if (!this._exit) {
             if (this.backKeyTrigger() && !this._exit) {
+                SoundManager.playCancel();
                 this._exit = true;
             }
         }
