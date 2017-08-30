@@ -30,6 +30,7 @@
             _characterFaceFadeOpacity
             _currentChar
             _currentCharUpdated
+            _characterEntered
             
             # sprites and bitmaps
             _characterInfo
@@ -40,6 +41,7 @@
             
             # interface elements
             _actorButtons
+            _subCategoryButtons
             
             # bar bitmaps
             bar
@@ -137,6 +139,7 @@
         // Actor variables
         this._currentChar = 0;
         this._currentCharUpdated = -1;
+        this._characterEntered = false;
         this._characterFaceFadeOpacity = 0;
         this._party = $gameParty.allMembers();
         // Buttons and other data
@@ -147,6 +150,12 @@
                                                  null, null, 210, 140+(i*46)));
         }
         this._actorButtons.addToContainer(this);
+        
+        this._subCategoryButtons = new NB_ButtonGroup(true);
+        
+        this._subCategoryButtons.add(new NB_Button('menu_1/', 'char_1', 'menu_1/', 'char_1_light', null, null, 690, 42));
+        this._subCategoryButtons.add(new NB_Button('menu_1/', 'char_2', 'menu_1/', 'char_2_light', null, null, 684, 80));
+        this._subCategoryButtons.addToContainer(this);
         
         this._characterFace = new Sprite();
         this._characterFace.y = 100;
@@ -164,9 +173,25 @@
     // Override!
     NB_Interface_CharMenu.prototype.updateInput = function() {
         this._currentChar = this._actorButtons.getActiveId();
-        this._actorButtons.updateInput(this.isMouseActive());
-        if (Input.isTriggered('menu') && !this._exit) {
-            this._exit = true;
+        
+        if (this._characterEntered) {
+            
+            if (this.backKeyTrigger()) {
+                this._characterEntered = false;
+            }
+            
+            this._subCategoryButtons.updateInput(this.isMouseActive());
+            
+        } else {
+            
+            if (this.backKeyTrigger() && !this._exit) {
+                this._exit = true;
+            }
+            if (this.okKeyTrigger(this._actorButtons) && !this._exit) {
+                this._characterEntered = true;
+            }
+            
+            this._actorButtons.updateInput(this.isMouseActive());
         }
     };
     
@@ -185,7 +210,14 @@
         }
         this.setBaseTitleAndLinesOpacity(this._masterOpacity);
         this._actorButtons.setMasterOpacity(this._masterOpacity);
+        this._subCategoryButtons.setMasterOpacity(this._masterOpacity);
         this._characterInfo.opacity = this._masterOpacity;
+        
+        if (this._characterEntered) {
+            this._subCategoryButtons.setMasterOpacity(this._masterOpacity);
+        } else {
+            this._subCategoryButtons.setMasterOpacity(0);
+        }
         
         if (this._characterFaceFadeOpacity < 255) {
             this._characterFaceFadeOpacity += 15;
@@ -205,6 +237,7 @@
     // Override!
     NB_Interface_CharMenu.prototype.updateElements = function() {
         this._actorButtons.update();
+        this._subCategoryButtons.update();
         this._updateCharacterInfo();
         if (this._characterFaceFadeOpacity < 255) {
             this._characterFace.x += (255-this._characterFaceFadeOpacity)/60;

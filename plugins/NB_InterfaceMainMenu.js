@@ -146,7 +146,7 @@
                 }
             }
             // Exit menu
-            if (Input.isTriggered('menu') && !this._exit) {
+            if (this.backKeyTrigger() && !this._exit) {
                 SoundManager.playCancel();
                 this._exit = true;
             }

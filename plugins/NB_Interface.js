@@ -177,6 +177,14 @@ NB_Interface.prototype.makeEnterComplete = function() {
     this._enterComplete = true;
 };
 
+NB_Interface.prototype.backKeyTrigger = function() {
+    return (Input.isTriggered('cancel') || TouchInput.isCancelled());
+};
+
+NB_Interface.prototype.okKeyTrigger = function(container) {
+    return (Input.isTriggered('ok') || container.clickedOnActive());
+};
+
 /****************************************************************
  * Button: A general button interface element
  ****************************************************************/
@@ -588,6 +596,10 @@ NB_List.prototype.initialize = function(x, y, visibleSize, lineHeight) {
     this._visibleSize = visibleSize;
     this._lineHeight = lineHeight || 30; // optional parameter!
     this._firstVisibleId = 0;
+};
+
+NB_List.prototype.clickedOnActive = function() {
+    return (this._elements[this._activeId].mouseInside() && TouchInput.isTriggered());
 };
 
 NB_List.prototype.activate = function() {

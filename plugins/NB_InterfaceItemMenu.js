@@ -97,7 +97,7 @@
         this._selectedCategory = this._categories.getActiveId();
         this._itemLists[this._selectedCategory].updateInput(this.isMouseActive());
         if (!this._exit) {
-            if (Input.isTriggered('menu') && !this._exit) {
+            if (this.backKeyTrigger() && !this._exit) {
                 this._exit = true;
             }
         }

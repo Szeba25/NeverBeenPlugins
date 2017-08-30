@@ -136,14 +136,16 @@
     // Override!
     NB_Interface_SaveMenu.prototype.updateInput = function() {
         if (!this._exit) {
-            this._slotList.updateInput(this.isMouseActive());
-            this._currentSaveId = this._slotList.getActiveId();
-            if (Input.isTriggered('menu') && !this._exit) {
+            
+            if (this.backKeyTrigger() && !this._exit) {
                 this._exit = true;
             }
-            if (Input.isTriggered('ok')) {
+            if (this.okKeyTrigger(this._slotList)) {
                 this._saveGame(this._currentSaveId + 1);
             }
+            
+            this._slotList.updateInput(this.isMouseActive());
+            this._currentSaveId = this._slotList.getActiveId();
         }
     };
     

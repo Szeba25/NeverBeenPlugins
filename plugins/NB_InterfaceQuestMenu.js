@@ -157,7 +157,7 @@
     NB_Interface_QuestMenu.prototype.updateInput = function() {
         this._questList.updateInput(this.isMouseActive());
         this._activeQuest = this._questList.getActiveId();
-        if (Input.isTriggered('menu') && !this._exit) {
+        if (this.backKeyTrigger() && !this._exit) {
             this._exit = true;
         }
     };
