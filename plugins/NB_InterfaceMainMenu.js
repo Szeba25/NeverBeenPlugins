@@ -128,7 +128,7 @@
             // Update buttons input
             this._buttonGroup.updateInput(this.isMouseActive());
             // Go into submenu
-            if ((Input.isTriggered('ok') || this._buttonGroup.clickedOnActive()) && !this._exit) {
+            if (this.okKeyTrigger(this._buttonGroup) && !this._exit) {
                 this._enterSubmenu = this._buttonGroup.trigger(true);
                 if (this._enterSubmenu == 4) {
                     SoundManager.playCancel();
