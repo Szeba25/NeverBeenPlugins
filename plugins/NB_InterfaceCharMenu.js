@@ -32,6 +32,9 @@
             _currentCharUpdated
             _characterEntered
             _subCategoryFadeOpacity
+            _characterInfoOpacity
+            _skillsSubOpacity
+            _equipmentSubOpacity
             
             # sprites and bitmaps
             _characterInfo
@@ -43,6 +46,8 @@
             # interface elements
             _actorButtons
             _subCategoryButtons
+            _equipmentList
+            _equipmentNames
             
             # bar bitmaps
             bar
@@ -96,13 +101,14 @@
         bmp.blt(this.bar, 0, 0, 200, 15, x, y + 75, 200, 15);
     };
     
-    NB_Interface_CharMenu.prototype._drawEquipment = function(actor, bmp) {
+    NB_Interface_CharMenu.prototype._printEquipment = function(actor) {
         for (var i = 0; i < 5; i++) {
             var equip = actor.equips()[i];
             if (equip != null) {
-                bmp.drawText(equip.name, 290, 345 + i*20, null, NB_Interface.lineHeight, 'left');
+                
             }
         }
+        console.log(actor.equips());
     };
     
     NB_Interface_CharMenu.prototype._updateCharacterInfo = function() {
@@ -140,9 +146,12 @@
         // Actor variables
         this._currentChar = 0;
         this._currentCharUpdated = -1;
-        this._characterEntered = false;
+        this._characterEntered = 0;
         this._characterFaceFadeOpacity = 0;
         this._subCategoryFadeOpacity = 0;
+        this._characterInfoOpacity = 255;
+        this._skillsSubOpacity = 0;
+        this._equipmentSubOpacity = 0;
         this._party = $gameParty.allMembers();
         // Buttons and other data
         this._actorButtons = new NB_ButtonGroup(true);
@@ -153,11 +162,22 @@
         }
         this._actorButtons.addToContainer(this);
         
-        this._subCategoryButtons = new NB_ButtonGroup(true);
+        this._subCategoryButtons = new NB_ButtonGroup(false);
         
         this._subCategoryButtons.add(new NB_Button('menu_1/', 'char_1', 'menu_1/', 'char_1_light', null, null, 690, 42));
         this._subCategoryButtons.add(new NB_Button('menu_1/', 'char_2', 'menu_1/', 'char_2_light', null, null, 684, 42));
         this._subCategoryButtons.addToContainer(this);
+        
+        this._equipmentList = new NB_List(560, 125, 5);
+        this._equipmentList.addListElement("Fegyver:");
+        this._equipmentList.addListElement("Pajzs:");
+        this._equipmentList.addListElement("Sisak:");
+        this._equipmentList.addListElement("Vért:");
+        this._equipmentList.addListElement("Kiegészítő:");
+        this._equipmentList.addToContainer(this);
+        
+        this._equipmentNames = new NB_List(50, 50, 5);
+        this._equipmentNames.addToContainer(this);
         
         this._characterFace = new Sprite();
         this._characterFace.y = 100;
@@ -172,46 +192,124 @@
         this.addChild(this._characterInfo);
     };
     
-    NB_Interface_CharMenu.prototype._enterCharacterTrigger = function() {
-        SoundManager.playOk();
-        this._subCategoryButtons.setActive(0);
+    NB_Interface_CharMenu.prototype._prepareSubCategoryButtonsLerp = function(resetSelection) {
+        this._subCategoryButtons.unFade();
+        if (resetSelection) this._subCategoryButtons.setActive(0);
         this._subCategoryButtons.get(1).setLerpAlpha(0.3);
         this._subCategoryButtons.get(1).setPosition(684, 42);
         this._subCategoryButtons.get(1).setTarget(684, 80);
+    };
+    
+    NB_Interface_CharMenu.prototype._enterCharacterTrigger = function() {
+        SoundManager.playOk();
+        this._prepareSubCategoryButtonsLerp(true);
         this._actorButtons.invalidateAllButActive();
-        this._characterEntered = true;
+        this._characterEntered = 1;
     };
     
     NB_Interface_CharMenu.prototype._leaveCharacterTrigger = function() {
         SoundManager.playCancel();
         this._actorButtons.validateAll();
-        this._characterEntered = false;
+        this._characterEntered = 0;
+    };
+    
+    NB_Interface_CharMenu.prototype._enterSkillsTrigger = function() {
+        SoundManager.playOk();
+        this._characterEntered = 2;
+    };
+    
+    NB_Interface_CharMenu.prototype._leaveSkillsTrigger = function() {
+        SoundManager.playCancel();
+        this._prepareSubCategoryButtonsLerp(false);
+        this._characterEntered = 1;
+    };
+    
+    NB_Interface_CharMenu.prototype._enterEquipmentTrigger = function() {
+        SoundManager.playOk();
+        this._printEquipment(this._party[this._currentChar]);
+        this._characterEntered = 3;
+    };
+    
+    NB_Interface_CharMenu.prototype._leaveEquipmentTrigger = function() {
+        SoundManager.playCancel();
+        this._prepareSubCategoryButtonsLerp(false);
+        this._characterEntered = 1;
+    };
+    
+    NB_Interface_CharMenu.prototype._mainInput = function() {
+        if (this.backKeyTrigger() && !this._exit) {
+            SoundManager.playCancel();
+            this._exit = true;
+        }
+        if (this.okKeyTrigger(this._actorButtons) && !this._exit) {
+            this._enterCharacterTrigger();
+        }
+        this._actorButtons.updateInput(this.isMouseActive());
+    };
+    
+    NB_Interface_CharMenu.prototype._subSelectionInput = function() {
+        if (this.backKeyTrigger()) {
+            this._leaveCharacterTrigger();
+        }
+        if (this.okKeyTrigger(this._subCategoryButtons)) {
+            var id = this._subCategoryButtons.trigger(true);
+            this._subCategoryButtons.fade();
+            if (id == 0) {
+                this._enterSkillsTrigger();
+            } else {
+                this._enterEquipmentTrigger();
+            }
+        }
+        this._subCategoryButtons.updateInput(this.isMouseActive());
+    };
+    
+    NB_Interface_CharMenu.prototype._skillsInput = function() {
+        if (this.backKeyTrigger()) {
+            this._leaveSkillsTrigger();
+        }
+    };
+    
+    NB_Interface_CharMenu.prototype._equipmentInput = function() {
+        this._equipmentList.updateInput(this.isMouseActive());
+        if (this.backKeyTrigger()) {
+            this._leaveEquipmentTrigger();
+        }
     };
     
     // Override!
     NB_Interface_CharMenu.prototype.updateInput = function() {
         this._currentChar = this._actorButtons.getActiveId();
-        
-        if (this._characterEntered) {
-            
-            if (this.backKeyTrigger()) {
-                this._leaveCharacterTrigger();
-            }
-            
-            this._subCategoryButtons.updateInput(this.isMouseActive());
-            
-        } else {
-            
-            if (this.backKeyTrigger() && !this._exit) {
-                SoundManager.playCancel();
-                this._exit = true;
-            }
-            if (this.okKeyTrigger(this._actorButtons) && !this._exit) {
-                this._enterCharacterTrigger();
-            }
-            
-            this._actorButtons.updateInput(this.isMouseActive());
+        // Branch by menu state
+        switch (this._characterEntered) {
+            case 0:
+                this._mainInput();
+                break;
+            case 1:
+                this._subSelectionInput();
+                break;
+            case 2:
+                this._skillsInput();
+                break;
+            case 3:
+                this._equipmentInput();
+                break;
         }
+    };
+    
+    NB_Interface_CharMenu.prototype._decreaseOpacity = function(variable) {
+        if (variable > 0) {
+            variable -= 15;
+        }
+        return variable;
+    };
+    
+    NB_Interface_CharMenu.prototype._increaseOpacity = function(variable, wait1, wait2) {
+        if (wait1 && wait1 > 0) return variable;
+        if (wait2 && wait2 > 0) return variable;
+        if (variable < 255) {
+            variable += 15;
+        }
+        return variable;
     };
     
     // Override!
@@ -227,21 +325,41 @@
                 this.makeEnterComplete();
             }
         }
+        
         this.setBaseTitleAndLinesOpacity(this._masterOpacity);
         this._actorButtons.setMasterOpacity(this._masterOpacity);
         this._subCategoryButtons.setMasterOpacity(this._masterOpacity);
-        this._characterInfo.opacity = this._masterOpacity;
         
-        if (this._characterEntered) {
-            if (this._subCategoryFadeOpacity < 255) {
-                this._subCategoryFadeOpacity += 15;
-            }
-        } else {
-            if (this._subCategoryFadeOpacity > 0) {
-                this._subCategoryFadeOpacity -= 15;
-            }
+        switch (this._characterEntered) {
+            case 0:
+                this._characterInfoOpacity = this._increaseOpacity(this._characterInfoOpacity,
+                                                                   this._skillsSubOpacity, this._equipmentSubOpacity);
+                this._subCategoryFadeOpacity = this._decreaseOpacity(this._subCategoryFadeOpacity);
+                this._skillsSubOpacity = this._decreaseOpacity(this._skillsSubOpacity);
+                this._equipmentSubOpacity = this._decreaseOpacity(this._equipmentSubOpacity);
+                break;
+            case 1:
+                this._characterInfoOpacity = this._increaseOpacity(this._characterInfoOpacity, 
+                                                                   this._skillsSubOpacity, this._equipmentSubOpacity);
+                this._subCategoryFadeOpacity = this._increaseOpacity(this._subCategoryFadeOpacity);
+                this._skillsSubOpacity = this._decreaseOpacity(this._skillsSubOpacity);
+                this._equipmentSubOpacity = this._decreaseOpacity(this._equipmentSubOpacity);
+                break;
+            case 2:
+                this._characterInfoOpacity = this._decreaseOpacity(this._characterInfoOpacity);
+                this._equipmentSubOpacity = this._decreaseOpacity(this._equipmentSubOpacity);
+                this._skillsSubOpacity = this._increaseOpacity(this._skillsSubOpacity, this._characterInfoOpacity);
+                break;
+            case 3:
+                this._characterInfoOpacity = this._decreaseOpacity(this._characterInfoOpacity);
+                this._skillsSubOpacity = this._decreaseOpacity(this._skillsSubOpacity);
+                this._equipmentSubOpacity = this._increaseOpacity(this._equipmentSubOpacity, this._characterInfoOpacity);
+                break;
         }
+        this._characterInfo.opacity = this._characterInfoOpacity * (this._masterOpacity / 255);
         this._subCategoryButtons.setMasterOpacity(this._subCategoryFadeOpacity * (this._masterOpacity / 255));
+        this._equipmentList.setMasterOpacity(this._equipmentSubOpacity * (this._masterOpacity / 255));
+        this._equipmentNames.setMasterOpacity(this._equipmentSubOpacity * (this._masterOpacity / 255));
         
         if (this._characterFaceFadeOpacity < 255) {
             this._characterFaceFadeOpacity += 15;
@@ -263,6 +381,8 @@
         this._actorButtons.update();
         this._subCategoryButtons.update();
         this._updateCharacterInfo();
+        this._equipmentList.update();
+        this._equipmentNames.update();
         if (this._characterFaceFadeOpacity < 255) {
             this._characterFace.x += (255-this._characterFaceFadeOpacity)/60;
         }

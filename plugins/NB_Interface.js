@@ -569,6 +569,13 @@ NB_ButtonGroup.prototype.fade = function() {
     this._faded = true;
 };
 
+NB_ButtonGroup.prototype.unFade = function() {
+    for (var i = 0; i < this._buttons.length; i++) {
+        this._buttons[i].unFade();
+    }
+    this._faded = false;
+};
+
 NB_ButtonGroup.prototype.completelyFaded = function() {
     for (var i = 0; i < this._buttons.length; i++) {
         if (this._buttons[i].completelyFaded()) return true;

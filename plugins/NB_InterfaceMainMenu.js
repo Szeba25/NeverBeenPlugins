@@ -139,10 +139,10 @@
                     this._createFadeOut();
                     this._exitToTitle = true;
                     this._enterSubmenu = null;
-                    this._buttonGroup.fade(false);
+                    this._buttonGroup.fade();
                 } else {
                     SoundManager.playOk();
-                    this._buttonGroup.fade(false);
+                    this._buttonGroup.fade();
                 }
             }
             // Exit menu
