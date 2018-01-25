@@ -22,7 +22,7 @@ ImageManager.loadInterfaceElement = function(subpath, filename) {
 };
 
 /****************************************************************
- * The base of all never been interface scenes!
+ * The base of all Never Been interface scenes!
  ****************************************************************/
 
 function NB_Interface() {
@@ -185,6 +185,23 @@ NB_Interface.prototype.okKeyTrigger = function(container) {
     return (Input.isTriggered('ok') || container.clickedOnActive());
 };
 
+/****************************************************************
+ * Utility commands in interface
+ ****************************************************************/
+
+NB_Interface.prototype.getParty = function() {
+    // Return all party members which are accessible from the menu
+    var allParty = $gameParty.allMembers();
+    var menuParty = [];
+    for (var i = 0; i < allParty.length; i++) {
+        console.log(allParty[i].nickname());
+        if (allParty[i].nickname() !== 'NPC') {
+            menuParty.push(allParty[i]);
+        }
+    }
+    return menuParty;
+};
+ 
 /****************************************************************
  * Button: A general button interface element
  ****************************************************************/

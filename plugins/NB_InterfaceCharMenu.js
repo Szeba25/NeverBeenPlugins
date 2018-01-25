@@ -137,7 +137,7 @@
             
             // Draw biography
             for (var i = 0; i < bio.length; i++) {
-                bmp.drawText(bio[i], 0, 150 + (i*20), null, NB_Interface.lineHeight, 'left');
+                bmp.drawText(bio[i], 0, 150 + (i*22), null, NB_Interface.lineHeight, 'left');
             }
         }
     };
@@ -152,7 +152,7 @@
         this._characterInfoOpacity = 255;
         this._skillsSubOpacity = 0;
         this._equipmentSubOpacity = 0;
-        this._party = $gameParty.allMembers();
+        this._party = this.getParty();
         // Buttons and other data
         this._actorButtons = new NB_ButtonGroup(true);
         for (var i = 0; i < this._party.length; i++) {
@@ -164,16 +164,16 @@
         
         this._subCategoryButtons = new NB_ButtonGroup(false);
         
-        this._subCategoryButtons.add(new NB_Button('menu_1/', 'char_1', 'menu_1/', 'char_1_light', null, null, 690, 42));
-        this._subCategoryButtons.add(new NB_Button('menu_1/', 'char_2', 'menu_1/', 'char_2_light', null, null, 684, 42));
+        this._subCategoryButtons.add(new NB_Button('menu_1/', 'char_1', 'menu_1/', 'char_1_light', null, null, 650, 42));
+        this._subCategoryButtons.add(new NB_Button('menu_1/', 'char_2', 'menu_1/', 'char_2_light', null, null, 644, 42));
         this._subCategoryButtons.addToContainer(this);
         
         this._equipmentList = new NB_List(560, 125, 5);
-        this._equipmentList.addListElement("Fegyver:");
-        this._equipmentList.addListElement("Pajzs:");
-        this._equipmentList.addListElement("Sisak:");
-        this._equipmentList.addListElement("Vért:");
-        this._equipmentList.addListElement("Kiegészítő:");
+        this._equipmentList.addListElement("Weapon:");
+        this._equipmentList.addListElement("Shield:");
+        this._equipmentList.addListElement("Helmet:");
+        this._equipmentList.addListElement("Armor:");
+        this._equipmentList.addListElement("Accessory:");
         this._equipmentList.addToContainer(this);
         
         this._equipmentNames = new NB_List(50, 50, 5);
@@ -196,8 +196,8 @@
         this._subCategoryButtons.unFade();
         if (resetSelection) this._subCategoryButtons.setActive(0);
         this._subCategoryButtons.get(1).setLerpAlpha(0.3);
-        this._subCategoryButtons.get(1).setPosition(684, 42);
-        this._subCategoryButtons.get(1).setTarget(684, 80);
+        this._subCategoryButtons.get(1).setPosition(644, 42);
+        this._subCategoryButtons.get(1).setTarget(644, 80);
     };
     
     NB_Interface_CharMenu.prototype._enterCharacterTrigger = function() {
@@ -331,31 +331,32 @@
         this._subCategoryButtons.setMasterOpacity(this._masterOpacity);
         
         switch (this._characterEntered) {
-            case 0:
+            case 0: // The outer menu
                 this._characterInfoOpacity = this._increaseOpacity(this._characterInfoOpacity,
                                                                    this._skillsSubOpacity, this._equipmentSubOpacity);
                 this._subCategoryFadeOpacity = this._decreaseOpacity(this._subCategoryFadeOpacity);
                 this._skillsSubOpacity = this._decreaseOpacity(this._skillsSubOpacity);
                 this._equipmentSubOpacity = this._decreaseOpacity(this._equipmentSubOpacity);
                 break;
-            case 1:
+            case 1: // Subcategory menu
                 this._characterInfoOpacity = this._increaseOpacity(this._characterInfoOpacity, 
                                                                    this._skillsSubOpacity, this._equipmentSubOpacity);
                 this._subCategoryFadeOpacity = this._increaseOpacity(this._subCategoryFadeOpacity);
                 this._skillsSubOpacity = this._decreaseOpacity(this._skillsSubOpacity);
                 this._equipmentSubOpacity = this._decreaseOpacity(this._equipmentSubOpacity);
                 break;
-            case 2:
+            case 2: // Skills menu
                 this._characterInfoOpacity = this._decreaseOpacity(this._characterInfoOpacity);
                 this._equipmentSubOpacity = this._decreaseOpacity(this._equipmentSubOpacity);
                 this._skillsSubOpacity = this._increaseOpacity(this._skillsSubOpacity, this._characterInfoOpacity);
                 break;
-            case 3:
+            case 3: // Equipment menu
                 this._characterInfoOpacity = this._decreaseOpacity(this._characterInfoOpacity);
                 this._skillsSubOpacity = this._decreaseOpacity(this._skillsSubOpacity);
                 this._equipmentSubOpacity = this._increaseOpacity(this._equipmentSubOpacity, this._characterInfoOpacity);
                 break;
         }
+        
         this._characterInfo.opacity = this._characterInfoOpacity * (this._masterOpacity / 255);
         this._subCategoryButtons.setMasterOpacity(this._subCategoryFadeOpacity * (this._masterOpacity / 255));
         this._equipmentList.setMasterOpacity(this._equipmentSubOpacity * (this._masterOpacity / 255));
@@ -384,7 +385,7 @@
         this._equipmentList.update();
         this._equipmentNames.update();
         if (this._characterFaceFadeOpacity < 255) {
-            this._characterFace.x += (255-this._characterFaceFadeOpacity)/60;
+            this._characterFace.x += (255-this._characterFaceFadeOpacity)/90;
         }
     };
     
