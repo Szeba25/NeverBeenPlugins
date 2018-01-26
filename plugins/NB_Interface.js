@@ -616,7 +616,11 @@ NB_ButtonGroup.prototype.updateInput = function(mouseActive, customUp, customDow
     if (!this._active) {
         return;
     }
-    // Control keyboard input
+    this._updateKeyboardInput(customUp, customDown);
+    this._updateMouseInput(mouseActive);
+};
+
+NB_ButtonGroup.prototype._updateKeyboardInput = function(customUp, customDown) {
     if (Input.isTriggered(customUp || 'up')) {
         SoundManager.playCursor();
         if (this._activeId == 0) {
@@ -633,7 +637,9 @@ NB_ButtonGroup.prototype.updateInput = function(mouseActive, customUp, customDow
             this._activeId++;
         }
     }
-    // Control mouse input
+};
+
+NB_ButtonGroup.prototype._updateMouseInput = function(mouseActive) {
     for (var i = 0; i < this._buttons.length; i++) {
         if (mouseActive) {
             if ((this._onlyActiveMouse && TouchInput.isTriggered() && this._buttons[i].mouseInside()) 
@@ -644,6 +650,74 @@ NB_ButtonGroup.prototype.updateInput = function(mouseActive, customUp, customDow
     }
 };
 
+/****************************************************************
+ * Button grid (based on button group)
+ * Allows for buttons to be aligned in a grid.
+ ****************************************************************/
+
+function NB_ButtonGrid() {
+    this.initialize.apply(this, arguments);
+}
+
+NB_ButtonGrid.prototype = Object.create(NB_ButtonGroup.prototype);
+NB_ButtonGrid.prototype.constructor = NB_ButtonGrid;
+
+NB_ButtonGrid.prototype.initialize = function(onlyActiveMouse, rows, columns) {
+    NB_ButtonGroup.prototype.initialize.call(this, onlyActiveMouse);
+    this._rows = rows;
+    this._columns = columns;
+};
+
+// Override!
+NB_ButtonGrid.prototype.updateInput = function(mouseActive) {
+    if (!this._active) {
+        return;
+    }
+    this._updateVerticalKeyboardInput();
+    this._updateHorizontalKeyboardInput();
+    this._updateMouseInput(mouseActive);
+};
+
+NB_ButtonGrid.prototype._updateVerticalKeyboardInput = function() {
+    if (Input.isTriggered('up')) {
+        SoundManager.playCursor();
+        var check1 = Math.floor(this._activeId / this._rows);
+        var check2 = Math.floor((this._activeId-1) / this._rows);
+        if (check1 === check2) {
+            this._activeId--;
+        } else {
+            this._activeId += this._rows-1;
+        }
+    }
+    if (Input.isTriggered('down')) {
+        SoundManager.playCursor();
+        var check1 = Math.floor(this._activeId / this._rows);
+        var check2 = Math.floor((this._activeId+1) / this._rows);
+        if (check1 === check2) {
+            this._activeId++;
+        } else {
+            this._activeId -= this._rows-1;
+        }
+    }
+};
+
+NB_ButtonGrid.prototype._updateHorizontalKeyboardInput = function() {
+    if (Input.isTriggered('left')) {
+        SoundManager.playCursor();
+        this._activeId -= this._columns;
+        if (this._activeId < 0) {
+            this._activeId += this._buttons.length;
+        }
+    }
+    if (Input.isTriggered('right')) {
+        SoundManager.playCursor();
+        this._activeId += this._columns;
+        if (this._activeId > this._buttons.length-1) {
+            this._activeId -= this._buttons.length;
+        }
+    }
+};
+ 
 /****************************************************************
  * List
  ****************************************************************/

@@ -48,6 +48,7 @@
             _subCategoryButtons
             _equipmentList
             _equipmentNames
+            _spellGrid
             
             # bar bitmaps
             bar
@@ -179,6 +180,15 @@
         this._equipmentNames = new NB_List(50, 50, 5);
         this._equipmentNames.addToContainer(this);
         
+        this._spellGrid = new NB_ButtonGrid(true, 3, 3);
+        for (var x = 0; x < 3; x++) {
+            for (var y = 0; y < 3; y++) {
+                this._spellGrid.add(new NB_Button('menu_1/chars/', 'spell_icon_bkg', 'menu_1/chars/', 'spell_icon_select', 
+                                                  null, null, 620 + x*70, 50 + y*70));
+            }
+        }
+        this._spellGrid.addToContainer(this);
+        
         this._characterFace = new Sprite();
         this._characterFace.y = 100;
         this.addChild(this._characterFace);
@@ -264,6 +274,7 @@
     };
     
     NB_Interface_CharMenu.prototype._skillsInput = function() {
+        this._spellGrid.updateInput(this.isMouseActive());
         if (this.backKeyTrigger()) {
             this._leaveSkillsTrigger();
         }
@@ -361,6 +372,7 @@
         this._subCategoryButtons.setMasterOpacity(this._subCategoryFadeOpacity * (this._masterOpacity / 255));
         this._equipmentList.setMasterOpacity(this._equipmentSubOpacity * (this._masterOpacity / 255));
         this._equipmentNames.setMasterOpacity(this._equipmentSubOpacity * (this._masterOpacity / 255));
+        this._spellGrid.setMasterOpacity(this._skillsSubOpacity * (this._masterOpacity / 255));
         
         if (this._characterFaceFadeOpacity < 255) {
             this._characterFaceFadeOpacity += 15;
@@ -384,6 +396,7 @@
         this._updateCharacterInfo();
         this._equipmentList.update();
         this._equipmentNames.update();
+        this._spellGrid.update();
         if (this._characterFaceFadeOpacity < 255) {
             this._characterFace.x += (255-this._characterFaceFadeOpacity)/90;
         }
