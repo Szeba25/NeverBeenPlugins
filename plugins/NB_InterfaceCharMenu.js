@@ -117,7 +117,7 @@
             var sx = iconIndex % 16 * 32;
             var sy = Math.floor(iconIndex / 16) * 32;
             
-            this._spellGrid.get(i).getLowerCanvasBitmap().blt(this._iconSet, sx, sy, 64, 64, 0, 0);
+            this._spellGrid.get(i).getLowerCanvasBitmap().blt(this._iconSet, sx, sy, 64, 64, 8, 8);
         }
     };
     
@@ -173,6 +173,7 @@
         this._skillsSubOpacity = 0;
         this._equipmentSubOpacity = 0;
         this._party = this.getParty();
+        
         // Buttons and other data
         this._actorButtons = new NB_ButtonGroup(true);
         for (var i = 0; i < this._party.length; i++) {
@@ -208,6 +209,13 @@
         }
         this._spellGrid.addToContainer(this);
         
+        this._spellInfo = new Sprite();
+        this._spellInfo.x = 560;
+        this._spellInfo.y = 300;
+        this._spellInfo.bitmap = new Bitmap(400, 400);
+        this.setBitmapFontStyle(this._spellInfo.bitmap);
+        this.addChild(this._spellInfo);
+        
         this._characterFace = new Sprite();
         this._characterFace.y = 100;
         this.addChild(this._characterFace);
@@ -217,7 +225,6 @@
         this._characterInfo.y = 125;
         this._characterInfo.bitmap = new Bitmap(400, 400);
         this.setBitmapFontStyle(this._characterInfo.bitmap);
-        
         this.addChild(this._characterInfo);
     };
     
@@ -245,6 +252,8 @@
     NB_Interface_CharMenu.prototype._enterSkillsTrigger = function() {
         SoundManager.playOk();
         this._prepareSkills(this._party[this._currentChar]);
+        this._spellGrid.setActive(0);
+        this._spellGrid.get(0).invalidate();
         this._characterEntered = 2;
     };
     

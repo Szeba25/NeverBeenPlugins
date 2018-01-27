@@ -13,12 +13,20 @@
  * > NB_Lights.js
  */
 
-/*********************************************
+/****************************************************************
  * Interface graphics loader
- *********************************************/
+ ****************************************************************/
 
 ImageManager.loadInterfaceElement = function(subpath, filename) {
     return this.loadBitmap('img/interface/' + subpath, filename, 0, true);
+};
+
+/****************************************************************
+ * Get directly the sprite's gray level
+ ****************************************************************/
+ 
+Sprite.prototype.getGrayLevel = function() {
+    return this._colorTone[3];
 };
 
 /****************************************************************
@@ -372,10 +380,29 @@ NB_Button.prototype.deactivate = function() {
     this._active = false;  
 };
 
+NB_Button.prototype._getOpacityModifier = function() {
+    return (this._fadedOpacity / 255) * (this._invalidatedModifier / 100);
+};
+
+NB_Button.prototype._getDesiredGrayLevel = function() {
+    return Math.floor((100-this._invalidatedModifier)*10);
+};
+
 NB_Button.prototype.updateOpacity = function() {
-    var invalidModifier = this._invalidatedModifier / 100;
-    this._graphics.opacity = this._masterOpacity * (this._fadedOpacity / 255) * invalidModifier;
-    this._light.opacity = Math.round(this._lightOpacity * (this._masterOpacity / 255) * (this._fadedOpacity / 255 * invalidModifier));
+    var modifier = this._getOpacityModifier();
+    var masterOpacityModifier = (this._masterOpacity / 255);
+    this._graphics.opacity = Math.floor(this._masterOpacity * modifier);
+    this._light.opacity = Math.floor(this._lightOpacity * masterOpacityModifier * modifier);
+};
+
+NB_Button.prototype.updateTone = function() {
+    var gray = this._getDesiredGrayLevel();
+    if (this._graphics.getGrayLevel() !== gray) {
+        this._graphics.setColorTone([0, 0, 0, gray]);
+    }
+    if (this._light.getGrayLevel() !== gray) {
+        this._light.setColorTone([0, 0, 0, gray]);
+    }
 };
 
 NB_Button.prototype.mouseInside = function() {
@@ -386,7 +413,7 @@ NB_Button.prototype.update = function() {
     this._syncPosition();
     
     if (this._invalidated) {
-        if (this._invalidatedModifier > 50) {
+        if (this._invalidatedModifier > 80) {
             this._invalidatedModifier -= 2;
         }
     } else {
@@ -426,6 +453,7 @@ NB_Button.prototype.update = function() {
         }
     }
     this.updateOpacity();
+    this.updateTone();
 };
 
 /****************************************************************
@@ -477,10 +505,20 @@ NB_CanvasButton.prototype._syncPosition = function() {
 
 NB_CanvasButton.prototype.updateOpacity = function() {
     NB_Button.prototype.updateOpacity.call(this);
-    var invalidModifier = 1;
-    if (this._invalidated) invalidModifier = 0.5;
-    this._upperCanvas.opacity = this._masterOpacity * (this._fadedOpacity / 255) * invalidModifier;
-    this._lowerCanvas.opacity = this._masterOpacity * (this._fadedOpacity / 255) * invalidModifier;
+    var modifier = this._getOpacityModifier();
+    this._upperCanvas.opacity = Math.floor(this._masterOpacity * modifier);
+    this._lowerCanvas.opacity = Math.floor(this._masterOpacity * modifier);
+};
+
+NB_CanvasButton.prototype.updateTone = function() {
+    NB_Button.prototype.updateTone.call(this);
+    var gray = this._getDesiredGrayLevel();
+    if (this._upperCanvas.getGrayLevel() !== gray) {
+        this._upperCanvas.setColorTone([0, 0, 0, gray]);
+    }
+    if (this._lowerCanvas.getGrayLevel() !== gray) {
+        this._lowerCanvas.setColorTone([0, 0, 0, gray]);
+    }
 };
  
 NB_CanvasButton.prototype.getUpperCanvasBitmap = function() {
