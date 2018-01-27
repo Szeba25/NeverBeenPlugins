@@ -273,7 +273,7 @@ NB_Button.prototype.setLerpAlpha = function(value) {
 
 NB_Button.prototype.addToContainer = function(container) {
     container.addChild(this._graphics);
-    container.addChild(this._light)
+    container.addChild(this._light);
 };
 
 NB_Button.prototype.removeFromContainer = function(container) {
@@ -444,16 +444,26 @@ NB_CanvasButton.prototype.initialize = function(bkgPath, bkg, lightPath, light, 
     this._upperCanvas.anchor.x = 0.5;
     this._upperCanvas.anchor.y = 0.5;
     this._upperCanvas.bitmap.smooth = true;
+    this._lowerCanvas = new Sprite(new Bitmap(cw, ch));
+    this._lowerCanvas.anchor.x = 0.5;
+    this._lowerCanvas.anchor.y = 0.5;
+    this._lowerCanvas.bitmap.smooth = true;
     NB_Button.prototype.initialize.call(this, bkgPath, bkg, lightPath, light, null, null, x, y, masterOpacity);
 };
 
+// Override!
 NB_CanvasButton.prototype.addToContainer = function(container) {
-    NB_Button.prototype.addToContainer.call(this, container);
+    container.addChild(this._graphics);
+    container.addChild(this._lowerCanvas);
+    container.addChild(this._light);
     container.addChild(this._upperCanvas);
 };
 
+// Override!
 NB_CanvasButton.prototype.removeFromContainer = function(container) {
-    NB_Button.prototype.removeFromContainer.call(this, container);
+    container.removeChild(this._graphics);
+    container.removeChild(this._lowerCanvas);
+    container.removeChild(this._light);
     container.removeChild(this._upperCanvas);
 };
  
@@ -461,6 +471,8 @@ NB_CanvasButton.prototype._syncPosition = function() {
     NB_Button.prototype._syncPosition.call(this);
     this._upperCanvas.x = Math.floor(this._x + this._upperCanvas.width / 2);
     this._upperCanvas.y = Math.floor(this._y + this._upperCanvas.height / 2);
+    this._lowerCanvas.x = Math.floor(this._x + this._lowerCanvas.width / 2);
+    this._lowerCanvas.y = Math.floor(this._y + this._lowerCanvas.height / 2);
 };
 
 NB_CanvasButton.prototype.updateOpacity = function() {
@@ -468,10 +480,15 @@ NB_CanvasButton.prototype.updateOpacity = function() {
     var invalidModifier = 1;
     if (this._invalidated) invalidModifier = 0.5;
     this._upperCanvas.opacity = this._masterOpacity * (this._fadedOpacity / 255) * invalidModifier;
+    this._lowerCanvas.opacity = this._masterOpacity * (this._fadedOpacity / 255) * invalidModifier;
 };
  
 NB_CanvasButton.prototype.getUpperCanvasBitmap = function() {
     return this._upperCanvas.bitmap;
+};
+
+NB_CanvasButton.prototype.getLowerCanvasBitmap = function() {
+    return this._lowerCanvas.bitmap;
 };
 
 /****************************************************************
@@ -487,10 +504,6 @@ NB_SaveLoadMenuButton.prototype.constructor = NB_CanvasButton;
 
 NB_SaveLoadMenuButton.prototype.initialize = function(bkgPath, bkg, lightPath, light, cw, ch, x, y, masterOpacity) {
     NB_CanvasButton.prototype.initialize.call(this, bkgPath, bkg, lightPath, light, cw, ch, x, y, masterOpacity);
-};
-
-NB_SaveLoadMenuButton.prototype.updateOpacity = function() {
-    NB_Button.prototype.updateOpacity.call(this);
 };
 
 NB_SaveLoadMenuButton.prototype.setUpperCanvasOpacity = function(opacity) {

@@ -37,6 +37,7 @@
             _equipmentSubOpacity
             
             # sprites and bitmaps
+            _iconSet
             _characterInfo
             _characterFace
             
@@ -63,6 +64,7 @@
         this.createBackground();
         this.createBaseTitleAndLines(0, '11', '12');
         this._loadBars();
+        this._loadIcons();
         this._setupActors();
         
         this._masterOpacity = 0;
@@ -77,6 +79,10 @@
         this.bar_mp = ImageManager.loadInterfaceElement('menu_1/', 'bar_mp');
         this.bar_def = ImageManager.loadInterfaceElement('menu_1/', 'bar_def');
         this.bar_atk = ImageManager.loadInterfaceElement('menu_1/', 'bar_atk');
+    };
+    
+    NB_Interface_CharMenu.prototype._loadIcons = function() {
+        this._iconSet = ImageManager.loadSystem('IconSet');
     };
     
     NB_Interface_CharMenu.prototype._generateBar = function(current, max, width, height, original) {
@@ -100,6 +106,19 @@
         // DEF
         bmp.blt(this._generateBar(actor.def, 100, 200, 15, this.bar_def), 0, 0, 200, 15, x, y + 75, 200, 15);
         bmp.blt(this.bar, 0, 0, 200, 15, x, y + 75, 200, 15);
+    };
+    
+    NB_Interface_CharMenu.prototype._prepareSkills = function(actor) {
+        var skills = actor.skills();
+        for (var i = 0; i < skills.length; i++) {
+            
+            var iconIndex = skills[i].iconIndex + 1;
+            
+            var sx = iconIndex % 16 * 32;
+            var sy = Math.floor(iconIndex / 16) * 32;
+            
+            this._spellGrid.get(i).getLowerCanvasBitmap().blt(this._iconSet, sx, sy, 64, 64, 0, 0);
+        }
     };
     
     NB_Interface_CharMenu.prototype._printEquipment = function(actor) {
@@ -183,8 +202,8 @@
         this._spellGrid = new NB_ButtonGrid(true, 3, 3);
         for (var x = 0; x < 3; x++) {
             for (var y = 0; y < 3; y++) {
-                this._spellGrid.add(new NB_Button('menu_1/chars/', 'spell_icon_bkg', 'menu_1/chars/', 'spell_icon_select', 
-                                                  null, null, 620 + x*70, 50 + y*70));
+                this._spellGrid.add(new NB_CanvasButton('menu_1/chars/', 'spell_icon_bkg', 'menu_1/chars/', 'spell_icon_select', 
+                                                  78, 75, 600 + x*70, 80 + y*70));
             }
         }
         this._spellGrid.addToContainer(this);
@@ -225,6 +244,7 @@
     
     NB_Interface_CharMenu.prototype._enterSkillsTrigger = function() {
         SoundManager.playOk();
+        this._prepareSkills(this._party[this._currentChar]);
         this._characterEntered = 2;
     };
     
