@@ -109,14 +109,16 @@
     };
     
     NB_Interface_CharMenu.prototype._prepareSkills = function(actor) {
+        for (var i = 0; i < 9; i++) {
+            this._spellGrid.get(i).getLowerCanvasBitmap().clear();
+        }
+        
         var skills = actor.skills();
+        
         for (var i = 0; i < skills.length; i++) {
-            
             var iconIndex = skills[i].iconIndex + 1;
-            
             var sx = iconIndex % 16 * 32;
             var sy = Math.floor(iconIndex / 16) * 32;
-            
             this._spellGrid.get(i).getLowerCanvasBitmap().blt(this._iconSet, sx, sy, 64, 64, 8, 8);
         }
     };
@@ -201,8 +203,8 @@
         this._equipmentNames.addToContainer(this);
         
         this._spellGrid = new NB_ButtonGrid(true, 3, 3);
-        for (var x = 0; x < 3; x++) {
-            for (var y = 0; y < 3; y++) {
+        for (var y = 0; y < 3; y++) {
+            for (var x = 0; x < 3; x++) {
                 this._spellGrid.add(new NB_CanvasButton('menu_1/chars/', 'spell_icon_bkg', 'menu_1/chars/', 'spell_icon_select', 
                                                   78, 75, 600 + x*70, 80 + y*70));
             }
@@ -253,7 +255,6 @@
         SoundManager.playOk();
         this._prepareSkills(this._party[this._currentChar]);
         this._spellGrid.setActive(0);
-        this._spellGrid.get(0).invalidate();
         this._characterEntered = 2;
     };
     

@@ -28,7 +28,6 @@
             _exit
             _masterOpacity
             _currentSaveId
-            _slotsOpacity
             _slotListRefreshed
             
             # sprites and bitmaps
@@ -59,12 +58,10 @@
     
     NB_Interface_SaveMenu.prototype._createSlotList = function() {
         this._slots = [];
-        this._slotsOpacity = [];
         this._slotList = new NB_List(330, 125, 3, 120);
         for (var i = 1; i <= 20; i++) {
             var elem = new NB_SaveLoadMenuButton('load_save/', 'box', 'load_save/', 'box_light', 419, 138, 0, 0, 0);
             this._slots.push(elem);
-            this._slotsOpacity.push(0);
             this._slotList.addAbstractListElement(elem);
         }
         this._slotList.addToContainer(this);
@@ -90,25 +87,10 @@
         }
     };
     
-    NB_Interface_SaveMenu.prototype._updateSlotsOpacity = function(masterOpacity) {
-        for (var i = 0; i < 20; i++) {
-            if (this._currentSaveId === i) {
-                if (this._slotsOpacity[i] < 255) this._slotsOpacity[i] += 15;
-            } else {
-                var lowerLimit = 135;
-                if (this._slots[i].isFaded()) lowerLimit = 0;
-                if (this._slotsOpacity[i] > lowerLimit) this._slotsOpacity[i] -= 15;
-                if (this._slotsOpacity[i] < lowerLimit) this._slotsOpacity[i] += 15;
-            }
-            this._slots[i].setUpperCanvasOpacity(this._slotsOpacity[i] * (masterOpacity/255));
-        }
-    };
-    
     NB_Interface_SaveMenu.prototype._drawCharacters = function(characters, bmp, x, y) {
         if (characters) {
             for (var i = 0; i < characters.length; i++) {
                 var data = characters[i];
-                //console.log(data[0]);
                 var bitmap = ImageManager.loadCharacter(data[0]);
                 var big = ImageManager.isBigCharacter(data[0]);
                 var pw = bitmap.width / (big ? 3 : 12);
@@ -165,7 +147,6 @@
         }
         this._slotList.setMasterOpacity(this._masterOpacity);
         this.setBaseTitleAndLinesOpacity(this._masterOpacity);
-        this._updateSlotsOpacity(this._masterOpacity);
     };
     
     // Override!

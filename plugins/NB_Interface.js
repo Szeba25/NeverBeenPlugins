@@ -380,14 +380,6 @@ NB_Button.prototype.deactivate = function() {
     this._active = false;  
 };
 
-NB_Button.prototype._getOpacityModifier = function() {
-    return (this._fadedOpacity / 255) * (this._invalidatedModifier / 100);
-};
-
-NB_Button.prototype._getDesiredGrayLevel = function() {
-    return Math.floor((100-this._invalidatedModifier)*10);
-};
-
 NB_Button.prototype.updateOpacity = function() {
     var modifier = this._getOpacityModifier();
     var masterOpacityModifier = (this._masterOpacity / 255);
@@ -454,6 +446,14 @@ NB_Button.prototype.update = function() {
     }
     this.updateOpacity();
     this.updateTone();
+};
+
+NB_Button.prototype._getOpacityModifier = function() {
+    return (this._fadedOpacity / 255) * (this._invalidatedModifier / 100);
+};
+
+NB_Button.prototype._getDesiredGrayLevel = function() {
+    return Math.floor((100-this._invalidatedModifier)*10);
 };
 
 /****************************************************************
@@ -724,13 +724,13 @@ NB_ButtonGrid.prototype.updateInput = function(mouseActive) {
     if (!this._active) {
         return;
     }
-    this._updateVerticalKeyboardInput();
     this._updateHorizontalKeyboardInput();
+    this._updateVerticalKeyboardInput();
     this._updateMouseInput(mouseActive);
 };
 
-NB_ButtonGrid.prototype._updateVerticalKeyboardInput = function() {
-    if (Input.isTriggered('up')) {
+NB_ButtonGrid.prototype._updateHorizontalKeyboardInput = function() {
+    if (Input.isTriggered('left')) {
         SoundManager.playCursor();
         var check1 = Math.floor(this._activeId / this._rows);
         var check2 = Math.floor((this._activeId-1) / this._rows);
@@ -740,7 +740,7 @@ NB_ButtonGrid.prototype._updateVerticalKeyboardInput = function() {
             this._activeId += this._rows-1;
         }
     }
-    if (Input.isTriggered('down')) {
+    if (Input.isTriggered('right')) {
         SoundManager.playCursor();
         var check1 = Math.floor(this._activeId / this._rows);
         var check2 = Math.floor((this._activeId+1) / this._rows);
@@ -752,15 +752,15 @@ NB_ButtonGrid.prototype._updateVerticalKeyboardInput = function() {
     }
 };
 
-NB_ButtonGrid.prototype._updateHorizontalKeyboardInput = function() {
-    if (Input.isTriggered('left')) {
+NB_ButtonGrid.prototype._updateVerticalKeyboardInput = function() {
+    if (Input.isTriggered('up')) {
         SoundManager.playCursor();
         this._activeId -= this._columns;
         if (this._activeId < 0) {
             this._activeId += this._buttons.length;
         }
     }
-    if (Input.isTriggered('right')) {
+    if (Input.isTriggered('down')) {
         SoundManager.playCursor();
         this._activeId += this._columns;
         if (this._activeId > this._buttons.length-1) {
