@@ -202,7 +202,6 @@ NB_Interface.prototype.getParty = function() {
     var allParty = $gameParty.allMembers();
     var menuParty = [];
     for (var i = 0; i < allParty.length; i++) {
-        console.log(allParty[i].nickname());
         if (allParty[i].nickname() !== 'NPC') {
             menuParty.push(allParty[i]);
         }

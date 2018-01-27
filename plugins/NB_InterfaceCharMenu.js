@@ -35,9 +35,11 @@
             _characterInfoOpacity
             _skillsSubOpacity
             _equipmentSubOpacity
+            _updatedSkillId
             
             # sprites and bitmaps
             _iconSet
+            _skillInfo
             _characterInfo
             _characterFace
             
@@ -49,7 +51,7 @@
             _subCategoryButtons
             _equipmentList
             _equipmentNames
-            _spellGrid
+            _skillGrid
             
             # bar bitmaps
             bar
@@ -110,7 +112,7 @@
     
     NB_Interface_CharMenu.prototype._prepareSkills = function(actor) {
         for (var i = 0; i < 9; i++) {
-            this._spellGrid.get(i).getLowerCanvasBitmap().clear();
+            this._skillGrid.get(i).getLowerCanvasBitmap().clear();
         }
         
         var skills = actor.skills();
@@ -119,7 +121,7 @@
             var iconIndex = skills[i].iconIndex + 1;
             var sx = iconIndex % 16 * 32;
             var sy = Math.floor(iconIndex / 16) * 32;
-            this._spellGrid.get(i).getLowerCanvasBitmap().blt(this._iconSet, sx, sy, 64, 64, 8, 8);
+            this._skillGrid.get(i).getLowerCanvasBitmap().blt(this._iconSet, sx, sy, 64, 64, 8, 8);
         }
     };
     
@@ -130,11 +132,11 @@
                 
             }
         }
-        console.log(actor.equips());
+        //console.log(actor.equips());
     };
     
     NB_Interface_CharMenu.prototype._updateCharacterInfo = function() {
-        if (this._currentCharUpdated != this._currentChar) {
+        if (this._currentCharUpdated !== this._currentChar) {
             this._currentCharUpdated = this._currentChar;
             // Gather data
             var actor = this._party[this._currentChar];
@@ -164,6 +166,20 @@
         }
     };
     
+    NB_Interface_CharMenu.prototype._updateSkillsInfo = function() {
+        if (this._updatedSkillId !== this._skillGrid.getActiveId()) {
+            this._updatedSkillId = this._skillGrid.getActiveId();
+            var bmp = this._skillInfo.bitmap;
+            var actor = this._party[this._currentChar];
+            var skills = actor.skills();
+            bmp.clear();
+            if (this._updatedSkillId < skills.length) {
+                var skill = skills[this._updatedSkillId];
+                console.log(skill);
+            }
+        }
+    };
+    
     NB_Interface_CharMenu.prototype._setupActors = function() {
         // Actor variables
         this._currentChar = 0;
@@ -174,6 +190,7 @@
         this._characterInfoOpacity = 255;
         this._skillsSubOpacity = 0;
         this._equipmentSubOpacity = 0;
+        this._updatedSkillId = -1;
         this._party = this.getParty();
         
         // Buttons and other data
@@ -202,21 +219,21 @@
         this._equipmentNames = new NB_List(50, 50, 5);
         this._equipmentNames.addToContainer(this);
         
-        this._spellGrid = new NB_ButtonGrid(true, 3, 3);
+        this._skillGrid = new NB_ButtonGrid(true, 3, 3);
         for (var y = 0; y < 3; y++) {
             for (var x = 0; x < 3; x++) {
-                this._spellGrid.add(new NB_CanvasButton('menu_1/chars/', 'spell_icon_bkg', 'menu_1/chars/', 'spell_icon_select', 
+                this._skillGrid.add(new NB_CanvasButton('menu_1/chars/', 'spell_icon_bkg', 'menu_1/chars/', 'spell_icon_select', 
                                                   78, 75, 600 + x*70, 80 + y*70));
             }
         }
-        this._spellGrid.addToContainer(this);
+        this._skillGrid.addToContainer(this);
         
-        this._spellInfo = new Sprite();
-        this._spellInfo.x = 560;
-        this._spellInfo.y = 300;
-        this._spellInfo.bitmap = new Bitmap(400, 400);
-        this.setBitmapFontStyle(this._spellInfo.bitmap);
-        this.addChild(this._spellInfo);
+        this._skillInfo = new Sprite();
+        this._skillInfo.x = 560;
+        this._skillInfo.y = 300;
+        this._skillInfo.bitmap = new Bitmap(400, 400);
+        this.setBitmapFontStyle(this._skillInfo.bitmap);
+        this.addChild(this._skillInfo);
         
         this._characterFace = new Sprite();
         this._characterFace.y = 100;
@@ -253,8 +270,9 @@
     
     NB_Interface_CharMenu.prototype._enterSkillsTrigger = function() {
         SoundManager.playOk();
+        this._updatedSkillId = -1;
         this._prepareSkills(this._party[this._currentChar]);
-        this._spellGrid.setActive(0);
+        this._skillGrid.setActive(0);
         this._characterEntered = 2;
     };
     
@@ -304,10 +322,10 @@
     };
     
     NB_Interface_CharMenu.prototype._skillsInput = function() {
-        this._spellGrid.updateInput(this.isMouseActive());
-        if (this.okKeyTrigger(this._spellGrid)) {
-            this._useSkill(this._party[this._currentChar], this._spellGrid.getActiveId());
+        if (this.okKeyTrigger(this._skillGrid)) {
+            this._useSkill(this._party[this._currentChar], this._skillGrid.getActiveId());
         }
+        this._skillGrid.updateInput(this.isMouseActive());
         if (this.backKeyTrigger()) {
             this._leaveSkillsTrigger();
         }
@@ -325,7 +343,7 @@
                 this._exit = true;
             }
         } else {
-            SoundManager.playCancel();
+            SoundManager.playBuzzer();
         }
     };
     
@@ -429,7 +447,7 @@
         this._subCategoryButtons.setMasterOpacity(this._subCategoryFadeOpacity * (this._masterOpacity / 255));
         this._equipmentList.setMasterOpacity(this._equipmentSubOpacity * (this._masterOpacity / 255));
         this._equipmentNames.setMasterOpacity(this._equipmentSubOpacity * (this._masterOpacity / 255));
-        this._spellGrid.setMasterOpacity(this._skillsSubOpacity * (this._masterOpacity / 255));
+        this._skillGrid.setMasterOpacity(this._skillsSubOpacity * (this._masterOpacity / 255));
         
         if (this._characterFaceFadeOpacity < 255) {
             this._characterFaceFadeOpacity += 15;
@@ -457,7 +475,10 @@
         this._updateCharacterInfo();
         this._equipmentList.update();
         this._equipmentNames.update();
-        this._spellGrid.update();
+        this._skillGrid.update();
+        if (this._characterEntered == 2) {
+            this._updateSkillsInfo();
+        }
         if (this._characterFaceFadeOpacity < 255) {
             this._characterFace.x += (255-this._characterFaceFadeOpacity)/90;
         }
