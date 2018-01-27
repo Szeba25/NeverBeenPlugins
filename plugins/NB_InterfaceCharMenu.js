@@ -305,8 +305,27 @@
     
     NB_Interface_CharMenu.prototype._skillsInput = function() {
         this._spellGrid.updateInput(this.isMouseActive());
+        if (this.okKeyTrigger(this._spellGrid)) {
+            this._useSkill(this._party[this._currentChar], this._spellGrid.getActiveId());
+        }
         if (this.backKeyTrigger()) {
             this._leaveSkillsTrigger();
+        }
+    };
+    
+    NB_Interface_CharMenu.prototype._useSkill = function(actor, activeId) {
+        var skills = actor.skills();
+        if (activeId < skills.length) {
+            SoundManager.playOk();
+            var action = new Game_Action(actor);
+            action.setItemObject(skills[activeId]);
+            action.applyGlobal();
+            if ($gameTemp.isCommonEventReserved()) {
+                this._characterEntered = 4;
+                this._exit = true;
+            }
+        } else {
+            SoundManager.playCancel();
         }
     };
     
@@ -333,6 +352,9 @@
                 break;
             case 3:
                 this._equipmentInput();
+                break;
+            case 4:
+                // No input here, exit the menu!
                 break;
         }
     };
@@ -396,6 +418,11 @@
                 this._skillsSubOpacity = this._decreaseOpacity(this._skillsSubOpacity);
                 this._equipmentSubOpacity = this._increaseOpacity(this._equipmentSubOpacity, this._characterInfoOpacity);
                 break;
+            case 4: // Skill exit
+                // Exit the menu, and apply the master opacity to the pergamen, and background opacity
+                this._pergamen.opacity = this._masterOpacity;
+                this._backgroundTint.opacity = (this._masterOpacity/255) * 130;
+                break;
         }
         
         this._characterInfo.opacity = this._characterInfoOpacity * (this._masterOpacity / 255);
@@ -413,9 +440,13 @@
     // Override!
     NB_Interface_CharMenu.prototype.updateTransitions = function() {
         if (this._exit && this._masterOpacity == 0) {
-            NB_Interface.instantMainMenuFlag = true;
-            NB_Interface.returnFrom = 0;
-            SceneManager.goto(NB_Interface.classes['MainMenu']);
+            if (this._characterEntered == 4) {
+                SceneManager.goto(Scene_Map);
+            } else {
+                NB_Interface.instantMainMenuFlag = true;
+                NB_Interface.returnFrom = 0;
+                SceneManager.goto(NB_Interface.classes['MainMenu']);
+            }
         }
     };
     
