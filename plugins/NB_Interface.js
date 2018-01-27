@@ -528,25 +528,6 @@ NB_CanvasButton.prototype.getUpperCanvasBitmap = function() {
 NB_CanvasButton.prototype.getLowerCanvasBitmap = function() {
     return this._lowerCanvas.bitmap;
 };
-
-/****************************************************************
- * Save Load button!
- ****************************************************************/
-
-function NB_SaveLoadMenuButton () {
-    this.initialize.apply(this, arguments);
-}
- 
-NB_SaveLoadMenuButton.prototype = Object.create(NB_CanvasButton.prototype);
-NB_SaveLoadMenuButton.prototype.constructor = NB_CanvasButton;
-
-NB_SaveLoadMenuButton.prototype.initialize = function(bkgPath, bkg, lightPath, light, cw, ch, x, y, masterOpacity) {
-    NB_CanvasButton.prototype.initialize.call(this, bkgPath, bkg, lightPath, light, cw, ch, x, y, masterOpacity);
-};
-
-NB_SaveLoadMenuButton.prototype.setUpperCanvasOpacity = function(opacity) {
-    this._upperCanvas.opacity = opacity;
-};
  
 /****************************************************************
  * Button group

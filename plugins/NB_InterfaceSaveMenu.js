@@ -60,7 +60,7 @@
         this._slots = [];
         this._slotList = new NB_List(330, 125, 3, 120);
         for (var i = 1; i <= 20; i++) {
-            var elem = new NB_SaveLoadMenuButton('load_save/', 'box', 'load_save/', 'box_light', 419, 138, 0, 0, 0);
+            var elem = new NB_CanvasButton('load_save/', 'box', 'load_save/', 'box_light', 419, 138, 0, 0, 0);
             this._slots.push(elem);
             this._slotList.addAbstractListElement(elem);
         }
