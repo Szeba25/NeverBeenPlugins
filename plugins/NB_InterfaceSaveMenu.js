@@ -80,11 +80,11 @@
                 this.setBitmapFontStyle(bmp);
                 bmp.clear();
                 if (info) {
-                    bmp.drawText((i+1) + '. Prológus:', 20, 20, null, NB_Interface.lineHeight, 'left');
-                    bmp.drawText('Játékidő: ' + info.playtime, 240, 20, null, NB_Interface.lineHeight, 'left');
+                    bmp.drawText((i+1) + '. Prologue:', 20, 20, null, NB_Interface.lineHeight, 'left');
+                    bmp.drawText('Time: ' + info.playtime, 240, 20, null, NB_Interface.lineHeight, 'left');
                     this._drawCharacters(info.characters, bmp, 45, 55);
                 } else {
-                    bmp.drawText((i+1) + '. Üres.', 20, 20, null, NB_Interface.lineHeight, 'left');
+                    bmp.drawText((i+1) + '. Empty.', 20, 20, null, NB_Interface.lineHeight, 'left');
                 }
             }
         }

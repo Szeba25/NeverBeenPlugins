@@ -149,10 +149,10 @@
             
             // Draw status bars
             var start_y = 25;
-            bmp.drawText('Életerő:', 0, start_y, null, NB_Interface.lineHeight, 'left');
-            bmp.drawText('Energia:', 0, start_y + 25, null, NB_Interface.lineHeight, 'left');
-            bmp.drawText('Támadás:', 0, start_y + 50, null, NB_Interface.lineHeight, 'left');
-            bmp.drawText('Védekezés:', 0, start_y + 75, null, NB_Interface.lineHeight, 'left');
+            bmp.drawText('Health:', 0, start_y, null, NB_Interface.lineHeight, 'left');
+            bmp.drawText('Spellpower:', 0, start_y + 25, null, NB_Interface.lineHeight, 'left');
+            bmp.drawText('Attack:', 0, start_y + 50, null, NB_Interface.lineHeight, 'left');
+            bmp.drawText('Defense:', 0, start_y + 75, null, NB_Interface.lineHeight, 'left');
             this._drawStatusBars(actor, bmp, 100, start_y+10);
             
             // Draw biography
