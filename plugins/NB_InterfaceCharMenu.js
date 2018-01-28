@@ -150,7 +150,6 @@
             this._characterFaceFadeOpacity = 0;
             // Draw!
             bmp.clear();
-            
             // Draw status bars
             var start_y = 25;
             bmp.drawText('Health:', 0, start_y, null, NB_Interface.lineHeight, 'left');
@@ -175,7 +174,14 @@
             bmp.clear();
             if (this._updatedSkillId < skills.length) {
                 var skill = skills[this._updatedSkillId];
+                var desc = $dataSkills[skill.id].note.split(/\r?\n/);
                 console.log(skill);
+                // Draw description
+                bmp.drawText('Name: ' + skill.name, 0, 0, null, NB_Interface.lineHeight, 'left');
+                bmp.drawText('Cost: ' + skill.mpCost, 220, 0, null, NB_Interface.lineHeight, 'left');
+                for (var i = 0; i < desc.length; i++) {
+                    bmp.drawText(desc[i], 0, 35 + (i*22), null, NB_Interface.lineHeight, 'left');
+                }
             }
         }
     };
@@ -229,9 +235,9 @@
         this._skillGrid.addToContainer(this);
         
         this._skillInfo = new Sprite();
-        this._skillInfo.x = 560;
+        this._skillInfo.x = 580;
         this._skillInfo.y = 300;
-        this._skillInfo.bitmap = new Bitmap(400, 400);
+        this._skillInfo.bitmap = new Bitmap(300, 220);
         this.setBitmapFontStyle(this._skillInfo.bitmap);
         this.addChild(this._skillInfo);
         
@@ -242,7 +248,7 @@
         this._characterInfo = new Sprite();
         this._characterInfo.x = 560;
         this._characterInfo.y = 125;
-        this._characterInfo.bitmap = new Bitmap(400, 400);
+        this._characterInfo.bitmap = new Bitmap(350, 350);
         this.setBitmapFontStyle(this._characterInfo.bitmap);
         this.addChild(this._characterInfo);
     };
@@ -448,6 +454,7 @@
         this._equipmentList.setMasterOpacity(this._equipmentSubOpacity * (this._masterOpacity / 255));
         this._equipmentNames.setMasterOpacity(this._equipmentSubOpacity * (this._masterOpacity / 255));
         this._skillGrid.setMasterOpacity(this._skillsSubOpacity * (this._masterOpacity / 255));
+        this._skillInfo.opacity = this._skillsSubOpacity * (this._masterOpacity / 255);
         
         if (this._characterFaceFadeOpacity < 255) {
             this._characterFaceFadeOpacity += 15;
