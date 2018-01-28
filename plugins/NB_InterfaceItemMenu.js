@@ -192,6 +192,16 @@
             bmp.drawText('Attack:', 160, 90, null, NB_Interface.lineHeight, 'left');
             bmp.drawText('Defense:', 160, 115, null, NB_Interface.lineHeight, 'left');
             
+            // TODO
+            for (var i = 0; i < this._currentUsedItemSchema.effects.length; i++) {
+                var effect = this._currentUsedItemSchema.effects[i];
+                switch(effect.code) {
+                case 11:
+                    this._drawGainStatusBars(actor, bmp, 260, 50, effect.value2, 0, 0, 0);
+                }
+            }
+            // EXPERIMENTAL
+            
             this._drawStatusBars(actor, bmp, 260, 50);
         }
     };
@@ -200,9 +210,33 @@
         // Target is the target actor!
         var data = this._currentUsedItemData;
         var schema = this._currentUsedItemSchema;
-        console.log(data);
-        console.log(schema);
-        $gameParty.consumeItem(schema);
+        
+        for (var i = 0; i < schema.effects.length; i++) {
+            this._applyEffect(schema.effects[i], target);
+        }
+        
+        // Consume item, and remove from the list...
+        if (schema.consumable) {
+            data.count -= 1;
+            this._itemLists[this._selectedCategory].getActiveElement().decreaseCount();
+            if (data.count <= 0) {
+                var id = this._itemLists[this._selectedCategory].getActiveId();
+                this._itemLists[this._selectedCategory].removeActiveElement();
+                this._itemData[this._selectedCategory].splice(id, 1);
+                this._updatedItemId = -1;
+            }
+            $gameParty.consumeItem(schema);
+        }
+    };
+    
+    NB_Interface_ItemMenu.prototype._applyEffect = function(effect, target) {
+        switch(effect.code) {
+        case 11:
+            // RECOVER HP
+            target.gainHp(effect.value2);
+        default:
+            break;
+        }        
     };
     
     NB_Interface_ItemMenu.prototype._updateMainInput = function() {

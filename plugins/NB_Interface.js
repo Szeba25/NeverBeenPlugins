@@ -225,6 +225,25 @@ NB_Interface.prototype._generateBar = function(current, max, width, height, orig
     return bitmap;
 };
 
+// TODO
+NB_Interface.prototype._drawGainStatusBars = function(actor, bmp, x, y, gain_hp, gain_mp, gain_atk, gain_def) {
+    if (actor.hp + gain_hp > actor.mhp) gain_hp = actor.mhp - actor.hp;
+    if (actor.mp + gain_mp > actor.mmp) gain_mp = actor.mmp - actor.mp;
+    if (actor.atk + gain_atk > 100) gain_atk = 100 - actor.atk;
+    if (actor.def + gain_def > 100) gain_def = 100 - actor.def;
+    bmp.paintOpacity = 120;
+    // HP
+    bmp.blt(this._generateBar(actor.hp + gain_hp, actor.mhp, 200, 15, this.bar_hp), 0, 0, 200, 15, x, y, 200, 15);
+    // MP
+    bmp.blt(this._generateBar(actor.mp + gain_mp, actor.mmp, 200, 15, this.bar_mp), 0, 0, 200, 15, x, y + 25, 200, 15);
+    // ATK
+    bmp.blt(this._generateBar(actor.atk + gain_atk, 100, 200, 15, this.bar_atk), 0, 0, 200, 15, x, y + 50, 200, 15);
+    // DEF
+    bmp.blt(this._generateBar(actor.def + gain_def, 100, 200, 15, this.bar_def), 0, 0, 200, 15, x, y + 75, 200, 15);
+    bmp.paintOpacity = 255;
+};
+// EXPERIMENTAL
+
 NB_Interface.prototype._drawStatusBars = function(actor, bmp, x, y) {
     // HP
     bmp.blt(this._generateBar(actor.hp, actor.mhp, 200, 15, this.bar_hp), 0, 0, 200, 15, x, y, 200, 15);
@@ -587,6 +606,10 @@ NB_CountedButton.prototype.setCount = function(count) {
     this._countGraphics.bitmap.drawText('x', 0, 2, 35, NB_Interface.lineHeight, 'left');
     this._countGraphics.bitmap.fontSize = NB_Interface.fontSize;
     this._countGraphics.bitmap.drawText(count.toString(), 8, 0, 35, NB_Interface.lineHeight, 'left');
+};
+
+NB_CountedButton.prototype.decreaseCount = function() {
+    this.setCount(this._count-1);
 };
 
 NB_CountedButton.prototype.getCount = function() {
@@ -1008,6 +1031,10 @@ NB_List.prototype.removeById = function(id) {
     }
 };
 
+NB_List.prototype.removeActiveElement = function() {
+    this.removeById(this._activeId);
+};
+
 NB_List.prototype.addToContainer = function(container) {
     container.addChild(this._container);
 };
@@ -1099,6 +1126,10 @@ NB_List.prototype.getActiveId = function() {
 
 NB_List.prototype.getElementById = function(id) {
     return this._elements[id];
+};
+
+NB_List.prototype.getActiveElement = function() {
+    return this._elements[this._activeId];
 };
 
 NB_List.prototype.isEmpty = function() {
