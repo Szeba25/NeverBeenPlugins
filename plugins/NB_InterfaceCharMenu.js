@@ -52,13 +52,6 @@
             _equipmentList
             _equipmentNames
             _skillGrid
-            
-            # bar bitmaps
-            bar
-            bar_hp
-            bar_mp
-            bar_def
-            bar_atk
         */
     };
     
@@ -75,39 +68,8 @@
         NB_Interface.prototype.create.call(this);
     };
     
-    NB_Interface_CharMenu.prototype._loadBars = function() {
-        this.bar = ImageManager.loadInterfaceElement('menu_1/', 'bar');
-        this.bar_hp = ImageManager.loadInterfaceElement('menu_1/', 'bar_hp');
-        this.bar_mp = ImageManager.loadInterfaceElement('menu_1/', 'bar_mp');
-        this.bar_def = ImageManager.loadInterfaceElement('menu_1/', 'bar_def');
-        this.bar_atk = ImageManager.loadInterfaceElement('menu_1/', 'bar_atk');
-    };
-    
     NB_Interface_CharMenu.prototype._loadIcons = function() {
         this._iconSet = ImageManager.loadSystem('IconSet');
-    };
-    
-    NB_Interface_CharMenu.prototype._generateBar = function(current, max, width, height, original) {
-        var ow = (current / max) * width;
-        var bitmap = new Bitmap(width, height);
-        bitmap.blt(original, 0, 0, width, height, 0, 0, width, height);
-        bitmap.clearRect(ow, 0, width, height);
-        return bitmap;
-    };
-    
-    NB_Interface_CharMenu.prototype._drawStatusBars = function(actor, bmp, x, y) {
-        // HP
-        bmp.blt(this._generateBar(actor.hp, actor.mhp, 200, 15, this.bar_hp), 0, 0, 200, 15, x, y, 200, 15);
-        bmp.blt(this.bar, 0, 0, 200, 15, x, y, 200, 15);
-        // MP
-        bmp.blt(this._generateBar(actor.mp, actor.mmp, 200, 15, this.bar_mp), 0, 0, 200, 15, x, y + 25, 200, 15);
-        bmp.blt(this.bar, 0, 0, 200, 15, x, y + 25, 200, 15);
-        // ATK
-        bmp.blt(this._generateBar(actor.atk, 100, 200, 15, this.bar_atk), 0, 0, 200, 15, x, y + 50, 200, 15);
-        bmp.blt(this.bar, 0, 0, 200, 15, x, y + 50, 200, 15);
-        // DEF
-        bmp.blt(this._generateBar(actor.def, 100, 200, 15, this.bar_def), 0, 0, 200, 15, x, y + 75, 200, 15);
-        bmp.blt(this.bar, 0, 0, 200, 15, x, y + 75, 200, 15);
     };
     
     NB_Interface_CharMenu.prototype._prepareSkills = function(actor) {

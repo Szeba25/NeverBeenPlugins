@@ -208,6 +208,37 @@ NB_Interface.prototype.getParty = function() {
     }
     return menuParty;
 };
+
+NB_Interface.prototype._loadBars = function() {
+    this.bar = ImageManager.loadInterfaceElement('menu_1/', 'bar');
+    this.bar_hp = ImageManager.loadInterfaceElement('menu_1/', 'bar_hp');
+    this.bar_mp = ImageManager.loadInterfaceElement('menu_1/', 'bar_mp');
+    this.bar_def = ImageManager.loadInterfaceElement('menu_1/', 'bar_def');
+    this.bar_atk = ImageManager.loadInterfaceElement('menu_1/', 'bar_atk');
+};
+
+NB_Interface.prototype._generateBar = function(current, max, width, height, original) {
+    var ow = (current / max) * width;
+    var bitmap = new Bitmap(width, height);
+    bitmap.blt(original, 0, 0, width, height, 0, 0, width, height);
+    bitmap.clearRect(ow, 0, width, height);
+    return bitmap;
+};
+
+NB_Interface.prototype._drawStatusBars = function(actor, bmp, x, y) {
+    // HP
+    bmp.blt(this._generateBar(actor.hp, actor.mhp, 200, 15, this.bar_hp), 0, 0, 200, 15, x, y, 200, 15);
+    bmp.blt(this.bar, 0, 0, 200, 15, x, y, 200, 15);
+    // MP
+    bmp.blt(this._generateBar(actor.mp, actor.mmp, 200, 15, this.bar_mp), 0, 0, 200, 15, x, y + 25, 200, 15);
+    bmp.blt(this.bar, 0, 0, 200, 15, x, y + 25, 200, 15);
+    // ATK
+    bmp.blt(this._generateBar(actor.atk, 100, 200, 15, this.bar_atk), 0, 0, 200, 15, x, y + 50, 200, 15);
+    bmp.blt(this.bar, 0, 0, 200, 15, x, y + 50, 200, 15);
+    // DEF
+    bmp.blt(this._generateBar(actor.def, 100, 200, 15, this.bar_def), 0, 0, 200, 15, x, y + 75, 200, 15);
+    bmp.blt(this.bar, 0, 0, 200, 15, x, y + 75, 200, 15);
+};
  
 /****************************************************************
  * Button: A general button interface element
@@ -247,7 +278,7 @@ NB_Button.prototype.initialize = function(bkgPath, bkg, lightPath, light, text, 
         this._graphics.bitmap.resize(w, h);
         this._graphics.width = w;
         this._graphics.height = h;
-        this._graphics.bitmap.drawText(text, 0, 0, w, NB_Interface.lineHeight, 'left');
+        this._graphics.bitmap.drawText(text, 0, 0, w, h, 'left');
         this._light.bitmap = new Bitmap(w, h);
         this._light.bitmap.smooth = true;
         this._light.bitmap.blt(this._graphics.bitmap, 0, 0, w, h, 0, 0, w, h);
@@ -271,7 +302,7 @@ NB_Button.prototype.initialize = function(bkgPath, bkg, lightPath, light, text, 
     this._enlargeIfFaded = false;
     this._invalidated = false;
     this._invalidatedModifier = 100;
-    this.updateOpacity();
+    this._updateOpacity();
 };
 
 NB_Button.prototype.setLerpAlpha = function(value) {
@@ -379,14 +410,14 @@ NB_Button.prototype.deactivate = function() {
     this._active = false;  
 };
 
-NB_Button.prototype.updateOpacity = function() {
+NB_Button.prototype._updateOpacity = function() {
     var modifier = this._getOpacityModifier();
     var masterOpacityModifier = (this._masterOpacity / 255);
     this._graphics.opacity = Math.floor(this._masterOpacity * modifier);
     this._light.opacity = Math.floor(this._lightOpacity * masterOpacityModifier * modifier);
 };
 
-NB_Button.prototype.updateTone = function() {
+NB_Button.prototype._updateTone = function() {
     var gray = this._getDesiredGrayLevel();
     if (this._graphics.getGrayLevel() !== gray) {
         this._graphics.setColorTone([0, 0, 0, gray]);
@@ -404,7 +435,7 @@ NB_Button.prototype.update = function() {
     this._syncPosition();
     
     if (this._invalidated) {
-        if (this._invalidatedModifier > 80) {
+        if (this._invalidatedModifier > 70) {
             this._invalidatedModifier -= 2;
         }
     } else {
@@ -414,18 +445,20 @@ NB_Button.prototype.update = function() {
     }
     
     if (this._faded) {
-        if (this._enlargeIfFaded) {
-            this._graphics.scale.x += 0.005;
-            this._graphics.scale.y += 0.005;
-            this._light.scale.x += 0.005;
-            this._light.scale.y += 0.005;
-        }
-        this._fadedOpacity -= 12;
-        if (this._fadedOpacity <= 0) {
-            this._fadedOpacity = 0;
-            this._graphics.visible = false;
-            this._light.visible = false;
-            this._completelyFaded = true;
+        if (!this._completelyFaded) {
+            if (this._enlargeIfFaded) {
+                this._graphics.scale.x += 0.005;
+                this._graphics.scale.y += 0.005;
+                this._light.scale.x += 0.005;
+                this._light.scale.y += 0.005;
+            }
+            this._fadedOpacity -= 12;
+            if (this._fadedOpacity <= 0) {
+                this._fadedOpacity = 0;
+                this._graphics.visible = false;
+                this._light.visible = false;
+                this._completelyFaded = true;
+            }
         }
     } else {
         if (this._fadedOpacity < 255) {
@@ -443,8 +476,9 @@ NB_Button.prototype.update = function() {
             if (this._lightOpacity > 0) this._lightOpacity -= 15;
         }
     }
-    this.updateOpacity();
-    this.updateTone();
+    
+    this._updateOpacity();
+    this._updateTone();
 };
 
 NB_Button.prototype._getOpacityModifier = function() {
@@ -452,7 +486,111 @@ NB_Button.prototype._getOpacityModifier = function() {
 };
 
 NB_Button.prototype._getDesiredGrayLevel = function() {
-    return Math.floor((100-this._invalidatedModifier)*10);
+    return Math.floor((100-this._invalidatedModifier)*6);
+};
+
+/****************************************************************
+ * A counted button element
+ ****************************************************************/
+
+function NB_CountedButton() {
+    this.initialize.apply(this, arguments);
+}
+
+NB_CountedButton.prototype = Object.create(NB_Button.prototype);
+NB_CountedButton.prototype.constructor = NB_CountedButton;
+
+NB_CountedButton.prototype.initialize = function(text, textColor, x, y, masterOpacity, count, distance) {
+    this._distance = distance;
+    this._countGraphics = new Sprite(new Bitmap(35, NB_Interface.lineHeight));
+    this._countGraphics.anchor.x = 0.5;
+    this._countGraphics.anchor.y = 0.5;
+    this._countGraphics.bitmap.smooth = true;
+    this._countGraphics.bitmap.textColor = textColor;
+    this._countGraphics.bitmap.outlineColor = 'rgba(0, 0, 0, 0)';
+    this._countGraphics.bitmap.fontSize = NB_Interface.fontSize;
+    this.setCount(count);
+    
+    // Now initialize the other parts
+    NB_Button.prototype.initialize.call(this, null, null, null, null, text, textColor, x, y, masterOpacity);
+};
+
+NB_CountedButton.prototype.addToContainer = function(container) {
+    NB_Button.prototype.addToContainer.call(this, container);
+    container.addChild(this._countGraphics);
+};
+
+NB_CountedButton.prototype.removeFromContainer = function(container) {
+    NB_Button.prototype.removeFromContainer.call(this, container);
+    container.removeChild(this._countGraphics);
+};
+ 
+NB_CountedButton.prototype.hide = function() {
+    if (!this._faded) {
+        this._countGraphics.visible = false;
+    }
+    NB_Button.prototype.hide.call(this);
+};
+
+NB_CountedButton.prototype.unFade = function() {
+    if (this._faded) {
+        this._countGraphics.scale.x = 1;
+        this._countGraphics.scale.y = 1;
+    }
+    NB_Button.prototype.unFade.call(this);
+};
+
+NB_CountedButton.prototype._syncPosition = function() {
+    NB_Button.prototype._syncPosition.call(this);
+    // Align to the main graphics
+    this._countGraphics.x = this._x + this._distance;
+    this._countGraphics.y = this._graphics.y;
+};
+ 
+NB_CountedButton.prototype._updateOpacity = function() {
+    NB_Button.prototype._updateOpacity.call(this);
+    var modifier = this._getOpacityModifier();
+    this._countGraphics.opacity = Math.floor(this._masterOpacity * modifier);
+};
+
+NB_CountedButton.prototype._updateTone = function() {
+    NB_Button.prototype._updateTone.call(this);
+    var gray = this._getDesiredGrayLevel();
+    if (this._countGraphics.getGrayLevel() !== gray) {
+        this._countGraphics.setColorTone([0, 0, 0, gray]);
+    }
+};
+ 
+NB_CountedButton.prototype.update = function() {
+    // First handle the numbering...
+    if (this._faded) {
+        if (!this._completelyFaded) {
+            if (this._enlargeIfFaded) {
+                this._countGraphics.scale.x += 0.005;
+                this._countGraphics.scale.y += 0.005;
+            }
+            if (this._fadedOpacity <= 0) {
+                this._countGraphics.visible = false;
+            }
+        }
+    } else {
+        if (!this._countGraphics.visible) this._countGraphics.visible = true;
+    }
+    // Update as usual!
+    NB_Button.prototype.update.call(this);
+};
+
+NB_CountedButton.prototype.setCount = function(count) {
+    this._count = count;
+    this._countGraphics.bitmap.clear();
+    this._countGraphics.bitmap.fontSize = NB_Interface.fontSize-10;
+    this._countGraphics.bitmap.drawText('x', 0, 2, 35, NB_Interface.lineHeight, 'left');
+    this._countGraphics.bitmap.fontSize = NB_Interface.fontSize;
+    this._countGraphics.bitmap.drawText(count.toString(), 8, 0, 35, NB_Interface.lineHeight, 'left');
+};
+
+NB_CountedButton.prototype.getCount = function() {
+    return this._count;
 };
 
 /****************************************************************
@@ -464,7 +602,7 @@ function NB_CanvasButton() {
 }
 
 NB_CanvasButton.prototype = Object.create(NB_Button.prototype);
-NB_CanvasButton.prototype.constructor = NB_Button;
+NB_CanvasButton.prototype.constructor = NB_CanvasButton;
 
 NB_CanvasButton.prototype.initialize = function(bkgPath, bkg, lightPath, light, cw, ch, x, y, masterOpacity) {
     this._upperCanvas = new Sprite(new Bitmap(cw, ch));
@@ -502,15 +640,15 @@ NB_CanvasButton.prototype._syncPosition = function() {
     this._lowerCanvas.y = Math.floor(this._y + this._lowerCanvas.height / 2);
 };
 
-NB_CanvasButton.prototype.updateOpacity = function() {
-    NB_Button.prototype.updateOpacity.call(this);
+NB_CanvasButton.prototype._updateOpacity = function() {
+    NB_Button.prototype._updateOpacity.call(this);
     var modifier = this._getOpacityModifier();
     this._upperCanvas.opacity = Math.floor(this._masterOpacity * modifier);
     this._lowerCanvas.opacity = Math.floor(this._masterOpacity * modifier);
 };
 
-NB_CanvasButton.prototype.updateTone = function() {
-    NB_Button.prototype.updateTone.call(this);
+NB_CanvasButton.prototype._updateTone = function() {
+    NB_Button.prototype._updateTone.call(this);
     var gray = this._getDesiredGrayLevel();
     if (this._upperCanvas.getGrayLevel() !== gray) {
         this._upperCanvas.setColorTone([0, 0, 0, gray]);
@@ -608,6 +746,13 @@ NB_ButtonGroup.prototype.validateAll = function() {
     for (var i = 0; i < this._buttons.length; i++) {
         this._buttons[i].validate();
     }
+};
+
+NB_ButtonGroup.prototype.hide = function() {
+    for (var i = 0; i < this._buttons.length; i++) {
+        this._buttons[i].hide();
+    }
+    this._faded = true;
 };
 
 NB_ButtonGroup.prototype.fade = function() {
@@ -770,7 +915,7 @@ NB_List.prototype.initialize = function(x, y, visibleSize, lineHeight) {
 };
 
 NB_List.prototype.clickedOnActive = function() {
-    return (this._elements[this._activeId].mouseInside() && TouchInput.isTriggered());
+    return (!this.isEmpty() && this._elements[this._activeId].mouseInside() && TouchInput.isTriggered());
 };
 
 NB_List.prototype.activate = function() {
@@ -807,6 +952,14 @@ NB_List.prototype.addCanvasListElementAtIndex = function(basePath, base, lightPa
     if (id >= 0 && id <= this._elements.length) this._addCanvasListElement(basePath, base, lightPath, light, cw, ch, id);
 };
 
+NB_List.prototype.addCountedListElement = function(text, count, distance) {
+    this._addCountedListElement(text, count, distance, this._elements.length);
+};
+
+NB_List.prototype.addCountedListElementAtIndex = function(text, count, distance, id) {
+    if (id >= 0 && id <= this._elements.length) this._addCountedListElement(text, count, distance, id);
+};
+
 NB_List.prototype._addAbstractListElement = function(elem, id) {
     this._elements.splice(id, 0, elem);
     elem.setPosition(this._x, this._y);
@@ -827,6 +980,14 @@ NB_List.prototype._addListElement = function(text, id) {
 
 NB_List.prototype._addCanvasListElement = function(basePath, base, lightPath, light, cw, ch, id) {
     var elem = new NB_CanvasButton(basePath, base, lightPath, light, cw, ch, this._x, this._y, 0);
+    this._elements.splice(id, 0, elem);
+    elem.addToContainer(this._container);
+    elem.hide();
+    this.unfoldFromFirstVisible();
+};
+
+NB_List.prototype._addCountedListElement = function(text, count, distance, id) {
+    var elem = new NB_CountedButton(text, NB_Interface.fontColor, this._x, this._y, 0, count, distance);
     this._elements.splice(id, 0, elem);
     elem.addToContainer(this._container);
     elem.hide();
@@ -918,6 +1079,20 @@ NB_List.prototype.invalidateById = function(id) {
     this._elements[id].invalidate();
 };
 
+NB_List.prototype.invalidateAllButActive = function() {
+    for (var i = 0; i < this._elements.length; i++) {
+        if (i != this._activeId) {
+            this._elements[i].invalidate();
+        }
+    }
+};
+
+NB_List.prototype.validateAll = function() {
+    for (var i = 0; i < this._elements.length; i++) {
+        this._elements[i].validate();
+    }
+};
+
 NB_List.prototype.getActiveId = function() {
     return this._activeId;
 };
@@ -935,7 +1110,7 @@ NB_List.prototype.getLength = function() {
 };
 
 NB_List.prototype.updateInput = function(mouseActive) {
-    if (!this._active) {
+    if (!this._active || this.isEmpty()) {
         return;
     }
     if (Input.isRepeated('up') || TouchInput.wheelY < 0) {
