@@ -15,6 +15,7 @@ NB_Mouse <br />
 NB_SmoothCamera <br />
 NB_Footsteps <br />
 NB_Lights <br />
+NB_Stats * NEW <br />
 NB_Interface <br />
 NB_InterfaceMainMenu <br />
 NB_InterfaceItemMenu <br />
