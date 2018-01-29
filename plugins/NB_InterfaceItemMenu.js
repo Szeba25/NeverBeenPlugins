@@ -31,11 +31,12 @@
             _updatedItemId
             _itemData
             _useFlag
+            _useRunsOut
             _useOpacity
-            _party
             _updatedUseActorId
             _currentUsedItemData
             _currentUsedItemSchema
+            _party
             
             # sprites and bitmaps
             _itemInfo
@@ -49,22 +50,9 @@
     };
     
     NB_Interface_ItemMenu.prototype.create = function() {
-        this.createBackground();
-        this.createBaseTitleAndLines(0, '9', '10');
-        this._title1.x = 190;
-        this._title2.x = 190;
-        this._loadBars();
-        this._exit = false;
-        this._masterOpacity = 0;
-        
-        this._selectedCategory = 0;
-        this._updatedItemId = -1;
-        this._itemData = [[],[],[]];
-        this._useFlag = 0;
-        this._useOpacity = 0;
         this._party = this.getParty();
-        this._updatedUseActorId = -1;
-        
+        this._createBaseGraphics();
+        this._initializeFlowControl();
         this._createCategories();
         this._createLists();
         this._createItemInfo();
@@ -72,6 +60,28 @@
         this._createActorButtons();
         
         NB_Interface.prototype.create.call(this);
+    };
+    
+    NB_Interface_ItemMenu.prototype._createBaseGraphics = function() {
+        this.createBackground();
+        this.createBaseTitleAndLines(0, '9', '10');
+        this._title1.x = 190;
+        this._title2.x = 190;
+        this._loadBars();
+    };
+    
+    NB_Interface_ItemMenu.prototype._initializeFlowControl = function() {
+        this._exit = false;
+        this._masterOpacity = 0;
+        this._selectedCategory = 0;
+        this._updatedItemId = -1;
+        this._itemData = [[],[],[]];
+        this._useFlag = 0;
+        this._useRunsOut = false;
+        this._useOpacity = 0;
+        this._updatedUseActorId = -1;
+        this._currentUsedItemData = null;
+        this._currentUsedItemSchema = null;
     };
     
     NB_Interface_ItemMenu.prototype._createCategories = function() {
@@ -187,21 +197,15 @@
             bmp.drawText('Use item on:', 0, 0, null, NB_Interface.lineHeight, 'left');
             bmp.fontSize = NB_Interface.fontSize;
             
+            var schema = this._currentUsedItemSchema;
+            var itemEffect = new NB_ItemEffect(schema);
+            
             bmp.drawText('Health:', 160, 40, null, NB_Interface.lineHeight, 'left');
-            bmp.drawText('Spellpower:', 160, 65, null, NB_Interface.lineHeight, 'left');
+            bmp.drawText('Magic skill:', 160, 65, null, NB_Interface.lineHeight, 'left');
             bmp.drawText('Attack:', 160, 90, null, NB_Interface.lineHeight, 'left');
             bmp.drawText('Defense:', 160, 115, null, NB_Interface.lineHeight, 'left');
             
-            // TODO
-            for (var i = 0; i < this._currentUsedItemSchema.effects.length; i++) {
-                var effect = this._currentUsedItemSchema.effects[i];
-                switch(effect.code) {
-                case 11:
-                    this._drawGainStatusBars(actor, bmp, 260, 50, effect.value2, 0, 0, 0);
-                }
-            }
-            // EXPERIMENTAL
-            
+            if (!this._useRunsOut) this._drawItemEffectStatusBars(itemEffect, actor, bmp, 260, 50);
             this._drawStatusBars(actor, bmp, 260, 50);
         }
     };
@@ -210,33 +214,21 @@
         // Target is the target actor!
         var data = this._currentUsedItemData;
         var schema = this._currentUsedItemSchema;
+        var itemEffect = new NB_ItemEffect(schema);
         
-        for (var i = 0; i < schema.effects.length; i++) {
-            this._applyEffect(schema.effects[i], target);
-        }
+        itemEffect.apply(target.nbStats());
         
         // Consume item, and remove from the list...
         if (schema.consumable) {
             data.count -= 1;
             this._itemLists[this._selectedCategory].getActiveElement().decreaseCount();
             if (data.count <= 0) {
-                var id = this._itemLists[this._selectedCategory].getActiveId();
-                this._itemLists[this._selectedCategory].removeActiveElement();
-                this._itemData[this._selectedCategory].splice(id, 1);
                 this._updatedItemId = -1;
+                this._itemLists[this._selectedCategory].invalidateActive();
+                this._useRunsOut = true;
             }
             $gameParty.consumeItem(schema);
         }
-    };
-    
-    NB_Interface_ItemMenu.prototype._applyEffect = function(effect, target) {
-        switch(effect.code) {
-        case 11:
-            // RECOVER HP
-            target.gainHp(effect.value2);
-        default:
-            break;
-        }        
     };
     
     NB_Interface_ItemMenu.prototype._updateMainInput = function() {
@@ -254,13 +246,11 @@
             }
         }
         
-        if (this._selectedCategory !== 1 &&
-            !this._itemLists[this._selectedCategory].isEmpty() && 
-            this.okKeyTrigger(this._itemLists[this._selectedCategory])) {
-            
+        if (this._selectedCategory !== 1 && !this._itemLists[this._selectedCategory].isEmpty() && this.okKeyTrigger(this._itemLists[this._selectedCategory])) {
             // Use the item!
             SoundManager.playOk();
             this._useFlag = 1;
+            this._useRunsOut = false;
             this._updatedUseActorId = -1;
             this._actorButtons.setActive(0);
             this._itemLists[this._selectedCategory].invalidateAllButActive();
@@ -272,15 +262,19 @@
     };
     
     NB_Interface_ItemMenu.prototype._updateUseInput = function() {
-        if (this.okKeyTrigger(this._actorButtons)) {
+        if (this.okKeyTrigger(this._actorButtons) && !this._useRunsOut) {
             SoundManager.playOk();
             this._useCurrentItem(this._party[this._actorButtons.getActiveId()]);
-            this._useFlag = 0;
-            this._itemLists[this._selectedCategory].validateAll();
+            this._updatedUseActorId = -1;
         }
         if (this.backKeyTrigger()) {
             SoundManager.playCancel();
             this._useFlag = 0;
+            if (this._useRunsOut) {
+                var id = this._itemLists[this._selectedCategory].getActiveId();
+                this._itemLists[this._selectedCategory].removeActiveElement();
+                this._itemData[this._selectedCategory].splice(id, 1);
+            }
             this._itemLists[this._selectedCategory].validateAll();
         }
         this._actorButtons.updateInput(this.isMouseActive());

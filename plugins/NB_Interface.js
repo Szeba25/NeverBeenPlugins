@@ -225,38 +225,45 @@ NB_Interface.prototype._generateBar = function(current, max, width, height, orig
     return bitmap;
 };
 
-// TODO
-NB_Interface.prototype._drawGainStatusBars = function(actor, bmp, x, y, gain_hp, gain_mp, gain_atk, gain_def) {
-    if (actor.hp + gain_hp > actor.mhp) gain_hp = actor.mhp - actor.hp;
-    if (actor.mp + gain_mp > actor.mmp) gain_mp = actor.mmp - actor.mp;
-    if (actor.atk + gain_atk > 100) gain_atk = 100 - actor.atk;
-    if (actor.def + gain_def > 100) gain_def = 100 - actor.def;
-    bmp.paintOpacity = 120;
+NB_Interface.prototype._drawItemEffectStatusBars = function(itemEffect, actor, bmp, x, y) {
+    // Get the NB specific stats...
+    var stats = actor.nbStats();
+    // Lower paint opacity
+    bmp.paintOpacity = 130;
     // HP
-    bmp.blt(this._generateBar(actor.hp + gain_hp, actor.mhp, 200, 15, this.bar_hp), 0, 0, 200, 15, x, y, 200, 15);
+    bmp.blt(this._generateBar(itemEffect.getEmulatedHpChange(stats), stats.getTotalMaxHp(), 200, 15, this.bar_hp), 0, 0, 200, 15, x, y, 200, 15);
     // MP
-    bmp.blt(this._generateBar(actor.mp + gain_mp, actor.mmp, 200, 15, this.bar_mp), 0, 0, 200, 15, x, y + 25, 200, 15);
+    bmp.blt(this._generateBar(itemEffect.getEmulatedMpChange(stats), stats.getTotalMaxMp(), 200, 15, this.bar_mp), 0, 0, 200, 15, x, y + 25, 200, 15);
     // ATK
-    bmp.blt(this._generateBar(actor.atk + gain_atk, 100, 200, 15, this.bar_atk), 0, 0, 200, 15, x, y + 50, 200, 15);
+    bmp.blt(this._generateBar(itemEffect.getEmulatedAtkChange(stats), 100, 200, 15, this.bar_atk), 0, 0, 200, 15, x, y + 50, 200, 15);
     // DEF
-    bmp.blt(this._generateBar(actor.def + gain_def, 100, 200, 15, this.bar_def), 0, 0, 200, 15, x, y + 75, 200, 15);
+    bmp.blt(this._generateBar(itemEffect.getEmulatedDefChange(stats), 100, 200, 15, this.bar_def), 0, 0, 200, 15, x, y + 75, 200, 15);
+    // Reset paint opacity
     bmp.paintOpacity = 255;
 };
-// EXPERIMENTAL
 
 NB_Interface.prototype._drawStatusBars = function(actor, bmp, x, y) {
+    // Get the NB specific stats...
+    var stats = actor.nbStats();
+    bmp.fontSize = NB_Interface.fontSize-8;
     // HP
-    bmp.blt(this._generateBar(actor.hp, actor.mhp, 200, 15, this.bar_hp), 0, 0, 200, 15, x, y, 200, 15);
+    bmp.blt(this._generateBar(stats.getHp(), stats.getTotalMaxHp(), 200, 15, this.bar_hp), 0, 0, 200, 15, x, y, 200, 15);
+    bmp.drawText(stats.getHp() + '/' + stats.getTotalMaxHp(), x+5, y-10, null, NB_Interface.lineHeight, 'left');
     bmp.blt(this.bar, 0, 0, 200, 15, x, y, 200, 15);
     // MP
-    bmp.blt(this._generateBar(actor.mp, actor.mmp, 200, 15, this.bar_mp), 0, 0, 200, 15, x, y + 25, 200, 15);
+    bmp.blt(this._generateBar(stats.getMp(), stats.getTotalMaxMp(), 200, 15, this.bar_mp), 0, 0, 200, 15, x, y + 25, 200, 15);
+    bmp.drawText(stats.getMp() + '/' + stats.getTotalMaxMp(), x+5, y+15, null, NB_Interface.lineHeight, 'left');
     bmp.blt(this.bar, 0, 0, 200, 15, x, y + 25, 200, 15);
     // ATK
-    bmp.blt(this._generateBar(actor.atk, 100, 200, 15, this.bar_atk), 0, 0, 200, 15, x, y + 50, 200, 15);
+    bmp.blt(this._generateBar(stats.getTotalAtk(), 100, 200, 15, this.bar_atk), 0, 0, 200, 15, x, y + 50, 200, 15);
+    bmp.drawText(stats.getTotalAtk(), x+5, y+40, null, NB_Interface.lineHeight, 'left');
     bmp.blt(this.bar, 0, 0, 200, 15, x, y + 50, 200, 15);
     // DEF
-    bmp.blt(this._generateBar(actor.def, 100, 200, 15, this.bar_def), 0, 0, 200, 15, x, y + 75, 200, 15);
+    bmp.blt(this._generateBar(stats.getTotalDef(), 100, 200, 15, this.bar_def), 0, 0, 200, 15, x, y + 75, 200, 15);
+    bmp.drawText(stats.getTotalDef(), x+5, y+65, null, NB_Interface.lineHeight, 'left');
     bmp.blt(this.bar, 0, 0, 200, 15, x, y + 75, 200, 15);
+    // Reset font size
+    bmp.fontSize = NB_Interface.fontSize;
 };
  
 /****************************************************************
@@ -930,7 +937,7 @@ NB_List.prototype.initialize = function(x, y, visibleSize, lineHeight) {
     this._container = new PIXI.Container();
     this._x = x;
     this._y = y;
-    this._activeId = 0;
+    this._activeId = -1;
     this._active = true;
     this._visibleSize = visibleSize;
     this._lineHeight = lineHeight || 30; // optional parameter!
@@ -984,6 +991,7 @@ NB_List.prototype.addCountedListElementAtIndex = function(text, count, distance,
 };
 
 NB_List.prototype._addAbstractListElement = function(elem, id) {
+    if (this._activeId === -1 && this._active) this._activeId = 0;
     this._elements.splice(id, 0, elem);
     elem.setPosition(this._x, this._y);
     elem.setTarget(this._x, this._y);
@@ -994,6 +1002,7 @@ NB_List.prototype._addAbstractListElement = function(elem, id) {
 };
 
 NB_List.prototype._addListElement = function(text, id) {
+    if (this._activeId === -1 && this._active) this._activeId = 0;
     var elem = new NB_Button(null, null, null, null, text, NB_Interface.fontColor, this._x, this._y, 0);
     this._elements.splice(id, 0, elem);
     elem.addToContainer(this._container);
@@ -1002,6 +1011,7 @@ NB_List.prototype._addListElement = function(text, id) {
 };
 
 NB_List.prototype._addCanvasListElement = function(basePath, base, lightPath, light, cw, ch, id) {
+    if (this._activeId === -1 && this._active) this._activeId = 0;
     var elem = new NB_CanvasButton(basePath, base, lightPath, light, cw, ch, this._x, this._y, 0);
     this._elements.splice(id, 0, elem);
     elem.addToContainer(this._container);
@@ -1010,6 +1020,7 @@ NB_List.prototype._addCanvasListElement = function(basePath, base, lightPath, li
 };
 
 NB_List.prototype._addCountedListElement = function(text, count, distance, id) {
+    if (this._activeId === -1 && this._active) this._activeId = 0;
     var elem = new NB_CountedButton(text, NB_Interface.fontColor, this._x, this._y, 0, count, distance);
     this._elements.splice(id, 0, elem);
     elem.addToContainer(this._container);
@@ -1021,8 +1032,12 @@ NB_List.prototype.removeById = function(id) {
     if (id >= 0 && id < this._elements.length) {
         var elem = this._elements.splice(id, 1)[0];
         elem.removeFromContainer(this._container);
-        if (this._activeId == this._elements.length) {
-            if (this._activeId > 0) this._activeId--;
+        if (this._activeId === this._elements.length) {
+            if (this._activeId > 0) {
+                this._activeId--;
+            } else if (this._activeId === 0 && this.isEmpty()) {
+                this._activeId = -1;
+            }
         }
         if (this._activeId < this._firstVisibleId) {
             this._firstVisibleId--;
@@ -1118,6 +1133,10 @@ NB_List.prototype.validateAll = function() {
     for (var i = 0; i < this._elements.length; i++) {
         this._elements[i].validate();
     }
+};
+
+NB_List.prototype.invalidateActive = function() {
+    this._elements[this._activeId].invalidate();
 };
 
 NB_List.prototype.getActiveId = function() {

@@ -89,12 +89,8 @@
     
     NB_Interface_CharMenu.prototype._printEquipment = function(actor) {
         for (var i = 0; i < 5; i++) {
-            var equip = actor.equips()[i];
-            if (equip != null) {
-                
-            }
+            
         }
-        //console.log(actor.equips());
     };
     
     NB_Interface_CharMenu.prototype._updateCharacterInfo = function() {
@@ -115,7 +111,7 @@
             // Draw status bars
             var start_y = 25;
             bmp.drawText('Health:', 0, start_y, null, NB_Interface.lineHeight, 'left');
-            bmp.drawText('Spellpower:', 0, start_y + 25, null, NB_Interface.lineHeight, 'left');
+            bmp.drawText('Magic skill:', 0, start_y + 25, null, NB_Interface.lineHeight, 'left');
             bmp.drawText('Attack:', 0, start_y + 50, null, NB_Interface.lineHeight, 'left');
             bmp.drawText('Defense:', 0, start_y + 75, null, NB_Interface.lineHeight, 'left');
             this._drawStatusBars(actor, bmp, 100, start_y+10);
