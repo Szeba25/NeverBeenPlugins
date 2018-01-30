@@ -109,8 +109,8 @@
         this.MAX_ATK = 100;
         this.MAX_DEF = 100;
         this._hp = 0;
-        this._mhp = 0;
         this._mp = 0;
+        this._mhp = 0;
         this._mmp = 0;
         this._atk = 0;
         this._def = 0;
@@ -126,46 +126,40 @@
         this.recover();
     };
     
-    NB_Stats.prototype.changeHp = function(change, emulate) {
-        var emulatedValue = this._changePts(this._hp, this.getTotalMaxHp(), change);
-        if (!emulate) this._hp = emulatedValue;
-        return emulatedValue;
+    NB_Stats.prototype.changeHp = function(change) {
+        this._hp = this._changePts(this._hp, 0, this.getTotalMaxHp(), change);
     };
     
-    NB_Stats.prototype.changeMp = function(change, emulate) {
-        var emulatedValue = this._changePts(this._mp, this.getTotalMaxMp(), change);
-        if (!emulate) this._mp = emulatedValue;
-        return emulatedValue;
+    NB_Stats.prototype.changeMp = function(change) {
+        this._mp = this._changePts(this._mp, 0, this.getTotalMaxMp(), change);
     };
     
     NB_Stats.prototype.changeMaxHp = function(change) {
-        this._mhp = this._changePts(this._mhp, this.MAX_MHP, change);
-        if (this._hp > this.getTotalMaxHp()) this._hp = this.getTotalMaxHp();
+        this._mhp = this._changePts(this._mhp, 0, this.MAX_MHP, change);
+        this._hp = this._valueConstraint(this._hp, 0, this.getTotalMaxHp());
     };
     
     NB_Stats.prototype.changeMaxMp = function(change) {
-        this._mmp = this._changePts(this._mmp, this.MAX_MMP, change);
-        if (this._mp > this.getTotalMaxMp()) this._mp = this.getTotalMaxMp();
+        this._mmp = this._changePts(this._mmp, 0, this.MAX_MMP, change);
+        this._mp = this._valueConstraint(this._mp, 0, this.getTotalMaxMp());
     };
     
-    NB_Stats.prototype.changeAtk = function(change, emulate) {
-        var newValue = this._changePts(this._atk, this.MAX_ATK, change);
-        var emulatedValue = this.getTotalAtk(newValue);
-        if (!emulate) this._atk = newValue;
-        return emulatedValue;
+    NB_Stats.prototype.changeAtk = function(change) {
+        this._atk = this._changePts(this._atk, 0, this.MAX_ATK, change);
     };
     
-    NB_Stats.prototype.changeDef = function(change, emulate) {
-        var newValue = this._changePts(this._def, this.MAX_DEF, change);
-        var emulatedValue = this.getTotalDef(newValue);
-        if (!emulate) this._def = newValue;
-        return emulatedValue;
+    NB_Stats.prototype.changeDef = function(change) {
+        this._def = this._changePts(this._def, 0, this.MAX_DEF, change);
     };
     
-    NB_Stats.prototype._changePts = function(value, max, change) {
+    NB_Stats.prototype._changePts = function(value, min, max, change) {
         value += change;
+        return this._valueConstraint(value, min, max);
+    };
+    
+    NB_Stats.prototype._valueConstraint = function(value, min, max) {
         if (value > max) value = max;
-        if (value < 0) value = 0;
+        if (value < min) value = min;
         return value;
     };
     
@@ -178,19 +172,17 @@
         return this._hp;
     };
     
+    NB_Stats.prototype.getMp = function() {
+        return this._mp;
+    };
+    
     NB_Stats.prototype.getTotalMaxHp = function() {
         var mhp = this._mhp;
         for (var i = 0; i < this._statusEffects.length; i++) {
             var statusEffect = this._statusEffects[i];
             mhp += statusEffect.getMaxHpBonus();
         }
-        if (mhp < 0) mhp = 0;
-        if (mhp > this.MAX_MHP) mhp = this.MAX_MHP;
-        return mhp;
-    };
-    
-    NB_Stats.prototype.getMp = function() {
-        return this._mp;
+        return this._valueConstraint(mhp, 0, this.MAX_MHP);
     };
     
     NB_Stats.prototype.getTotalMaxMp = function() {
@@ -199,31 +191,25 @@
             var statusEffect = this._statusEffects[i];
             mmp += statusEffect.getMaxMpBonus();
         }
-        if (mmp < 0) mmp = 0;
-        if (mmp > this.MAX_MMP) mmp = this.MAX_MMP;
-        return mmp;
+        return this._valueConstraint(mmp, 0, this.MAX_MMP);
     };
     
-    NB_Stats.prototype.getTotalAtk = function(emulateFromOther) {
-        var atk = emulateFromOther || this._atk;
+    NB_Stats.prototype.getTotalAtk = function() {
+        var atk = this._atk;
         for (var i = 0; i < this._statusEffects.length; i++) {
             var statusEffect = this._statusEffects[i];
             atk += statusEffect.getAtkBonus();
         }
-        if (atk < 0) atk = 0;
-        if (atk > this.MAX_ATK) atk = this.MAX_ATK;
-        return atk;
+        return this._valueConstraint(atk, 0, this.MAX_ATK);
     };
     
-    NB_Stats.prototype.getTotalDef = function(emulateFromOther) {
-        var def = emulateFromOther || this._def;
+    NB_Stats.prototype.getTotalDef = function() {
+        var def = this._def;
         for (var i = 0; i < this._statusEffects.length; i++) {
             var statusEffect = this._statusEffects[i];
             def += statusEffect.getDefBonus();
         }
-        if (def < 0) def = 0;
-        if (def > this.MAX_DEF) def = this.MAX_DEF;
-        return def;
+        return this._valueConstraint(def, 0, this.MAX_DEF);
     };
     
     NB_Stats.prototype.hasStatusEffect = function(id) {
@@ -260,8 +246,8 @@ function NB_ItemEffect() {
 
 NB_ItemEffect.prototype.initialize = function(itemSchema) {
     this._hpChange = 0;
-    this._mhpChange = 0;
     this._mpChange = 0;
+    this._mhpChange = 0;
     this._mmpChange = 0;
     this._atkChange = 0;
     this._defChange = 0;
@@ -313,12 +299,12 @@ NB_ItemEffect.prototype._addHpChange = function(value) {
     this._hpChange += value;
 };
 
-NB_ItemEffect.prototype._addMaxHpChange = function(value) {
-    this._mhpChange += value;
-};
-
 NB_ItemEffect.prototype._addMpChange = function(value) {
     this._mpChange += value;
+};
+
+NB_ItemEffect.prototype._addMaxHpChange = function(value) {
+    this._mhpChange += value;
 };
 
 NB_ItemEffect.prototype._addMaxMpChange = function(value) {
@@ -333,26 +319,10 @@ NB_ItemEffect.prototype._addDefChange = function(value) {
     this._defChange += value;
 };
 
-NB_ItemEffect.prototype.getEmulatedHpChange = function(nbStats) {
-    return nbStats.changeHp(this._hpChange, true);
-};
-
-NB_ItemEffect.prototype.getEmulatedMpChange = function(nbStats) {
-    return nbStats.changeMp(this._mpChange, true);
-};
-
-NB_ItemEffect.prototype.getEmulatedAtkChange = function(nbStats) {
-    return nbStats.changeAtk(this._atkChange, true);
-};
-
-NB_ItemEffect.prototype.getEmulatedDefChange = function(nbStats) {
-    return nbStats.changeDef(this._defChange, true);
-};
-
 NB_ItemEffect.prototype.apply = function(nbStats) {
     nbStats.changeHp(this._hpChange);
-    nbStats.changeMaxHp(this._mhpChange);
     nbStats.changeMp(this._mpChange);
+    nbStats.changeMaxHp(this._mhpChange);
     nbStats.changeMaxMp(this._mmpChange);
     nbStats.changeAtk(this._atkChange);
     nbStats.changeDef(this._defChange);

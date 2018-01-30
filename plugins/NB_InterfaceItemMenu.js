@@ -205,7 +205,6 @@
             bmp.drawText('Attack:', 160, 90, null, NB_Interface.lineHeight, 'left');
             bmp.drawText('Defense:', 160, 115, null, NB_Interface.lineHeight, 'left');
             
-            if (!this._useRunsOut) this._drawItemEffectStatusBars(itemEffect, actor, bmp, 260, 50);
             this._drawStatusBars(actor, bmp, 260, 50);
         }
     };
