@@ -213,8 +213,9 @@ NB_Interface.prototype._loadBars = function() {
     this.bar = ImageManager.loadInterfaceElement('menu_1/', 'bar');
     this.bar_hp = ImageManager.loadInterfaceElement('menu_1/', 'bar_hp');
     this.bar_mp = ImageManager.loadInterfaceElement('menu_1/', 'bar_mp');
-    this.bar_def = ImageManager.loadInterfaceElement('menu_1/', 'bar_def');
     this.bar_atk = ImageManager.loadInterfaceElement('menu_1/', 'bar_atk');
+    this.bar_def = ImageManager.loadInterfaceElement('menu_1/', 'bar_def');
+    this.bar_agi = ImageManager.loadInterfaceElement('menu_1/', 'bar_agi');
 };
 
 NB_Interface.prototype._generateBar = function(current, max, width, height, original) {
@@ -225,7 +226,7 @@ NB_Interface.prototype._generateBar = function(current, max, width, height, orig
     return bitmap;
 };
 
-NB_Interface.prototype._drawBar = function(bmp, stat, statMax, x, y, w, h, graphics, drawSecondStat) {
+NB_Interface.prototype._drawStatusBar = function(bmp, stat, statMax, x, y, w, h, graphics, drawSecondStat) {
     bmp.blt(this._generateBar(stat, statMax, w, h, graphics), 0, 0, w, h, x, y, w, h);
     var label = stat.toString();
     if (drawSecondStat) label += ('/' + statMax.toString());
@@ -235,31 +236,13 @@ NB_Interface.prototype._drawBar = function(bmp, stat, statMax, x, y, w, h, graph
     bmp.blt(this.bar, 0, 0, w, h, x, y, w, h);
 };
 
-NB_Interface.prototype._drawStatusBars = function(actor, bmp, x, y) {
-    // Get the NB specific stats...
+NB_Interface.prototype._drawAllStatusBars = function(actor, bmp, x, y) {
     var stats = actor.nbStats();
-    this._drawBar(bmp, stats.getHp(), stats.getTotalMaxHp(), x, y, 200, 15, this.bar_hp, true);
-    this._drawBar(bmp, stats.getMp(), stats.getTotalMaxMp(), x, y+25, 200, 15, this.bar_mp, true);
-    this._drawBar(bmp, stats.getTotalAtk(), 100, x, y+50, 200, 15, this.bar_atk, false);
-    this._drawBar(bmp, stats.getTotalDef(), 100, x, y+75, 200, 15, this.bar_def, false);
-    /*
-    // HP
-    bmp.blt(this._generateBar(stats.getHp(), stats.getTotalMaxHp(), 200, 15, this.bar_hp), 0, 0, 200, 15, x, y, 200, 15);
-    bmp.drawText(stats.getHp() + '/' + stats.getTotalMaxHp(), x+5, y-10, null, NB_Interface.lineHeight, 'left');
-    bmp.blt(this.bar, 0, 0, 200, 15, x, y, 200, 15);
-    // MP
-    bmp.blt(this._generateBar(stats.getMp(), stats.getTotalMaxMp(), 200, 15, this.bar_mp), 0, 0, 200, 15, x, y + 25, 200, 15);
-    bmp.drawText(stats.getMp() + '/' + stats.getTotalMaxMp(), x+5, y+15, null, NB_Interface.lineHeight, 'left');
-    bmp.blt(this.bar, 0, 0, 200, 15, x, y + 25, 200, 15);
-    // ATK
-    bmp.blt(this._generateBar(stats.getTotalAtk(), 100, 200, 15, this.bar_atk), 0, 0, 200, 15, x, y + 50, 200, 15);
-    bmp.drawText(stats.getTotalAtk(), x+5, y+40, null, NB_Interface.lineHeight, 'left');
-    bmp.blt(this.bar, 0, 0, 200, 15, x, y + 50, 200, 15);
-    // DEF
-    bmp.blt(this._generateBar(stats.getTotalDef(), 100, 200, 15, this.bar_def), 0, 0, 200, 15, x, y + 75, 200, 15);
-    bmp.drawText(stats.getTotalDef(), x+5, y+65, null, NB_Interface.lineHeight, 'left');
-    bmp.blt(this.bar, 0, 0, 200, 15, x, y + 75, 200, 15);
-    */
+    this._drawStatusBar(bmp, stats.getHp(), stats.getTotalMaxHp(), x, y, 200, 15, this.bar_hp, true);
+    this._drawStatusBar(bmp, stats.getMp(), stats.getTotalMaxMp(), x, y+25, 200, 15, this.bar_mp, true);
+    this._drawStatusBar(bmp, stats.getTotalAtk(), stats.MAX_ATK, x, y+50, 200, 15, this.bar_atk, false);
+    this._drawStatusBar(bmp, stats.getTotalDef(), stats.MAX_DEF, x, y+75, 200, 15, this.bar_def, false);
+    this._drawStatusBar(bmp, stats.getTotalAgi(), stats.MAX_AGI, x, y+100, 200, 15, this.bar_agi, false);
 };
  
 /****************************************************************

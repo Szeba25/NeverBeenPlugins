@@ -20,7 +20,7 @@
     aliases.Game_Actor_setup = Game_Actor.prototype.setup;
     Game_Actor.prototype.setup = function(actorId) {
         aliases.Game_Actor_setup.call(this, actorId);
-        this._nbStats.setup(this.mhp, this.mmp, this.atk, this.def);
+        this._nbStats.setup(this.mhp, this.mmp, this.atk, this.def, this.agi);
     };
     
     Game_Actor.prototype.nbStats = function() {
@@ -74,6 +74,9 @@
                 case 3:
                     actor.nbStats().changeDef(value);
                     break;
+                case 6:
+                    actor.nbStats().changeAgi(value);
+                    break;
                 default:
                     console.log('Change Parameter: NOT SUPPORTED ID! (' + this._param[2] + ')');
                     break;
@@ -108,21 +111,24 @@
         this.MAX_MMP = 10000;
         this.MAX_ATK = 100;
         this.MAX_DEF = 100;
+        this.MAX_AGI = 20;
         this._hp = 0;
         this._mp = 0;
         this._mhp = 0;
         this._mmp = 0;
         this._atk = 0;
         this._def = 0;
+        this._agi = 0;
         this._equipment = [null, null, null, null, null];
         this._statusEffects = [];
     };
     
-    NB_Stats.prototype.setup = function(hp, mp, atk, def) {
+    NB_Stats.prototype.setup = function(hp, mp, atk, def, agi) {
         this._mhp = hp;
         this._mmp = mp;
         this._atk = atk;
         this._def = def;
+        this._agi = agi;
         this.recover();
     };
     
@@ -150,6 +156,10 @@
     
     NB_Stats.prototype.changeDef = function(change) {
         this._def = this._changePts(this._def, 0, this.MAX_DEF, change);
+    };
+    
+    NB_Stats.prototype.changeAgi = function(change) {
+        this._agi = this._changePts(this._agi, 0, this.MAX_AGI, change);
     };
     
     NB_Stats.prototype._changePts = function(value, min, max, change) {
@@ -212,6 +222,15 @@
         return this._valueConstraint(def, 0, this.MAX_DEF);
     };
     
+    NB_Stats.prototype.getTotalAgi = function() {
+        var agi = this._agi;
+        for (var i = 0; i < this._statusEffects.length; i++) {
+            var statusEffect = this._statusEffects[i];
+            agi += statusEffect.getAgiBonus();
+        }
+        return this._valueConstraint(agi, 0, this.MAX_AGI);
+    };
+    
     NB_Stats.prototype.hasStatusEffect = function(id) {
         for (var i = 0; i < this._statusEffects.length; i++) {
             if (id == this._statusEffects[i].getId()) {
@@ -251,6 +270,7 @@ NB_ItemEffect.prototype.initialize = function(itemSchema) {
     this._mmpChange = 0;
     this._atkChange = 0;
     this._defChange = 0;
+    this._agiChange = 0;
     this._statusEffectsChange = [];
     if (itemSchema) {
         for (var i = 0; i < itemSchema.effects.length; i++) {
@@ -288,6 +308,9 @@ NB_ItemEffect.prototype.applyFromEffect = function(effect) {
             case 3:
                 this._addDefChange(effect.value1);
                 break;
+            case 6:
+                this._addAgiChange(effect.value1);
+                break;
         }
         break;
     default:
@@ -319,6 +342,10 @@ NB_ItemEffect.prototype._addDefChange = function(value) {
     this._defChange += value;
 };
 
+NB_ItemEffect.prototype._addAgiChange = function(value) {
+    this._agiChange += value;
+};
+
 NB_ItemEffect.prototype.apply = function(nbStats) {
     nbStats.changeHp(this._hpChange);
     nbStats.changeMp(this._mpChange);
@@ -326,6 +353,7 @@ NB_ItemEffect.prototype.apply = function(nbStats) {
     nbStats.changeMaxMp(this._mmpChange);
     nbStats.changeAtk(this._atkChange);
     nbStats.changeDef(this._defChange);
+    nbStats.changeAgi(this._agiChange);
     for (var i = 0; i < this._statusEffectsChange.length; i++) {
         nbStats.addStatusEffect(this._statusEffectsChange[i]);
     }
@@ -345,6 +373,7 @@ NB_StatusEffect.prototype.initialize = function(id, duration) {
     this._mmpBonus = 0;
     this._atkBonus = 0;
     this._defBonus = 0;
+    this._agiBonus = 0;
     this._duration = 0;
     this._setBonuses();
 };
@@ -382,4 +411,8 @@ NB_StatusEffect.prototype.getAtkBonus = function() {
 
 NB_StatusEffect.prototype.getDefBonus = function() {
     return this._defBonus;
+};
+
+NB_StatusEffect.prototype.getAgiBonus = function() {
+    return this._agiBonus;
 };

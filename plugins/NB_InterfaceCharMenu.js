@@ -112,13 +112,14 @@
             var start_y = 25;
             bmp.drawText('Health:', 0, start_y, null, NB_Interface.lineHeight, 'left');
             bmp.drawText('Magic skill:', 0, start_y + 25, null, NB_Interface.lineHeight, 'left');
-            bmp.drawText('Attack:', 0, start_y + 50, null, NB_Interface.lineHeight, 'left');
+            bmp.drawText('Power:', 0, start_y + 50, null, NB_Interface.lineHeight, 'left');
             bmp.drawText('Defense:', 0, start_y + 75, null, NB_Interface.lineHeight, 'left');
-            this._drawStatusBars(actor, bmp, 100, start_y+10);
+            bmp.drawText('Initiative:', 0, start_y + 100, null, NB_Interface.lineHeight, 'left');
+            this._drawAllStatusBars(actor, bmp, 100, start_y+10);
             
             // Draw biography
             for (var i = 0; i < bio.length; i++) {
-                bmp.drawText(bio[i], 0, 150 + (i*22), null, NB_Interface.lineHeight, 'left');
+                bmp.drawText(bio[i], 0, 170 + (i*22), null, NB_Interface.lineHeight, 'left');
             }
         }
     };

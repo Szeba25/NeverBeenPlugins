@@ -202,10 +202,11 @@
             
             bmp.drawText('Health:', 160, 40, null, NB_Interface.lineHeight, 'left');
             bmp.drawText('Magic skill:', 160, 65, null, NB_Interface.lineHeight, 'left');
-            bmp.drawText('Attack:', 160, 90, null, NB_Interface.lineHeight, 'left');
+            bmp.drawText('Power:', 160, 90, null, NB_Interface.lineHeight, 'left');
             bmp.drawText('Defense:', 160, 115, null, NB_Interface.lineHeight, 'left');
+            bmp.drawText('Initiative:', 160, 140, null, NB_Interface.lineHeight, 'left');
             
-            this._drawStatusBars(actor, bmp, 260, 50);
+            this._drawAllStatusBars(actor, bmp, 260, 50);
         }
     };
     
