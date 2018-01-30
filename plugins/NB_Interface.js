@@ -209,6 +209,10 @@ NB_Interface.prototype.getParty = function() {
     return menuParty;
 };
 
+NB_Interface.prototype._splitToLines = function(string) {
+    return string.split(/\r?\n/);
+};
+
 NB_Interface.prototype._loadBars = function() {
     this.bar = ImageManager.loadInterfaceElement('menu_1/', 'bar');
     this.bar_hp = ImageManager.loadInterfaceElement('menu_1/', 'bar_hp');

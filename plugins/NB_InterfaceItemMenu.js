@@ -173,7 +173,7 @@
                     var item = $dataItems[elem.id];
                     bmp.drawText('Name: ' + item.name, 0, 0, null, NB_Interface.lineHeight, 'left');
                     bmp.drawText('Price: ' + item.price, 0, 25, null, NB_Interface.lineHeight, 'left');
-                    var desc = item.note.split(/\r?\n/);
+                    var desc = this._splitToLines(item.note);
                     bmp.fontSize = NB_Interface.fontSize-3;
                     for (var i = 0; i < desc.length; i++) {
                         bmp.drawText(desc[i], 15, 70 + i*22, null, NB_Interface.lineHeight, 'left');

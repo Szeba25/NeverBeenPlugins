@@ -99,7 +99,7 @@
             // Gather data
             var actor = this._party[this._currentChar];
             var actorData = $dataActors[actor.actorId()];
-            var bio = actorData.note.split(/\r?\n/);
+            var bio = this._splitToLines(actorData.note);
             var bmp = this._characterInfo.bitmap;
             // Set face
             this._characterFace.bitmap = ImageManager.loadInterfaceElement('menu_1/chars/', 'face'+actor.actorId());
@@ -133,7 +133,7 @@
             bmp.clear();
             if (this._updatedSkillId < skills.length) {
                 var skill = skills[this._updatedSkillId];
-                var desc = $dataSkills[skill.id].note.split(/\r?\n/);
+                var desc = this._splitToLines($dataSkills[skill.id].note);
                 console.log(skill);
                 // Draw description
                 bmp.drawText('Name: ' + skill.name, 0, 0, null, NB_Interface.lineHeight, 'left');
