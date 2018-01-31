@@ -215,6 +215,8 @@ NB_Interface.prototype._splitToLines = function(string) {
 
 NB_Interface.prototype._loadBars = function() {
     this.bar = ImageManager.loadInterfaceElement('menu_1/', 'bar');
+    this.bar_dense = ImageManager.loadInterfaceElement('menu_1/', 'bar_dense');
+    this.bar_scarce = ImageManager.loadInterfaceElement('menu_1/', 'bar_scarce');
     this.bar_hp = ImageManager.loadInterfaceElement('menu_1/', 'bar_hp');
     this.bar_mp = ImageManager.loadInterfaceElement('menu_1/', 'bar_mp');
     this.bar_atk = ImageManager.loadInterfaceElement('menu_1/', 'bar_atk');
@@ -226,31 +228,31 @@ NB_Interface.prototype._loadIcons = function() {
     this._iconSet = ImageManager.loadSystem('IconSet');
 };
 
-NB_Interface.prototype._generateBar = function(current, max, width, height, original) {
+NB_Interface.prototype._generateBar = function(current, max, width, height, graphics) {
     var ow = (current / max) * width;
     var bitmap = new Bitmap(width, height);
-    bitmap.blt(original, 0, 0, width, height, 0, 0, width, height);
+    bitmap.blt(graphics, 0, 0, width, height, 0, 0, width, height);
     bitmap.clearRect(ow, 0, width, height);
     return bitmap;
 };
 
-NB_Interface.prototype._drawStatusBar = function(bmp, stat, statMax, x, y, w, h, graphics, drawSecondStat) {
+NB_Interface.prototype._drawStatusBar = function(bmp, stat, statMax, x, y, w, h, graphics, overlay, drawSecondStat) {
     bmp.blt(this._generateBar(stat, statMax, w, h, graphics), 0, 0, w, h, x, y, w, h);
     var label = stat.toString();
     if (drawSecondStat) label += ('/' + statMax.toString());
     bmp.fontSize = NB_Interface.fontSize-8;
     bmp.drawText(label, x+5, y-10, null, NB_Interface.lineHeight, 'left');
     bmp.fontSize = NB_Interface.fontSize;
-    bmp.blt(this.bar, 0, 0, w, h, x, y, w, h);
+    bmp.blt(overlay, 0, 0, w, h, x, y, w, h);
 };
 
 NB_Interface.prototype._drawAllStatusBars = function(actor, bmp, x, y) {
     var stats = actor.nbStats();
-    this._drawStatusBar(bmp, stats.getHp(), stats.getTotalMaxHp(), x, y, 200, 15, this.bar_hp, true);
-    this._drawStatusBar(bmp, stats.getMp(), stats.getTotalMaxMp(), x, y+25, 200, 15, this.bar_mp, true);
-    this._drawStatusBar(bmp, stats.getTotalAtk(), stats.MAX_ATK, x, y+50, 200, 15, this.bar_atk, false);
-    this._drawStatusBar(bmp, stats.getTotalDef(), stats.MAX_DEF, x, y+75, 200, 15, this.bar_def, false);
-    this._drawStatusBar(bmp, stats.getTotalAgi(), stats.MAX_AGI, x, y+100, 200, 15, this.bar_agi, false);
+    this._drawStatusBar(bmp, stats.getHp(), stats.getTotalMaxHp(), x, y, 200, 15, this.bar_hp, this.bar, true);
+    this._drawStatusBar(bmp, stats.getMp(), stats.getTotalMaxMp(), x, y+25, 200, 15, this.bar_mp, this.bar, true);
+    this._drawStatusBar(bmp, stats.getTotalAtk(), stats.MAX_ATK, x, y+50, 200, 15, this.bar_atk, this.bar_scarce, false);
+    this._drawStatusBar(bmp, stats.getTotalDef(), stats.MAX_DEF, x, y+75, 200, 15, this.bar_def, this.bar_scarce, false);
+    this._drawStatusBar(bmp, stats.getTotalAgi(), stats.MAX_AGI, x, y+100, 200, 15, this.bar_agi, this.bar_dense, false);
 };
 
 NB_Interface.prototype._drawStatusEffects = function(actor, bmp, x, y) {

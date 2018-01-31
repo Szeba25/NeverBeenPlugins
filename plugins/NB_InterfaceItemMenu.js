@@ -107,6 +107,7 @@
             var itemd = {};
             itemd['id'] = items[i].id;
             itemd['count'] = $gameParty.numItems(items[i]);
+            itemd['type'] = 0;
             if (items[i].itypeId === 1) {
                 regularList.addCountedListElement(items[i].name, itemd['count'], dist);
                 this._itemData[0].push(itemd);
@@ -122,8 +123,9 @@
             var equd = {};
             equd['id'] = equips[i].id;
             equd['count'] = $gameParty.numItems(equips[i]);
+            equd['type'] = equips[i].etypeId; 
             equipmentList.addCountedListElement(equips[i].name, equd['count'], dist);
-            this._itemData[1].push(itemd);
+            this._itemData[1].push(equd);
         }
         
         regularList.addToContainer(this);
@@ -169,20 +171,22 @@
             bmp.clear();
             if (this._updatedItemId >= 0 && !this._itemLists[this._selectedCategory].isEmpty()) {
                 var elem = this._itemData[this._selectedCategory][this._updatedItemId];
-                if (this._selectedCategory !== 1) {
-                    // Regular and key items!
-                    var item = $dataItems[elem.id];
-                    bmp.drawText('Name: ' + item.name, 0, 0, null, NB_Interface.lineHeight, 'left');
-                    bmp.drawText('Price: ' + item.price, 0, 25, null, NB_Interface.lineHeight, 'left');
-                    var desc = this._splitToLines(item.note);
-                    bmp.fontSize = NB_Interface.fontSize-3;
-                    for (var i = 0; i < desc.length; i++) {
-                        bmp.drawText(desc[i], 15, 70 + i*22, null, NB_Interface.lineHeight, 'left');
-                    }
-                    bmp.fontSize = NB_Interface.fontSize;
+                var item = null;
+                if (elem.type === 0) {
+                    item = $dataItems[elem.id];
+                } else if (elem.type === 1) {
+                    item = $dataWeapons[elem.id];
                 } else {
-                    // Equipment!
+                    item = $dataArmors[elem.id];
                 }
+                bmp.drawText('Name: ' + item.name, 0, 0, null, NB_Interface.lineHeight, 'left');
+                bmp.drawText('Price: ' + item.price, 0, 25, null, NB_Interface.lineHeight, 'left');
+                var desc = this._splitToLines(item.note);
+                bmp.fontSize = NB_Interface.fontSize-3;
+                for (var i = 0; i < desc.length; i++) {
+                    bmp.drawText(desc[i], 15, 70 + i*22, null, NB_Interface.lineHeight, 'left');
+                }
+                bmp.fontSize = NB_Interface.fontSize;
             }
         }
     };
@@ -218,18 +222,29 @@
         var schema = this._currentUsedItemSchema;
         var itemEffect = new NB_ItemEffect(schema);
         
-        itemEffect.apply(target.nbStats());
-        
         // Consume item, and remove from the list...
         if (schema.consumable) {
             data.count -= 1;
             this._itemLists[this._selectedCategory].getActiveElement().decreaseCount();
+            $gameParty.consumeItem(schema);
+        }
+        
+        if (target) {
+            // Only manipulate the interface if there was a target!
+            itemEffect.apply(target.nbStats());
             if (data.count <= 0) {
                 this._updatedItemId = -1;
                 this._itemLists[this._selectedCategory].invalidateActive();
                 this._useRunsOut = true;
             }
-            $gameParty.consumeItem(schema);
+        } else {
+            for (var i = 0; i < this._party.length; i++) {
+                itemEffect.apply(this._party[i].nbStats());
+            }
+            if (data.count <= 0) {
+                this._updatedItemId = -1;
+                this._useRunsOut = true;
+            }
         }
     };
     
@@ -251,13 +266,23 @@
         if (this._selectedCategory !== 1 && !this._itemLists[this._selectedCategory].isEmpty() && this.okKeyTrigger(this._itemLists[this._selectedCategory])) {
             // Use the item!
             SoundManager.playOk();
-            this._useFlag = 1;
-            this._useRunsOut = false;
-            this._updatedUseActorId = -1;
-            this._actorButtons.setActive(0);
-            this._itemLists[this._selectedCategory].invalidateAllButActive();
+            
             this._currentUsedItemData = this._itemData[this._selectedCategory][this._itemLists[this._selectedCategory].getActiveId()];
             this._currentUsedItemSchema = $dataItems[this._currentUsedItemData.id];
+            
+            if (this._currentUsedItemSchema.scope === 7) {
+                // One ally!
+                this._useFlag = 1;
+                this._useRunsOut = false;
+                this._updatedUseActorId = -1;
+                this._actorButtons.setActive(0);
+                this._itemLists[this._selectedCategory].invalidateAllButActive();
+            } else if (this._currentUsedItemSchema.scope === 8) {
+                // All allies!
+                this._useRunsOut = false;
+                this._useCurrentItem();
+                this._removeIfNoMoreAvailable();
+            }
         }
         
         this._itemLists[this._selectedCategory].updateInput(this.isMouseActive());
@@ -272,14 +297,18 @@
         if (this.backKeyTrigger()) {
             SoundManager.playCancel();
             this._useFlag = 0;
-            if (this._useRunsOut) {
-                var id = this._itemLists[this._selectedCategory].getActiveId();
-                this._itemLists[this._selectedCategory].removeActiveElement();
-                this._itemData[this._selectedCategory].splice(id, 1);
-            }
+            this._removeIfNoMoreAvailable();
             this._itemLists[this._selectedCategory].validateAll();
         }
         this._actorButtons.updateInput(this.isMouseActive());
+    };
+    
+    NB_Interface_ItemMenu.prototype._removeIfNoMoreAvailable = function() {
+        if (this._useRunsOut) {
+            var id = this._itemLists[this._selectedCategory].getActiveId();
+            this._itemLists[this._selectedCategory].removeActiveElement();
+            this._itemData[this._selectedCategory].splice(id, 1);
+        }
     };
     
     // Override!

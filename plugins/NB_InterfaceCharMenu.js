@@ -114,9 +114,11 @@
             this._drawStatusEffects(actor, bmp, 0, start_y+135);
             
             // Draw biography
+            bmp.fontSize = NB_Interface.fontSize-3;
             for (var i = 0; i < bio.length; i++) {
                 bmp.drawText(bio[i], 0, start_y + 175 + (i*22), null, NB_Interface.lineHeight, 'left');
             }
+            bmp.fontSize = NB_Interface.fontSize;
         }
     };
     
