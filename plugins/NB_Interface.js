@@ -222,6 +222,10 @@ NB_Interface.prototype._loadBars = function() {
     this.bar_agi = ImageManager.loadInterfaceElement('menu_1/', 'bar_agi');
 };
 
+NB_Interface.prototype._loadIcons = function() {
+    this._iconSet = ImageManager.loadSystem('IconSet');
+};
+
 NB_Interface.prototype._generateBar = function(current, max, width, height, original) {
     var ow = (current / max) * width;
     var bitmap = new Bitmap(width, height);
@@ -247,6 +251,17 @@ NB_Interface.prototype._drawAllStatusBars = function(actor, bmp, x, y) {
     this._drawStatusBar(bmp, stats.getTotalAtk(), stats.MAX_ATK, x, y+50, 200, 15, this.bar_atk, false);
     this._drawStatusBar(bmp, stats.getTotalDef(), stats.MAX_DEF, x, y+75, 200, 15, this.bar_def, false);
     this._drawStatusBar(bmp, stats.getTotalAgi(), stats.MAX_AGI, x, y+100, 200, 15, this.bar_agi, false);
+};
+
+NB_Interface.prototype._drawStatusEffects = function(actor, bmp, x, y) {
+    var statusEffects = actor.nbStats().getStatusEffects();
+    for (var i = 0; i < statusEffects.length; i++) {
+        var state = $dataStates[statusEffects[i].getId()];
+        var iconIndex = state.iconIndex;
+        var sx = iconIndex % 16 * 32;
+        var sy = Math.floor(iconIndex / 16) * 32;
+        bmp.blt(this._iconSet, sx, sy, 32, 32, x+(i*40), y);
+    }
 };
  
 /****************************************************************

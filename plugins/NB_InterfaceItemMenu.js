@@ -68,6 +68,7 @@
         this._title1.x = 190;
         this._title2.x = 190;
         this._loadBars();
+        this._loadIcons();
     };
     
     NB_Interface_ItemMenu.prototype._initializeFlowControl = function() {
@@ -143,7 +144,7 @@
     };
     
     NB_Interface_ItemMenu.prototype._createUseInfo = function() {
-        this._useInfo = new Sprite(new Bitmap(470, 200));
+        this._useInfo = new Sprite(new Bitmap(470, 220));
         this._useInfo.x = 400;
         this._useInfo.y = 310;
         this.setBitmapFontStyle(this._useInfo.bitmap);
@@ -207,6 +208,7 @@
             bmp.drawText('Initiative:', 160, 140, null, NB_Interface.lineHeight, 'left');
             
             this._drawAllStatusBars(actor, bmp, 260, 50);
+            this._drawStatusEffects(actor, bmp, 160, 175);
         }
     };
     

@@ -231,6 +231,10 @@
         return this._valueConstraint(agi, 0, this.MAX_AGI);
     };
     
+    NB_Stats.prototype.getStatusEffects = function(id) {
+        return this._statusEffects;
+    };
+    
     NB_Stats.prototype.hasStatusEffect = function(id) {
         for (var i = 0; i < this._statusEffects.length; i++) {
             if (id == this._statusEffects[i].getId()) {

@@ -38,7 +38,6 @@
             _updatedSkillId
             
             # sprites and bitmaps
-            _iconSet
             _skillInfo
             _characterInfo
             _characterFace
@@ -66,10 +65,6 @@
         this._exit = false;
         
         NB_Interface.prototype.create.call(this);
-    };
-    
-    NB_Interface_CharMenu.prototype._loadIcons = function() {
-        this._iconSet = ImageManager.loadSystem('IconSet');
     };
     
     NB_Interface_CharMenu.prototype._prepareSkills = function(actor) {
@@ -109,17 +104,18 @@
             // Draw!
             bmp.clear();
             // Draw status bars
-            var start_y = 25;
+            var start_y = 5;
             bmp.drawText('Health:', 0, start_y, null, NB_Interface.lineHeight, 'left');
             bmp.drawText('Magic skill:', 0, start_y + 25, null, NB_Interface.lineHeight, 'left');
             bmp.drawText('Power:', 0, start_y + 50, null, NB_Interface.lineHeight, 'left');
             bmp.drawText('Defense:', 0, start_y + 75, null, NB_Interface.lineHeight, 'left');
             bmp.drawText('Initiative:', 0, start_y + 100, null, NB_Interface.lineHeight, 'left');
             this._drawAllStatusBars(actor, bmp, 100, start_y+10);
+            this._drawStatusEffects(actor, bmp, 0, start_y+135);
             
             // Draw biography
             for (var i = 0; i < bio.length; i++) {
-                bmp.drawText(bio[i], 0, 170 + (i*22), null, NB_Interface.lineHeight, 'left');
+                bmp.drawText(bio[i], 0, start_y + 175 + (i*22), null, NB_Interface.lineHeight, 'left');
             }
         }
     };
@@ -134,7 +130,6 @@
             if (this._updatedSkillId < skills.length) {
                 var skill = skills[this._updatedSkillId];
                 var desc = this._splitToLines($dataSkills[skill.id].note);
-                console.log(skill);
                 // Draw description
                 bmp.drawText('Name: ' + skill.name, 0, 0, null, NB_Interface.lineHeight, 'left');
                 bmp.drawText('Cost: ' + skill.mpCost, 220, 0, null, NB_Interface.lineHeight, 'left');
@@ -169,8 +164,8 @@
         
         this._subCategoryButtons = new NB_ButtonGroup(false);
         
-        this._subCategoryButtons.add(new NB_Button('menu_1/', 'char_1', 'menu_1/', 'char_1_light', null, null, 650, 42));
-        this._subCategoryButtons.add(new NB_Button('menu_1/', 'char_2', 'menu_1/', 'char_2_light', null, null, 644, 42));
+        this._subCategoryButtons.add(new NB_Button('menu_1/', 'char_1', 'menu_1/', 'char_1_light', null, null, 650, 30));
+        this._subCategoryButtons.add(new NB_Button('menu_1/', 'char_2', 'menu_1/', 'char_2_light', null, null, 644, 30));
         this._subCategoryButtons.addToContainer(this);
         
         this._equipmentList = new NB_List(560, 125, 5);
@@ -207,7 +202,7 @@
         this._characterInfo = new Sprite();
         this._characterInfo.x = 560;
         this._characterInfo.y = 125;
-        this._characterInfo.bitmap = new Bitmap(350, 350);
+        this._characterInfo.bitmap = new Bitmap(350, 370);
         this.setBitmapFontStyle(this._characterInfo.bitmap);
         this.addChild(this._characterInfo);
     };
@@ -217,7 +212,7 @@
         if (resetSelection) this._subCategoryButtons.setActive(0);
         this._subCategoryButtons.get(1).setLerpAlpha(0.3);
         this._subCategoryButtons.get(1).setPosition(644, 42);
-        this._subCategoryButtons.get(1).setTarget(644, 80);
+        this._subCategoryButtons.get(1).setTarget(644, 68);
     };
     
     NB_Interface_CharMenu.prototype._enterCharacterTrigger = function() {
