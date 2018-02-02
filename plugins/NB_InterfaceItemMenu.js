@@ -36,11 +36,13 @@
             _updatedUseActorId
             _currentUsedItemData
             _currentUsedItemSchema
+            _updatePartyInfoFlag
             _party
             
             # sprites and bitmaps
             _itemInfo
             _useInfo
+            _partyInfo
             
             # interface
             _categories
@@ -57,6 +59,7 @@
         this._createLists();
         this._createItemInfo();
         this._createUseInfo();
+        this._createPartyInfo();
         this._createActorButtons();
         
         NB_Interface.prototype.create.call(this);
@@ -83,6 +86,7 @@
         this._updatedUseActorId = -1;
         this._currentUsedItemData = null;
         this._currentUsedItemSchema = null;
+        this._updatePartyInfoFlag = true;
     };
     
     NB_Interface_ItemMenu.prototype._createCategories = function() {
@@ -161,6 +165,14 @@
         this.addChild(this._useInfo);
     };
     
+    NB_Interface_ItemMenu.prototype._createPartyInfo = function() {
+        this._partyInfo = new Sprite(new Bitmap(470, 220));
+        this._partyInfo.x = 420;
+        this._partyInfo.y = 320;
+        this.setBitmapFontStyle(this._partyInfo.bitmap);
+        this.addChild(this._partyInfo);
+    };
+    
     NB_Interface_ItemMenu.prototype._createActorButtons = function() {
         this._actorButtons = new NB_ButtonGroup(true);
         for (var i = 0; i < this._party.length; i++) {
@@ -171,12 +183,39 @@
         this._actorButtons.addToContainer(this);  
     };
     
+    NB_Interface_ItemMenu.prototype._updatePartyInfo = function() {
+        if (this._updatePartyInfoFlag) {
+            this._updatePartyInfoFlag = false;
+            var bmp = this._partyInfo.bitmap;
+            
+            console.log('Party info updated!');
+            bmp.clear();
+            
+            for (var i = 0; i < this._party.length; i++) {
+                var x = 20;
+                var iy = i;
+                if (i >= 4) {
+                    x = 270;
+                    iy -= 4;
+                } else if (i >= 2) {
+                    x = 150;
+                    iy -= 2;
+                }
+                bmp.drawText(this._party[i].name(), x, 0 + iy*100, null, NB_Interface.lineHeight, 'left');
+                this._drawAllStatusBarsMini(this._party[i], bmp, x, 30 + iy*100);
+                this._drawStatusEffects(this._party[i], bmp, x+10, 80 + iy*100, true);
+            }
+        }
+    };
+    
     NB_Interface_ItemMenu.prototype._updateItemInfo = function() {
         if (this._updatedItemId !== this._itemLists[this._selectedCategory].getActiveId()) {
             this._updatedItemId = this._itemLists[this._selectedCategory].getActiveId();
             var bmp = this._itemInfo.bitmap;
             
+            console.log('Item info updated!');
             bmp.clear();
+            
             if (this._updatedItemId >= 0 && !this._itemLists[this._selectedCategory].isEmpty()) {
                 var elem = this._itemData[this._selectedCategory][this._updatedItemId];
                 var item = null;
@@ -197,6 +236,15 @@
                 for (var i = 0; i < desc.length; i++) {
                     bmp.drawText(desc[i], 15, 70 + i*22, null, NB_Interface.lineHeight, 'left');
                 }
+                if (elem.type === 0) {
+                    if (this._isCommonEventTrigger(item)) {
+                        bmp.fontSize = NB_Interface.fontSize+5;
+                        //bmp.drawText('Will trigger a special effect!', 0, 165, null, NB_Interface.lineHeight, 'left');
+                    } else if (item.scope === 8) {
+                        bmp.fontSize = NB_Interface.fontSize+3;
+                        bmp.drawText('Affects everyone in the party:', 0, 165, null, NB_Interface.lineHeight, 'left');
+                    }
+                }
                 bmp.fontSize = NB_Interface.fontSize;
             }
         }
@@ -207,6 +255,8 @@
             this._updatedUseActorId = this._actorButtons.getActiveId();
             var bmp = this._useInfo.bitmap;
             var actor = this._party[this._updatedUseActorId];
+            
+            console.log('Use info updated!');
             bmp.clear();
             
             bmp.fontSize = NB_Interface.fontSize + 5;
@@ -244,7 +294,6 @@
             // Only manipulate the interface if there was a target!
             itemEffect.apply(target.nbStats());
             if (data.count <= 0) {
-                this._updatedItemId = -1;
                 this._itemLists[this._selectedCategory].invalidateActive();
                 this._useRunsOut = true;
             }
@@ -282,29 +331,47 @@
             }
         }
         
-        if (this._selectedCategory !== 1 && !this._itemLists[this._selectedCategory].isEmpty() && this.okKeyTrigger(this._itemLists[this._selectedCategory])) {
-            // Use the item!
-            SoundManager.playOk();
-            
-            this._currentUsedItemData = this._itemData[this._selectedCategory][this._itemLists[this._selectedCategory].getActiveId()];
-            this._currentUsedItemSchema = $dataItems[this._currentUsedItemData.id];
-            
-            if (this._currentUsedItemSchema.scope === 7) {
-                // One ally! (scope == 7)
-                this._useFlag = 1;
-                this._useRunsOut = false;
-                this._updatedUseActorId = -1;
-                this._actorButtons.setActive(0);
-                this._itemLists[this._selectedCategory].invalidateAllButActive();
-            } else if (this._currentUsedItemSchema.scope === 8) {
-                // All allies! (scope == 8)
-                this._useRunsOut = false;
-                this._useCurrentItem();
-                this._removeIfNoMoreAvailable();
+        if (this.okKeyTrigger(this._itemLists[this._selectedCategory])) {
+            if (this._selectedCategory !== 1 && !this._itemLists[this._selectedCategory].isEmpty()) {
+                // Use the item!
+                
+                this._currentUsedItemData = this._getCurrentSelectedItemData();
+                this._currentUsedItemSchema = this._getCurrentSelectedItemSchema();
+                
+                if (this._currentUsedItemSchema.scope === 7) {
+                    // One ally! (scope == 7)
+                    SoundManager.playOk();
+                    this._useFlag = 1;
+                    this._useRunsOut = false;
+                    this._updatedUseActorId = -1;
+                    this._actorButtons.setActive(0);
+                    this._itemLists[this._selectedCategory].invalidateAllButActive();
+                } else if (this._currentUsedItemSchema.scope === 8) {
+                    // All allies! (scope == 8)
+                    SoundManager.playOk();
+                    this._updatePartyInfoFlag = true;
+                    this._useRunsOut = false;
+                    this._useCurrentItem();
+                    this._removeIfNoMoreAvailable();
+                } else {
+                    // Other...
+                    SoundManager.playBuzzer();
+                }
+            } else {
+                // Other...
+                SoundManager.playBuzzer();
             }
         }
         
         this._itemLists[this._selectedCategory].updateInput(this.isMouseActive());
+    };
+    
+    NB_Interface_ItemMenu.prototype._getCurrentSelectedItemData = function() {
+        return this._itemData[this._selectedCategory][this._itemLists[this._selectedCategory].getActiveId()];
+    };
+    
+    NB_Interface_ItemMenu.prototype._getCurrentSelectedItemSchema = function() {
+        return $dataItems[this._getCurrentSelectedItemData().id];
     };
     
     NB_Interface_ItemMenu.prototype._updateUseInput = function() {
@@ -312,6 +379,7 @@
             SoundManager.playOk();
             this._useCurrentItem(this._party[this._actorButtons.getActiveId()]);
             this._updatedUseActorId = -1;
+            this._updatePartyInfoFlag = true;
         }
         if (this.backKeyTrigger()) {
             SoundManager.playCancel();
@@ -327,6 +395,7 @@
             var id = this._itemLists[this._selectedCategory].getActiveId();
             this._itemLists[this._selectedCategory].removeActiveElement();
             this._itemData[this._selectedCategory].splice(id, 1);
+            this._updatedItemId = -1;
         }
     };
     
@@ -371,6 +440,12 @@
         this._actorButtons.setMasterOpacity(this._useOpacity * (this._masterOpacity/255));
         this._useInfo.opacity = this._useOpacity * (this._masterOpacity/255);
         
+        if (!this._isCommonEventTrigger(this._getCurrentSelectedItemSchema()) && this._getCurrentSelectedItemSchema().scope === 8) {
+            this._partyInfo.opacity = 255 * (this._masterOpacity/255);
+        } else {
+            this._partyInfo.opacity = 0;
+        }
+        
         for (var i = 0; i < 3; i++) {
             if (i === this._selectedCategory) {
                 this._itemLists[i].setMasterOpacity(this._masterOpacity);
@@ -399,6 +474,7 @@
         for (var i = 0; i < 3; i++) {
             this._itemLists[i].update();
         }
+        this._updatePartyInfo();
         this._updateItemInfo();
         this._updateUseInfo();
         this._actorButtons.update();

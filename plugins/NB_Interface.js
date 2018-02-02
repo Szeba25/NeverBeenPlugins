@@ -236,50 +236,67 @@ NB_Interface.prototype._generateBar = function(current, max, width, height, grap
     return bitmap;
 };
 
-NB_Interface.prototype._drawStatusBar = function(bmp, stat, statMax, x, y, w, h, graphics, overlay, drawSecondStat) {
-    bmp.blt(this._generateBar(stat, statMax, w, h, graphics), 0, 0, w, h, x, y, w, h);
-    var label = stat.toString();
-    if (drawSecondStat) label += ('/' + statMax.toString());
+NB_Interface.prototype._drawStatusBar = function(bmp, stat, statMax, x, y, w, h, dw, dh, graphics, overlay, drawFirstStat, drawSecondStat) {
+    bmp.blt(this._generateBar(stat, statMax, w, h, graphics), 0, 0, w, h, x, y, dw, dh);
+    var label = "";
+    if (drawFirstStat) {
+        label += stat.toString();
+        if (drawSecondStat) label += ('/' + statMax.toString());
+    } else if (drawSecondStat) {
+        label += statMax.toString();
+    }
     bmp.fontSize = NB_Interface.fontSize-8;
     bmp.drawText(label, x+5, y-10, null, NB_Interface.lineHeight, 'left');
     bmp.fontSize = NB_Interface.fontSize;
-    bmp.blt(overlay, 0, 0, w, h, x, y, w, h);
+    bmp.blt(overlay, 0, 0, w, h, x, y, dw, dh);
 };
 
 NB_Interface.prototype._drawAllStatusBars = function(actor, bmp, x, y) {
     var stats = actor.nbStats();
-    this._drawStatusBar(bmp, stats.getHp(), stats.getTotalMaxHp(), x, y, 200, 15, this.bar_hp, this.bar, true);
-    this._drawStatusBar(bmp, stats.getMp(), stats.getTotalMaxMp(), x, y+25, 200, 15, this.bar_mp, this.bar, true);
-    this._drawStatusBar(bmp, stats.getTotalAtk(), stats.MAX_ATK, x, y+50, 200, 15, this.bar_atk, this.bar_scarce, false);
-    this._drawStatusBar(bmp, stats.getTotalDef(), stats.MAX_DEF, x, y+75, 200, 15, this.bar_def, this.bar_scarce, false);
-    this._drawStatusBar(bmp, stats.getTotalAgi(), stats.MAX_AGI, x, y+100, 200, 15, this.bar_agi, this.bar_dense, false);
+    this._drawStatusBar(bmp, stats.getHp(), stats.getTotalMaxHp(), x, y, 200, 15, 200, 15, this.bar_hp, this.bar, true, true);
+    this._drawStatusBar(bmp, stats.getMp(), stats.getTotalMaxMp(), x, y+25, 200, 15, 200, 15, this.bar_mp, this.bar, true, true);
+    this._drawStatusBar(bmp, stats.getTotalAtk(), stats.MAX_ATK, x, y+50, 200, 15, 200, 15, this.bar_atk, this.bar_scarce, true, false);
+    this._drawStatusBar(bmp, stats.getTotalDef(), stats.MAX_DEF, x, y+75, 200, 15, 200, 15, this.bar_def, this.bar_scarce, true, false);
+    this._drawStatusBar(bmp, stats.getTotalAgi(), stats.MAX_AGI, x, y+100, 200, 15, 200, 15, this.bar_agi, this.bar_dense, true, false);
 };
 
-NB_Interface.prototype._drawStatusEffects = function(actor, bmp, x, y) {
+NB_Interface.prototype._drawAllStatusBarsMini = function(actor, bmp, x, y) {
+    var stats = actor.nbStats();
+    this._drawStatusBar(bmp, stats.getHp(), stats.getTotalMaxHp(), x, y, 200, 15, 100, 7, this.bar_hp, this.bar, false, false);
+    this._drawStatusBar(bmp, stats.getMp(), stats.getTotalMaxMp(), x, y+10, 200, 15, 100, 7, this.bar_mp, this.bar, false, false);
+    this._drawStatusBar(bmp, stats.getTotalAtk(), stats.MAX_ATK, x, y+20, 200, 15, 100, 7, this.bar_atk, this.bar_scarce, false, false);
+    this._drawStatusBar(bmp, stats.getTotalDef(), stats.MAX_DEF, x, y+30, 200, 15, 100, 7, this.bar_def, this.bar_scarce, false, false);
+    this._drawStatusBar(bmp, stats.getTotalAgi(), stats.MAX_AGI, x, y+40, 200, 15, 100, 7, this.bar_agi, this.bar_dense, false, false);
+};
+
+NB_Interface.prototype._drawStatusEffects = function(actor, bmp, x, y, mini) {
     var statusEffects = actor.nbStats().getStatusEffects();
     for (var i = 0; i < statusEffects.length; i++) {
         var state = $dataStates[statusEffects[i].getId()];
         var iconIndex = state.iconIndex;
         var sx = iconIndex % 16 * 32;
         var sy = Math.floor(iconIndex / 16) * 32;
-        bmp.blt(this._iconSet, sx, sy, 32, 32, x+(i*40), y);
+        if (mini) {
+            bmp.blt(this._iconSet, sx, sy, 32, 32, x+(i*19), y, 16, 16);
+        } else {
+            bmp.blt(this._iconSet, sx, sy, 32, 32, x+(i*40), y);
+        }
     }
+};
+
+NB_Interface.prototype._isCommonEventTrigger = function(item) {
+    return (item.effects.length === 1 && item.effects[0].code === Game_Action.EFFECT_COMMON_EVENT);
 };
 
 // KEEP AN EYE ON THIS NEW FUNCTION!
 NB_Interface.prototype._triggerCommonEventAction = function(item) {
     // If there is ONLY one effect, and its a common event trigger, then it will work...
-    var effects = item.effects;
-    if (effects.length === 1) {
-        var effect = effects[0];
-        if (effect.code === Game_Action.EFFECT_COMMON_EVENT) {
-            $gameTemp.reserveCommonEvent(effect.dataId);
-        }
+    if (this._isCommonEventTrigger(item)) {
+        $gameTemp.reserveCommonEvent(item.effects[0].dataId);
     }
     
     /*
-     > Old code here from charmenu! Actor was passed as an argument!
-    
+    // Old code here from charmenu! Actor was passed as an argument!
     SoundManager.playOk();
     var action = new Game_Action(actor);
     action.setItemObject(skills[activeId]);
