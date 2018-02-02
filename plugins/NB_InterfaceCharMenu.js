@@ -297,10 +297,7 @@
         var skills = actor.skills();
         if (activeId < skills.length) {
             SoundManager.playOk();
-            var action = new Game_Action(actor);
-            action.setItemObject(skills[activeId]);
-            action.applyGlobal();
-            if ($gameTemp.isCommonEventReserved()) {
+            if (this._triggerCommonEventAction(skills[activeId])) {
                 this._characterEntered = 4;
                 this._exit = true;
             }
@@ -420,8 +417,8 @@
     
     // Override!
     NB_Interface_CharMenu.prototype.updateTransitions = function() {
-        if (this._exit && this._masterOpacity == 0) {
-            if (this._characterEntered == 4) {
+        if (this._exit && this._masterOpacity === 0) {
+            if (this._characterEntered === 4) {
                 SceneManager.goto(Scene_Map);
             } else {
                 NB_Interface.instantMainMenuFlag = true;
@@ -439,7 +436,7 @@
         this._equipmentList.update();
         this._equipmentNames.update();
         this._skillGrid.update();
-        if (this._characterEntered == 2) {
+        if (this._characterEntered === 2) {
             this._updateSkillsInfo();
         }
         if (this._characterFaceFadeOpacity < 255) {

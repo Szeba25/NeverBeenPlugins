@@ -285,34 +285,30 @@ NB_ItemEffect.prototype.initialize = function(itemSchema) {
 
 NB_ItemEffect.prototype.applyFromEffect = function(effect) {
     switch(effect.code) {
-    case 11:
-        // RECOVER HP
+    case Game_Action.EFFECT_RECOVER_HP:
         this._addHpChange(effect.value2);
         break;
-    case 12:
-        // RECOVER MP
+    case Game_Action.EFFECT_RECOVER_MP:
         this._addMpChange(effect.value2);
         break;
-    case 21:
-        // ADD STATE
+    case Game_Action.EFFECT_ADD_STATE:
         this._statusEffectsChange.push(effect.dataId);
         break;
-    case 42:
-        // GROW
+    case Game_Action.EFFECT_GROW:
         switch(effect.dataId) {
-            case 0:
+            case 0: // MAX HP
                 this._addMaxHpChange(effect.value1);
                 break;
-            case 1:
+            case 1: // MAX MP
                 this._addMaxMpChange(effect.value1);
                 break;
-            case 2:
+            case 2: // ATK
                 this._addAtkChange(effect.value1);
                 break;
-            case 3:
+            case 3: // DEF
                 this._addDefChange(effect.value1);
                 break;
-            case 6:
+            case 6: // AGI
                 this._addAgiChange(effect.value1);
                 break;
         }

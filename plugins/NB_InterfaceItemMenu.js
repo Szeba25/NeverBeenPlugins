@@ -249,13 +249,21 @@
                 this._useRunsOut = true;
             }
         } else {
-            for (var i = 0; i < this._party.length; i++) {
-                itemEffect.apply(this._party[i].nbStats());
+            if (this._triggerCommonEventAction(schema)) {
+                // All allies scope, first effect is common event
+                this._useFlag = 2;
+                this._exit = true;
+            } else {
+                // All allies scope, no common event
+                for (var i = 0; i < this._party.length; i++) {
+                    itemEffect.apply(this._party[i].nbStats());
+                }
+                if (data.count <= 0) {
+                    this._updatedItemId = -1;
+                    this._useRunsOut = true;
+                }
             }
-            if (data.count <= 0) {
-                this._updatedItemId = -1;
-                this._useRunsOut = true;
-            }
+            
         }
     };
     
@@ -282,14 +290,14 @@
             this._currentUsedItemSchema = $dataItems[this._currentUsedItemData.id];
             
             if (this._currentUsedItemSchema.scope === 7) {
-                // One ally!
+                // One ally! (scope == 7)
                 this._useFlag = 1;
                 this._useRunsOut = false;
                 this._updatedUseActorId = -1;
                 this._actorButtons.setActive(0);
                 this._itemLists[this._selectedCategory].invalidateAllButActive();
             } else if (this._currentUsedItemSchema.scope === 8) {
-                // All allies!
+                // All allies! (scope == 8)
                 this._useRunsOut = false;
                 this._useCurrentItem();
                 this._removeIfNoMoreAvailable();
@@ -326,8 +334,10 @@
     NB_Interface_ItemMenu.prototype.updateInput = function() {
         if (this._useFlag === 0) {
             this._updateMainInput();
-        } else {
+        } else if (this._useFlag === 1) {
             this._updateUseInput();
+        } else {
+            // No input!
         }
     };
     
@@ -345,10 +355,14 @@
             }
         }
         
-        if (this._useFlag !== 0) {
-            if (this._useOpacity < 255) this._useOpacity += 15;
-        } else {
+        if (this._useFlag === 0) {
             if (this._useOpacity > 0) this._useOpacity -= 15;
+        } if (this._useFlag === 1) {
+            if (this._useOpacity < 255) this._useOpacity += 15;
+        } else if (this._useFlag === 2) {
+            if (this._useOpacity > 0) this._useOpacity -= 15
+            this._pergamen.opacity = this._masterOpacity;
+            this._backgroundTint.opacity = (this._masterOpacity/255) * 130;
         }
         
         this.setBaseTitleAndLinesOpacity(this._masterOpacity);
@@ -369,9 +383,13 @@
     // Override!
     NB_Interface_ItemMenu.prototype.updateTransitions = function() {
         if (this._exit && this._masterOpacity == 0) {
-            NB_Interface.instantMainMenuFlag = true;
-            NB_Interface.returnFrom = 1;
-            SceneManager.goto(NB_Interface.classes['MainMenu']);
+            if (this._useFlag !== 2) {
+                NB_Interface.instantMainMenuFlag = true;
+                NB_Interface.returnFrom = 1;
+                SceneManager.goto(NB_Interface.classes['MainMenu']);
+            } else {
+                SceneManager.goto(Scene_Map);
+            }
         }
     };
     

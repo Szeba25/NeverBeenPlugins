@@ -265,6 +265,33 @@ NB_Interface.prototype._drawStatusEffects = function(actor, bmp, x, y) {
         bmp.blt(this._iconSet, sx, sy, 32, 32, x+(i*40), y);
     }
 };
+
+// KEEP AN EYE ON THIS NEW FUNCTION!
+NB_Interface.prototype._triggerCommonEventAction = function(item) {
+    // If there is ONLY one effect, and its a common event trigger, then it will work...
+    var effects = item.effects;
+    if (effects.length === 1) {
+        var effect = effects[0];
+        if (effect.code === Game_Action.EFFECT_COMMON_EVENT) {
+            $gameTemp.reserveCommonEvent(effect.dataId);
+        }
+    }
+    
+    /*
+     > Old code here from charmenu! Actor was passed as an argument!
+    
+    SoundManager.playOk();
+    var action = new Game_Action(actor);
+    action.setItemObject(skills[activeId]);
+    action.applyGlobal();
+    if ($gameTemp.isCommonEventReserved()) {
+        this._characterEntered = 4;
+        this._exit = true;
+    }
+    */
+    
+    return $gameTemp.isCommonEventReserved();
+};
  
 /****************************************************************
  * Button: A general button interface element
