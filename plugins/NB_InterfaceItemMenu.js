@@ -94,14 +94,29 @@
     };
     
     NB_Interface_ItemMenu.prototype._createLists = function() {
-        this._itemLists = [];
         
+        this._itemLists = [];
         var regularList = new NB_List(185, 125, 12);
         var equipmentList = new NB_List(185, 125, 12);
         var keyList = new NB_List(185, 125, 12);
         var dist = 172;
         
         // Create regular or key items...
+        this._populateRegularAndKeyItems(regularList, keyList, dist);
+        
+        // Create equipment items...
+        this._populateEquipmentItems(equipmentList, dist);
+        
+        regularList.addToContainer(this);
+        equipmentList.addToContainer(this);
+        keyList.addToContainer(this);
+        
+        this._itemLists.push(regularList);
+        this._itemLists.push(equipmentList);
+        this._itemLists.push(keyList);
+    };
+    
+    NB_Interface_ItemMenu.prototype._populateRegularAndKeyItems = function(regularList, keyList, dist) {
         var items = $gameParty.items();
         for (var i = 0; i < items.length; i++) {
             var itemd = {};
@@ -116,8 +131,9 @@
                 this._itemData[2].push(itemd);
             }
         }
-        
-        // Create equipment items...
+    };
+    
+    NB_Interface_ItemMenu.prototype._populateEquipmentItems = function(equipmentList, dist) {
         var equips = $gameParty.equipItems();
         for (var i = 0; i < equips.length; i++) {
             var equd = {};
@@ -127,14 +143,6 @@
             equipmentList.addCountedListElement(equips[i].name, equd['count'], dist);
             this._itemData[1].push(equd);
         }
-        
-        regularList.addToContainer(this);
-        equipmentList.addToContainer(this);
-        keyList.addToContainer(this);
-        
-        this._itemLists.push(regularList);
-        this._itemLists.push(equipmentList);
-        this._itemLists.push(keyList);
     };
     
     NB_Interface_ItemMenu.prototype._createItemInfo = function() {
@@ -173,10 +181,13 @@
                 var elem = this._itemData[this._selectedCategory][this._updatedItemId];
                 var item = null;
                 if (elem.type === 0) {
+                    // This element is an item
                     item = $dataItems[elem.id];
                 } else if (elem.type === 1) {
+                    // This element is a weapon
                     item = $dataWeapons[elem.id];
                 } else {
+                    // This element is an armor
                     item = $dataArmors[elem.id];
                 }
                 bmp.drawText('Name: ' + item.name, 0, 0, null, NB_Interface.lineHeight, 'left');
