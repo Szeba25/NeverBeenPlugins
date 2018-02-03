@@ -308,7 +308,7 @@
                     itemEffect.apply(this._party[i].nbStats());
                 }
                 if (data.count <= 0) {
-                    this._updatedItemId = -1;
+                    this._updatedItemId = -2; // force item info clearing
                     this._useRunsOut = true;
                 }
             }
@@ -321,7 +321,7 @@
         
         if (this._selectedCategory != this._categories.getActiveId()) {
             this._selectedCategory = this._categories.getActiveId();
-            this._updatedItemId = -1;
+            this._updatedItemId = -2; // force item info clearing
         }
         
         if (!this._exit) {
@@ -395,7 +395,7 @@
             var id = this._itemLists[this._selectedCategory].getActiveId();
             this._itemLists[this._selectedCategory].removeActiveElement();
             this._itemData[this._selectedCategory].splice(id, 1);
-            this._updatedItemId = -1;
+            this._updatedItemId = -2; // force item info clearing
         }
     };
     
@@ -440,7 +440,8 @@
         this._actorButtons.setMasterOpacity(this._useOpacity * (this._masterOpacity/255));
         this._useInfo.opacity = this._useOpacity * (this._masterOpacity/255);
         
-        if (!this._isCommonEventTrigger(this._getCurrentSelectedItemSchema()) && this._getCurrentSelectedItemSchema().scope === 8) {
+        if (!this._itemLists[this._selectedCategory].isEmpty() &&
+            !this._isCommonEventTrigger(this._getCurrentSelectedItemSchema()) && this._getCurrentSelectedItemSchema().scope === 8) {
             this._partyInfo.opacity = 255 * (this._masterOpacity/255);
         } else {
             this._partyInfo.opacity = 0;
