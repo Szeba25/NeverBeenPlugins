@@ -106,10 +106,10 @@
         var dist = 172;
         
         // Create regular or key items...
-        this._populateRegularAndKeyItems(regularList, keyList, dist);
+        this._populateRegularAndKeyItems(regularList, keyList, this._itemData[0], this._itemData[2], dist);
         
         // Create equipment items...
-        this._populateEquipmentItems(equipmentList, dist);
+        this._populateEquipmentItems(equipmentList, this._itemData[1], dist);
         
         regularList.addToContainer(this);
         equipmentList.addToContainer(this);
@@ -118,35 +118,6 @@
         this._itemLists.push(regularList);
         this._itemLists.push(equipmentList);
         this._itemLists.push(keyList);
-    };
-    
-    NB_Interface_ItemMenu.prototype._populateRegularAndKeyItems = function(regularList, keyList, dist) {
-        var items = this.getAllItems();
-        for (var i = 0; i < items.length; i++) {
-            var itemd = {};
-            itemd['id'] = items[i].id;
-            itemd['count'] = this.countItem(items[i]);
-            itemd['type'] = 0;
-            if (items[i].itypeId === 1) {
-                regularList.addCountedListElement(items[i].name, itemd['count'], dist);
-                this._itemData[0].push(itemd);
-            } else if (items[i].itypeId === 2) {
-                keyList.addCountedListElement(items[i].name, itemd['count'], dist);
-                this._itemData[2].push(itemd);
-            }
-        }
-    };
-    
-    NB_Interface_ItemMenu.prototype._populateEquipmentItems = function(equipmentList, dist) {
-        var equips = this.getAllEquips();
-        for (var i = 0; i < equips.length; i++) {
-            var equd = {};
-            equd['id'] = equips[i].id;
-            equd['count'] = this.countItem(equips[i]);
-            equd['type'] = equips[i].etypeId; 
-            equipmentList.addCountedListElement(equips[i].name, equd['count'], dist);
-            this._itemData[1].push(equd);
-        }
     };
     
     NB_Interface_ItemMenu.prototype._createItemInfo = function() {

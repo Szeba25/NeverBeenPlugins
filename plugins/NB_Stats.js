@@ -147,6 +147,7 @@
         for (var i = 0; i < skills.length; i++) {
             this.addSkill(skills[i].id);
         }
+        this._equipment = [1, 2, 1, 2, 1]; // REMOVE THIS
         this.recover();
     };
     
@@ -260,6 +261,10 @@
             }
         }
         return -1;
+    };
+    
+    NB_Stats.prototype.getEquipment = function(id) {
+        return this._equipment[id];
     };
     
     NB_Stats.prototype.addStatusEffect = function(id) {

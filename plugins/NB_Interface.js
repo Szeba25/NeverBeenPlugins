@@ -342,6 +342,35 @@ NB_Interface.prototype._triggerCommonEventAction = function(schema) {
     }
     return $gameTemp.isCommonEventReserved();
 };
+
+NB_Interface.prototype._populateRegularAndKeyItems = function(regularList, keyList, regularData, keyData, dist) {
+    var items = this.getAllItems();
+    for (var i = 0; i < items.length; i++) {
+        var itemd = {};
+        itemd['id'] = items[i].id;
+        itemd['count'] = this.countItem(items[i]);
+        itemd['type'] = 0;
+        if (items[i].itypeId === 1) {
+            regularList.addCountedListElement(items[i].name, itemd['count'], dist);
+            regularData.push(itemd);
+        } else if (items[i].itypeId === 2) {
+            keyList.addCountedListElement(items[i].name, itemd['count'], dist);
+            keyData.push(itemd);
+        }
+    }
+};
+
+NB_Interface.prototype._populateEquipmentItems = function(equipmentList, equipmentData, dist) {
+    var equips = this.getAllEquips();
+    for (var i = 0; i < equips.length; i++) {
+        var equd = {};
+        equd['id'] = equips[i].id;
+        equd['count'] = this.countItem(equips[i]);
+        equd['type'] = equips[i].etypeId; 
+        equipmentList.addCountedListElement(equips[i].name, equd['count'], dist);
+        equipmentData.push(equd);
+    }
+};
  
 /****************************************************************
  * Button: A general button interface element
@@ -838,7 +867,7 @@ NB_ButtonGroup.prototype.trigger = function(enlarge) {
 };
 
 NB_ButtonGroup.prototype.clickedOnActive = function() {
-    return (this._buttons[this._activeId].mouseInside() && TouchInput.isTriggered());
+    return (this._active && this._buttons[this._activeId].mouseInside() && TouchInput.isTriggered());
 };
 
 NB_ButtonGroup.prototype.invalidateAllButActive = function() {
@@ -1022,7 +1051,7 @@ NB_List.prototype.initialize = function(x, y, visibleSize, lineHeight) {
 };
 
 NB_List.prototype.clickedOnActive = function() {
-    return (!this.isEmpty() && this._elements[this._activeId].mouseInside() && TouchInput.isTriggered());
+    return (!this.isEmpty() && this._active && this._elements[this._activeId].mouseInside() && TouchInput.isTriggered());
 };
 
 NB_List.prototype.activate = function() {
@@ -1049,6 +1078,11 @@ NB_List.prototype.addListElement = function(text) {
 
 NB_List.prototype.addListElementAtIndex = function(text, id) {
     if (id >= 0 && id <= this._elements.length) this._addListElement(text, id);
+};
+
+NB_List.prototype.renameListElement = function(text, id) {
+    this.removeById(id);
+    this.addListElementAtIndex(text, id);
 };
 
 NB_List.prototype.addCanvasListElement = function(basePath, base, lightPath, light, cw, ch) {
@@ -1116,7 +1150,7 @@ NB_List.prototype.removeById = function(id) {
                 this._activeId = -1;
             }
         }
-        if (this._activeId < this._firstVisibleId) {
+        if (this._activeId !== -1 && this._activeId < this._firstVisibleId) {
             this._firstVisibleId--;
         }
         if (this.isEmpty()) {
@@ -1234,6 +1268,11 @@ NB_List.prototype.invalidateActive = function() {
 
 NB_List.prototype.getActiveId = function() {
     return this._activeId;
+};
+
+// USE THIS FUNCTION WITH CAUTION!!!
+NB_List.prototype.setActiveId = function(id) {
+    this._activeId = id;
 };
 
 NB_List.prototype.getElementById = function(id) {

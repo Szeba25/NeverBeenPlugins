@@ -36,6 +36,7 @@
             _skillsSubOpacity
             _equipmentSubOpacity
             _updatedSkillId
+            _equipmentSubjectData
             
             # sprites and bitmaps
             _skillInfo
@@ -84,27 +85,16 @@
     };
     
     NB_Interface_CharMenu.prototype._populateEquipment = function(actor) {
-        
-        this._equipmentNames.removeAllElements();
-        this._equipmentNames.addListElement('none');
-        this._equipmentNames.addListElement('none');
-        this._equipmentNames.addListElement('none');
-        this._equipmentNames.addListElement('none');
-        this._equipmentNames.addListElement('none');
-        
-        this._equipmentItems.removeAllElements();
-        this._equipmentItems.addCountedListElement('asdasd1', 4, 120);
-        this._equipmentItems.addCountedListElement('asdasd2', 6, 120);
-        this._equipmentItems.addCountedListElement('asdasd3', 11, 120);
-        this._equipmentItems.addCountedListElement('asdasd4', 9, 120);
-        this._equipmentItems.addCountedListElement('asdasd4', 9, 120);
-        this._equipmentItems.addCountedListElement('asdasd4', 1, 120);
-        this._equipmentItems.addCountedListElement('asdasd2', 9, 120);
-        this._equipmentItems.addCountedListElement('asdasd4', 1, 120);
-        this._equipmentItems.addCountedListElement('asdasd4', 3, 120);
-        this._equipmentItems.addCountedListElement('asdasd5', 2, 120);
-        this._equipmentItems.addCountedListElement('asdasd6', 9, 120);
-        
+        var stats = actor.nbStats();
+        for (var i = 0; i < 5; i++) {
+            var name = "";
+            if (i === 0) {
+                name = this.getWeaponSchema(stats.getEquipment(i)).name;
+            } else {
+                name = this.getArmorSchema(stats.getEquipment(i)).name;
+            }
+            this._equipmentNames.renameListElement(name, i);
+        }
     };
     
     NB_Interface_CharMenu.prototype._updateCharacterInfo = function() {
@@ -173,6 +163,7 @@
         this._skillsSubOpacity = 0;
         this._equipmentSubOpacity = 0;
         this._updatedSkillId = -1;
+        this._equipmentSubjectData = [];
         this._party = this.getParty();
         
         // Buttons and other data
@@ -198,13 +189,16 @@
         this._equipmentList.addListElement('Accessory:');
         this._equipmentList.addToContainer(this);
         
-        this._equipmentNames = new NB_List(680, 125, 5);
+        this._equipmentNames = new NB_List(680, 125, 10);
+        for (var i = 0; i < 5; i++) {
+            this._equipmentNames.addListElement('none');
+        }
         this._equipmentNames.addToContainer(this);
         this._equipmentNames.deactivate();
         
         this._equipmentItems = new NB_List(590, 295, 7);
         this._equipmentItems.addToContainer(this);
-        //this._equipmentItems.deactivate();
+        this._equipmentItems.deactivate();
         
         this._skillGrid = new NB_ButtonGrid(true, 3, 3);
         for (var y = 0; y < 3; y++) {
@@ -281,6 +275,31 @@
         this._characterEntered = 1;
     };
     
+    NB_Interface_CharMenu.prototype._enterEquipChangeTrigger = function() {
+        this._equipmentList.invalidateAllButActive();
+        this._equipmentNames.activate();
+        this._equipmentNames.setActiveId(this._equipmentList.getActiveId());
+        this._equipmentNames.invalidateAllButActive();
+        this._equipmentNames.deactivate();
+        this._equipmentItems.removeAllElements();
+        this._addAllRelevantEquipmentToList();
+        this._equipmentItems.activate();
+        this._characterEntered = 5;
+    };
+    
+    NB_Interface_CharMenu.prototype._leaveEquipChangeTrigger = function() {
+        this._equipmentList.validateAll();
+        this._equipmentNames.validateAll();
+        this._equipmentItems.deactivate();
+        this._equipmentItems.removeAllElements();
+        this._characterEntered = 3;
+    };
+    
+    NB_Interface_CharMenu.prototype._addAllRelevantEquipmentToList = function() {
+        this._equipmentSubjectData = [];
+        this._populateEquipmentItems(this._equipmentItems, this._equipmentSubjectData, 130);
+    };
+    
     NB_Interface_CharMenu.prototype._mainInput = function() {
         if (this.backKeyTrigger() && !this._exit) {
             SoundManager.playCancel();
@@ -338,12 +357,17 @@
     
     NB_Interface_CharMenu.prototype._equipmentInput = function() {
         this._equipmentList.updateInput(this.isMouseActive());
-        this._equipmentItems.updateInput(this.isMouseActive());
         if (this.okKeyTrigger(this._equipmentList)) {
-            this._populateEquipment();
-        }
-        if (this.backKeyTrigger()) {
+            this._enterEquipChangeTrigger();
+        } else if (this.backKeyTrigger()) {
             this._leaveEquipmentTrigger();
+        }
+    };
+    
+    NB_Interface_CharMenu.prototype._equipChangeInput = function() {
+        this._equipmentItems.updateInput(this.isMouseActive());
+        if (this.backKeyTrigger()) {
+            this._leaveEquipChangeTrigger();
         }
     };
     
@@ -366,6 +390,9 @@
                 break;
             case 4:
                 // No input here, exit the menu!
+                break;
+            case 5:
+                this._equipChangeInput();
                 break;
         }
     };
