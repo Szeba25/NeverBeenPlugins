@@ -228,7 +228,7 @@ NB_Interface.prototype.getWeaponSchema = function(id) {
 };
 
 NB_Interface.prototype.getArmorSchema = function(id) {
-    return dataArmors[id];
+    return $dataArmors[id];
 };
 
 NB_Interface.prototype.getActorSchema = function(id) {
