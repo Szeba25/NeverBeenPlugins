@@ -297,10 +297,15 @@
     NB_Interface_CharMenu.prototype._useSkill = function(actor, activeId) {
         var skills = actor.nbStats().getSkills();
         if (activeId < skills.length) {
-            SoundManager.playOk();
-            if (this._triggerCommonEventAction(this.getSkillSchema(skills[activeId]))) {
-                this._characterEntered = 4;
-                this._exit = true;
+            if (actor.nbStats().applySkillCost(this.getSkillSchema(skills[activeId]))) {
+                if (this._triggerCommonEventAction(this.getSkillSchema(skills[activeId]))) {
+                    this._characterEntered = 4;
+                    this._exit = true;
+                }
+                SoundManager.playOk();
+            } else {
+                // Not enough mp...
+                SoundManager.playBuzzer();
             }
         } else {
             SoundManager.playBuzzer();

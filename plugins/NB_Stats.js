@@ -300,6 +300,17 @@
         }
     };
     
+    NB_Stats.prototype.applySkillCost = function(schema) {
+        if (this._mp >= schema.mpCost)  {
+            this._mp -= schema.mpCost;
+            console.log(this._mp);
+            console.log(schema.mpCost);
+            return true;
+        } else {
+            return false;
+        }
+    };
+    
 })();
 
 /****************************************************************
