@@ -120,10 +120,11 @@
     }
     
     NB_Stats.prototype.initialize = function() {
-        this.MAX_MHP = 10000;
-        this.MAX_MMP = 10000;
+        this.MAX_MHP = 9999;
+        this.MAX_MMP = 9999;
         this.MAX_ATK = 100;
-        this.MAX_DEF = 100;
+        this.MAX_DEF = 85;
+        this.MAX_DEF_VISUAL = 100;
         this.MAX_AGI = 20;
         this._hp = 0;
         this._mp = 0;

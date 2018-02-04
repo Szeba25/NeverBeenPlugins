@@ -263,6 +263,7 @@ NB_Interface.prototype._loadBars = function() {
     this.bar = ImageManager.loadInterfaceElement('menu_1/', 'bar');
     this.bar_dense = ImageManager.loadInterfaceElement('menu_1/', 'bar_dense');
     this.bar_scarce = ImageManager.loadInterfaceElement('menu_1/', 'bar_scarce');
+    this.bar_def_over = ImageManager.loadInterfaceElement('menu_1/', 'bar_def_over');
     this.bar_hp = ImageManager.loadInterfaceElement('menu_1/', 'bar_hp');
     this.bar_mp = ImageManager.loadInterfaceElement('menu_1/', 'bar_mp');
     this.bar_atk = ImageManager.loadInterfaceElement('menu_1/', 'bar_atk');
@@ -302,7 +303,7 @@ NB_Interface.prototype._drawAllStatusBars = function(actor, bmp, x, y) {
     this._drawStatusBar(bmp, stats.getHp(), stats.getTotalMaxHp(), x, y, 200, 15, 200, 15, this.bar_hp, this.bar, true, true);
     this._drawStatusBar(bmp, stats.getMp(), stats.getTotalMaxMp(), x, y+25, 200, 15, 200, 15, this.bar_mp, this.bar, true, true);
     this._drawStatusBar(bmp, stats.getTotalAtk(), stats.MAX_ATK, x, y+50, 200, 15, 200, 15, this.bar_atk, this.bar_scarce, true, false);
-    this._drawStatusBar(bmp, stats.getTotalDef(), stats.MAX_DEF, x, y+75, 200, 15, 200, 15, this.bar_def, this.bar_scarce, true, false);
+    this._drawStatusBar(bmp, stats.getTotalDef(), stats.MAX_DEF_VISUAL, x, y+75, 200, 15, 200, 15, this.bar_def, this.bar_def_over, true, false);
     this._drawStatusBar(bmp, stats.getTotalAgi(), stats.MAX_AGI, x, y+100, 200, 15, 200, 15, this.bar_agi, this.bar_dense, true, false);
 };
 
@@ -311,7 +312,7 @@ NB_Interface.prototype._drawAllStatusBarsMini = function(actor, bmp, x, y) {
     this._drawStatusBar(bmp, stats.getHp(), stats.getTotalMaxHp(), x, y, 200, 15, 100, 7, this.bar_hp, this.bar, false, false);
     this._drawStatusBar(bmp, stats.getMp(), stats.getTotalMaxMp(), x, y+10, 200, 15, 100, 7, this.bar_mp, this.bar, false, false);
     this._drawStatusBar(bmp, stats.getTotalAtk(), stats.MAX_ATK, x, y+20, 200, 15, 100, 7, this.bar_atk, this.bar_scarce, false, false);
-    this._drawStatusBar(bmp, stats.getTotalDef(), stats.MAX_DEF, x, y+30, 200, 15, 100, 7, this.bar_def, this.bar_scarce, false, false);
+    this._drawStatusBar(bmp, stats.getTotalDef(), stats.MAX_DEF_VISUAL, x, y+30, 200, 15, 100, 7, this.bar_def, this.bar_def_over, false, false);
     this._drawStatusBar(bmp, stats.getTotalAgi(), stats.MAX_AGI, x, y+40, 200, 15, 100, 7, this.bar_agi, this.bar_dense, false, false);
 };
 
