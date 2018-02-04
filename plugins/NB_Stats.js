@@ -267,6 +267,12 @@ function NB_ItemEffect() {
     this.initialize.apply(this, arguments);
 }
 
+NB_ItemEffect.EFFECT_RECOVER_HP = 11;
+NB_ItemEffect.EFFECT_RECOVER_MP = 12;
+NB_ItemEffect.EFFECT_ADD_STATE = 21;
+NB_ItemEffect.EFFECT_REMOVE_STATE = 22;
+NB_ItemEffect.EFFECT_GROW = 42;
+
 NB_ItemEffect.prototype.initialize = function(itemSchema) {
     this._hpChange = 0;
     this._mpChange = 0;
@@ -285,16 +291,19 @@ NB_ItemEffect.prototype.initialize = function(itemSchema) {
 
 NB_ItemEffect.prototype.applyFromEffect = function(effect) {
     switch(effect.code) {
-    case Game_Action.EFFECT_RECOVER_HP:
+    case NB_ItemEffect.EFFECT_RECOVER_HP:
         this._addHpChange(effect.value2);
         break;
-    case Game_Action.EFFECT_RECOVER_MP:
+    case NB_ItemEffect.EFFECT_RECOVER_MP:
         this._addMpChange(effect.value2);
         break;
-    case Game_Action.EFFECT_ADD_STATE:
+    case NB_ItemEffect.EFFECT_ADD_STATE:
         this._statusEffectsChange.push(effect.dataId);
         break;
-    case Game_Action.EFFECT_GROW:
+    case NB_ItemEffect.EFFECT_REMOVE_STATE:
+        console.log(effect);
+        break;
+    case NB_ItemEffect.EFFECT_GROW:
         switch(effect.dataId) {
             case 0: // MAX HP
                 this._addMaxHpChange(effect.value1);
@@ -367,6 +376,21 @@ function NB_StatusEffect() {
     this.initialize.apply(this, arguments);
 }
 
+NB_StatusEffect.SHIELD = 2;
+NB_StatusEffect.HASTE = 3;
+NB_StatusEffect.POISON = 4;
+NB_StatusEffect.DISEASE = 5;
+NB_StatusEffect.REGENERATION = 6;
+NB_StatusEffect.NAUSEA = 7;
+NB_StatusEffect.BLINDNESS = 8;
+NB_StatusEffect.PARALYZE = 9;
+NB_StatusEffect.MAGIC_RESISTANCE = 10;
+NB_StatusEffect.MIGHT = 11;
+NB_StatusEffect.SLOW = 12;
+NB_StatusEffect.FEAR = 13;
+NB_StatusEffect.WEAKNESS = 14;
+NB_StatusEffect.BERSERK = 15;
+
 NB_StatusEffect.prototype.initialize = function(id, duration) {
     this._databaseId = id;
     this._mhpBonus = 0;
@@ -380,21 +404,62 @@ NB_StatusEffect.prototype.initialize = function(id, duration) {
 
 NB_StatusEffect.prototype._setBonuses = function() {
     switch(this._databaseId) {
-        case 1: // Knockout - NOT USED
+        case NB_StatusEffect.SHIELD:
+            this._defBonus = 25;
             break;
-        case 2: // Shield
-            this._defBonus = 20;
+        case NB_StatusEffect.HASTE:
+            this._agiBonus = 5;
             break;
-        case 3: // Weakness
-            this._atkBonus = -10;
+        case NB_StatusEffect.POISON:
+            // SPECIAL EFFECT: -5% hp / tick
+            break;
+        case NB_StatusEffect.DISEASE:
+            this._defBonus = -15;
+            this._atkBonus = -15;
+            this._agiBonus = -3;
+            break;
+        case NB_StatusEffect.REGENERATION:
+            // SPECIAL EFFECT: +5% hp / tick
+            break;
+        case NB_StatusEffect.NAUSEA:
+            this._defBonus = -5;
+            this._agiBonus = -2;
+            break;
+        case NB_StatusEffect.BLINDNESS:
+            // SPECIAL EFFECT: cannot move, use ranged attack, 50% miss on melee
+            break;
+        case NB_StatusEffect.PARALYZE:
+            // SPECIAL EFFECT: cannot act
+            break;
+        case NB_StatusEffect.MAGIC_RESISTANCE:
+            // SPECIAL EFFECT: 25% reduced damage from magic on top of defense
+            break;
+        case NB_StatusEffect.MIGHT:
+            this._atkBonus = 15;
+            break;
+        case NB_StatusEffect.SLOW:
+            this._agiBonus = -5;
+            break;
+        case NB_StatusEffect.FEAR:
+            this._atkBonus = -5;
+            this._agiBonus = -2;
+            break;
+        case NB_StatusEffect.WEAKNESS:
+            this._atkBonus = -15;
+            break;
+        case NB_StatusEffect.BERSERK:
+            // SPECIAL EFFECT: attacks nearest
+            this._atkBonus = 40;
+            this._defBonus = -20;
             break;
         default:
+            console.log('Status effect error, no such ID: ' + this._databaseId);
             break;
     }
 };
 
 NB_StatusEffect.prototype.getId = function() {
-    return this._databaseId;  
+    return this._databaseId;
 };
 
 NB_StatusEffect.prototype.getMaxHpBonus = function() {

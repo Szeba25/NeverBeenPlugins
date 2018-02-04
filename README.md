@@ -1,6 +1,7 @@
 Preferred plugin order: <br />
 
 Community_Basic <br />
+NB_Development * NEW <br />
 NB_GameLoopFix <br />
 NB_GameSizeChange <br />
 NB_RegionBlock <br />
@@ -15,7 +16,7 @@ NB_Mouse <br />
 NB_SmoothCamera <br />
 NB_Footsteps <br />
 NB_Lights <br />
-NB_Stats * NEW <br />
+NB_Stats <br />
 NB_Interface <br />
 NB_InterfaceMainMenu <br />
 NB_InterfaceItemMenu <br />

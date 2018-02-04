@@ -261,9 +261,6 @@
             bmp.drawText('Use item on:', 0, 0, null, NB_Interface.lineHeight, 'left');
             bmp.fontSize = NB_Interface.fontSize;
             
-            var schema = this._currentUsedItemSchema;
-            var itemEffect = new NB_ItemEffect(schema);
-            
             bmp.drawText('Health:', 160, 40, null, NB_Interface.lineHeight, 'left');
             bmp.drawText('Magic skill:', 160, 65, null, NB_Interface.lineHeight, 'left');
             bmp.drawText('Power:', 160, 90, null, NB_Interface.lineHeight, 'left');
