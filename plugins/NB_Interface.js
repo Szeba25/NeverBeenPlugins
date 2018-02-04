@@ -1131,6 +1131,12 @@ NB_List.prototype.addToContainer = function(container) {
     container.addChild(this._container);
 };
 
+NB_List.prototype.removeAllElements = function() {
+    while (this._elements.length > 0) {
+        this.removeById(0);
+    }
+};
+
 NB_List.prototype.unfoldFromFirstVisible = function() {
     for (var i = 0; i < this._elements.length; i++) {
         if (i < this._firstVisibleId) {

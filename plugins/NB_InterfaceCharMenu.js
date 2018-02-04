@@ -50,6 +50,7 @@
             _subCategoryButtons
             _equipmentList
             _equipmentNames
+            _equipmentItems
             _skillGrid
         */
     };
@@ -82,10 +83,23 @@
         }
     };
     
-    NB_Interface_CharMenu.prototype._printEquipment = function(actor) {
-        for (var i = 0; i < 5; i++) {
-            
+    NB_Interface_CharMenu.prototype._populateEquipment = function(actor) {
+        if (this._equipmentNames.isEmpty()) {
+            for (var i = 0; i < 5; i++) {
+                this._equipmentNames.addListElement('nothing');
+            }
+        } else {
+            for (var i = 0; i < 5; i++) {
+                
+            }
         }
+        this._equipmentItems.removeAllElements();
+        this._equipmentItems.addCountedListElement('element 0', 5, 120);
+        this._equipmentItems.addCountedListElement('element 1', 3, 120);
+        this._equipmentItems.addCountedListElement('element 2', 4, 120);
+        this._equipmentItems.addCountedListElement('element 3', 6, 120);
+        this._equipmentItems.addCountedListElement('element 4', 11, 120);
+        this._equipmentItems.addCountedListElement('element 5', 2, 120);
     };
     
     NB_Interface_CharMenu.prototype._updateCharacterInfo = function() {
@@ -179,8 +193,12 @@
         this._equipmentList.addListElement("Accessory:");
         this._equipmentList.addToContainer(this);
         
-        this._equipmentNames = new NB_List(50, 50, 5);
+        this._equipmentNames = new NB_List(660, 125, 5);
         this._equipmentNames.addToContainer(this);
+        this._equipmentNames.deactivate();
+        
+        this._equipmentItems = new NB_List(560, 325, 8);
+        this._equipmentItems.addToContainer(this);
         
         this._skillGrid = new NB_ButtonGrid(true, 3, 3);
         for (var y = 0; y < 3; y++) {
@@ -247,7 +265,7 @@
     
     NB_Interface_CharMenu.prototype._enterEquipmentTrigger = function() {
         SoundManager.playOk();
-        this._printEquipment(this._party[this._currentChar]);
+        this._populateEquipment(this._party[this._currentChar]);
         this._characterEntered = 3;
     };
     
@@ -275,7 +293,7 @@
         if (this.okKeyTrigger(this._subCategoryButtons)) {
             var id = this._subCategoryButtons.trigger(true);
             this._subCategoryButtons.fade();
-            if (id == 0) {
+            if (id === 0) {
                 this._enterSkillsTrigger();
             } else {
                 this._enterEquipmentTrigger();
@@ -412,6 +430,7 @@
         this._subCategoryButtons.setMasterOpacity(this._subCategoryFadeOpacity * (this._masterOpacity / 255));
         this._equipmentList.setMasterOpacity(this._equipmentSubOpacity * (this._masterOpacity / 255));
         this._equipmentNames.setMasterOpacity(this._equipmentSubOpacity * (this._masterOpacity / 255));
+        this._equipmentItems.setMasterOpacity(this._equipmentSubOpacity * (this._masterOpacity / 255));
         this._skillGrid.setMasterOpacity(this._skillsSubOpacity * (this._masterOpacity / 255));
         this._skillInfo.opacity = this._skillsSubOpacity * (this._masterOpacity / 255);
         
@@ -442,6 +461,7 @@
         this._updateCharacterInfo();
         this._equipmentList.update();
         this._equipmentNames.update();
+        this._equipmentItems.update();
         this._skillGrid.update();
         if (this._characterEntered === 2) {
             this._updateSkillsInfo();
