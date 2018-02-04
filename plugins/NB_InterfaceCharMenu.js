@@ -398,7 +398,7 @@
             case 4: // Skill exit
                 // Exit the menu, and apply the master opacity to the pergamen, and background opacity
                 this._pergamen.opacity = this._masterOpacity;
-                this._backgroundTint.opacity = (this._masterOpacity/255) * 130;
+                this._backgroundTint.opacity = (this._masterOpacity / 255) * 130;
                 break;
         }
         
@@ -412,6 +412,7 @@
         if (this._characterFaceFadeOpacity < 255) {
             this._characterFaceFadeOpacity += 15;
         }
+        
         this._characterFace.opacity = this._characterFaceFadeOpacity * (this._masterOpacity / 255);
     };
     

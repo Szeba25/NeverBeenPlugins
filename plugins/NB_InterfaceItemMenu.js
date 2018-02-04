@@ -186,11 +186,11 @@
     NB_Interface_ItemMenu.prototype._updatePartyInfo = function() {
         if (this._updatePartyInfoFlag) {
             this._updatePartyInfoFlag = false;
-            var bmp = this._partyInfo.bitmap;
             
-            console.log('Party info updated!');
+            var bmp = this._partyInfo.bitmap;
             bmp.clear();
             
+            // loop through all party members, and draw their status bars
             for (var i = 0; i < this._party.length; i++) {
                 var x = 20;
                 var iy = i;
@@ -203,7 +203,7 @@
                 }
                 bmp.drawText(this._party[i].name(), x, 0 + iy*100, null, NB_Interface.lineHeight, 'left');
                 this._drawAllStatusBarsMini(this._party[i], bmp, x, 30 + iy*100);
-                this._drawStatusEffects(this._party[i], bmp, x+10, 80 + iy*100, true);
+                this._drawStatusEffects(this._party[i], bmp, x, 80 + iy*100, true);
             }
         }
     };
@@ -211,9 +211,8 @@
     NB_Interface_ItemMenu.prototype._updateItemInfo = function() {
         if (this._updatedItemId !== this._itemLists[this._selectedCategory].getActiveId()) {
             this._updatedItemId = this._itemLists[this._selectedCategory].getActiveId();
-            var bmp = this._itemInfo.bitmap;
             
-            console.log('Item info updated!');
+            var bmp = this._itemInfo.bitmap;
             bmp.clear();
             
             if (this._updatedItemId >= 0 && !this._itemLists[this._selectedCategory].isEmpty()) {
@@ -239,7 +238,6 @@
                 if (elem.type === 0) {
                     if (this._isCommonEventTrigger(item)) {
                         bmp.fontSize = NB_Interface.fontSize+5;
-                        //bmp.drawText('Will trigger a special effect!', 0, 165, null, NB_Interface.lineHeight, 'left');
                     } else if (item.scope === 8) {
                         bmp.fontSize = NB_Interface.fontSize+3;
                         bmp.drawText('Affects everyone in the party:', 0, 165, null, NB_Interface.lineHeight, 'left');
@@ -253,11 +251,11 @@
     NB_Interface_ItemMenu.prototype._updateUseInfo = function() {
         if (this._useFlag !== 0 && this._updatedUseActorId !== this._actorButtons.getActiveId()) {
             this._updatedUseActorId = this._actorButtons.getActiveId();
-            var bmp = this._useInfo.bitmap;
-            var actor = this._party[this._updatedUseActorId];
             
-            console.log('Use info updated!');
+            var bmp = this._useInfo.bitmap;
             bmp.clear();
+            
+            var actor = this._party[this._updatedUseActorId];
             
             bmp.fontSize = NB_Interface.fontSize + 5;
             bmp.drawText('Use item on:', 0, 0, null, NB_Interface.lineHeight, 'left');
