@@ -1119,7 +1119,12 @@ NB_List.prototype.removeById = function(id) {
         if (this._activeId < this._firstVisibleId) {
             this._firstVisibleId--;
         }
-        this.unfoldFromFirstVisible();
+        if (this.isEmpty()) {
+            this._activeId = -1;
+            this._firstVisibleId = 0;
+        } else {
+            this.unfoldFromFirstVisible();
+        }
     }
 };
 
@@ -1135,6 +1140,11 @@ NB_List.prototype.removeAllElements = function() {
     while (this._elements.length > 0) {
         this.removeById(0);
     }
+};
+
+NB_List.prototype.removeFromContainer = function(container) {
+    this.removeAllElements();
+    container.removeChild(this._container);
 };
 
 NB_List.prototype.unfoldFromFirstVisible = function() {

@@ -85,6 +85,26 @@
     
     NB_Interface_CharMenu.prototype._populateEquipment = function(actor) {
         
+        this._equipmentNames.removeAllElements();
+        this._equipmentNames.addListElement('none');
+        this._equipmentNames.addListElement('none');
+        this._equipmentNames.addListElement('none');
+        this._equipmentNames.addListElement('none');
+        this._equipmentNames.addListElement('none');
+        
+        this._equipmentItems.removeAllElements();
+        this._equipmentItems.addCountedListElement('asdasd1', 4, 120);
+        this._equipmentItems.addCountedListElement('asdasd2', 6, 120);
+        this._equipmentItems.addCountedListElement('asdasd3', 11, 120);
+        this._equipmentItems.addCountedListElement('asdasd4', 9, 120);
+        this._equipmentItems.addCountedListElement('asdasd4', 9, 120);
+        this._equipmentItems.addCountedListElement('asdasd4', 1, 120);
+        this._equipmentItems.addCountedListElement('asdasd2', 9, 120);
+        this._equipmentItems.addCountedListElement('asdasd4', 1, 120);
+        this._equipmentItems.addCountedListElement('asdasd4', 3, 120);
+        this._equipmentItems.addCountedListElement('asdasd5', 2, 120);
+        this._equipmentItems.addCountedListElement('asdasd6', 9, 120);
+        
     };
     
     NB_Interface_CharMenu.prototype._updateCharacterInfo = function() {
@@ -170,7 +190,7 @@
         this._subCategoryButtons.add(new NB_Button('menu_1/', 'char_2', 'menu_1/', 'char_2_light', null, null, 644, 30));
         this._subCategoryButtons.addToContainer(this);
         
-        this._equipmentList = new NB_List(560, 125, 5);
+        this._equipmentList = new NB_List(590, 125, 5);
         this._equipmentList.addListElement('Weapon:');
         this._equipmentList.addListElement('Shield:');
         this._equipmentList.addListElement('Helmet:');
@@ -178,13 +198,13 @@
         this._equipmentList.addListElement('Accessory:');
         this._equipmentList.addToContainer(this);
         
-        this._equipmentNames = new NB_List(660, 125, 5);
+        this._equipmentNames = new NB_List(680, 125, 5);
         this._equipmentNames.addToContainer(this);
         this._equipmentNames.deactivate();
         
-        this._equipmentItems = new NB_List(560, 325, 8);
+        this._equipmentItems = new NB_List(590, 295, 7);
         this._equipmentItems.addToContainer(this);
-        this._equipmentItems.deactivate();
+        //this._equipmentItems.deactivate();
         
         this._skillGrid = new NB_ButtonGrid(true, 3, 3);
         for (var y = 0; y < 3; y++) {
@@ -318,6 +338,10 @@
     
     NB_Interface_CharMenu.prototype._equipmentInput = function() {
         this._equipmentList.updateInput(this.isMouseActive());
+        this._equipmentItems.updateInput(this.isMouseActive());
+        if (this.okKeyTrigger(this._equipmentList)) {
+            this._populateEquipment();
+        }
         if (this.backKeyTrigger()) {
             this._leaveEquipmentTrigger();
         }
