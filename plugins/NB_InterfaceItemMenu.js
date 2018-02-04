@@ -121,11 +121,11 @@
     };
     
     NB_Interface_ItemMenu.prototype._populateRegularAndKeyItems = function(regularList, keyList, dist) {
-        var items = $gameParty.items();
+        var items = this.getAllItems();
         for (var i = 0; i < items.length; i++) {
             var itemd = {};
             itemd['id'] = items[i].id;
-            itemd['count'] = $gameParty.numItems(items[i]);
+            itemd['count'] = this.countItem(items[i]);
             itemd['type'] = 0;
             if (items[i].itypeId === 1) {
                 regularList.addCountedListElement(items[i].name, itemd['count'], dist);
@@ -138,11 +138,11 @@
     };
     
     NB_Interface_ItemMenu.prototype._populateEquipmentItems = function(equipmentList, dist) {
-        var equips = $gameParty.equipItems();
+        var equips = this.getAllEquips();
         for (var i = 0; i < equips.length; i++) {
             var equd = {};
             equd['id'] = equips[i].id;
-            equd['count'] = $gameParty.numItems(equips[i]);
+            equd['count'] = this.countItem(equips[i]);
             equd['type'] = equips[i].etypeId; 
             equipmentList.addCountedListElement(equips[i].name, equd['count'], dist);
             this._itemData[1].push(equd);
@@ -217,28 +217,28 @@
             
             if (this._updatedItemId >= 0 && !this._itemLists[this._selectedCategory].isEmpty()) {
                 var elem = this._itemData[this._selectedCategory][this._updatedItemId];
-                var item = null;
+                var currentSchema = null;
                 if (elem.type === 0) {
-                    // This element is an item
-                    item = $dataItems[elem.id];
+                    // This element is a regular item
+                    currentSchema = this.getItemSchema(elem.id);
                 } else if (elem.type === 1) {
                     // This element is a weapon
-                    item = $dataWeapons[elem.id];
+                    currentSchema = this.getWeaponSchema(elem.id);
                 } else {
                     // This element is an armor
-                    item = $dataArmors[elem.id];
+                    currentSchema = this.getArmorSchema(elem.id);
                 }
-                bmp.drawText('Name: ' + item.name, 0, 0, null, NB_Interface.lineHeight, 'left');
-                bmp.drawText('Price: ' + item.price, 0, 25, null, NB_Interface.lineHeight, 'left');
-                var desc = this._splitToLines(item.note);
+                bmp.drawText('Name: ' + currentSchema.name, 0, 0, null, NB_Interface.lineHeight, 'left');
+                bmp.drawText('Price: ' + currentSchema.price, 0, 25, null, NB_Interface.lineHeight, 'left');
+                var desc = this._splitToLines(currentSchema.note);
                 bmp.fontSize = NB_Interface.fontSize-3;
                 for (var i = 0; i < desc.length; i++) {
                     bmp.drawText(desc[i], 15, 70 + i*22, null, NB_Interface.lineHeight, 'left');
                 }
                 if (elem.type === 0) {
-                    if (this._isCommonEventTrigger(item)) {
+                    if (this._isCommonEventTrigger(currentSchema)) {
                         bmp.fontSize = NB_Interface.fontSize+5;
-                    } else if (item.scope === 8) {
+                    } else if (currentSchema.scope === 8) {
                         bmp.fontSize = NB_Interface.fontSize+3;
                         bmp.drawText('Affects everyone in the party:', 0, 165, null, NB_Interface.lineHeight, 'left');
                     }
@@ -282,7 +282,7 @@
         if (schema.consumable) {
             data.count -= 1;
             this._itemLists[this._selectedCategory].getActiveElement().decreaseCount();
-            $gameParty.consumeItem(schema);
+            this.consumeItem(schema);
         }
         
         if (target) {
@@ -366,7 +366,7 @@
     };
     
     NB_Interface_ItemMenu.prototype._getCurrentSelectedItemSchema = function() {
-        return $dataItems[this._getCurrentSelectedItemData().id];
+        return this.getItemSchema(this._getCurrentSelectedItemData().id);
     };
     
     NB_Interface_ItemMenu.prototype._updateUseInput = function() {

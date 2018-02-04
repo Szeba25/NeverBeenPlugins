@@ -197,9 +197,55 @@ NB_Interface.prototype.okKeyTrigger = function(container) {
  * Utility commands in interface
  ****************************************************************/
 
+NB_Interface.prototype.getAllParty = function() {
+    return $gameParty.allMembers();
+};
+
+NB_Interface.prototype.getAllItems = function() {
+    // Return all item schema in the party inventory...
+    return $gameParty.items();
+};
+
+NB_Interface.prototype.getAllEquips = function() {
+    // Return all equipment schema in the party inventory...
+    return $gameParty.equipItems();
+};
+
+NB_Interface.prototype.countItem = function(itemSchema) {
+    return $gameParty.numItems(itemSchema);
+};
+
+NB_Interface.prototype.consumeItem = function(itemSchema) {
+    $gameParty.consumeItem(itemSchema);
+}
+
+NB_Interface.prototype.getItemSchema = function(id) {
+    return $dataItems[id];
+};
+
+NB_Interface.prototype.getWeaponSchema = function(id) {
+    return $dataWeapons[id];
+};
+
+NB_Interface.prototype.getArmorSchema = function(id) {
+    return dataArmors[id];
+};
+
+NB_Interface.prototype.getActorSchema = function(id) {
+    return $dataActors[id];
+};
+
+NB_Interface.prototype.getStateSchema = function(id) {
+    return $dataStates[id];
+};
+
+NB_Interface.prototype.getSkillSchema = function(id) {
+    return $dataSkills[id];
+};
+ 
 NB_Interface.prototype.getParty = function() {
     // Return all party members which are accessible from the menu
-    var allParty = $gameParty.allMembers();
+    var allParty = this.getAllParty();
     var menuParty = [];
     for (var i = 0; i < allParty.length; i++) {
         if (allParty[i].nickname() !== 'NPC') {
@@ -272,8 +318,7 @@ NB_Interface.prototype._drawAllStatusBarsMini = function(actor, bmp, x, y) {
 NB_Interface.prototype._drawStatusEffects = function(actor, bmp, x, y, mini) {
     var statusEffects = actor.nbStats().getStatusEffects();
     for (var i = 0; i < statusEffects.length; i++) {
-        var state = $dataStates[statusEffects[i].getId()];
-        var iconIndex = state.iconIndex;
+        var iconIndex = this.getStateSchema(statusEffects[i].getId()).iconIndex;
         var sx = iconIndex % 16 * 32;
         var sy = Math.floor(iconIndex / 16) * 32;
         if (mini) {
@@ -284,29 +329,16 @@ NB_Interface.prototype._drawStatusEffects = function(actor, bmp, x, y, mini) {
     }
 };
 
-NB_Interface.prototype._isCommonEventTrigger = function(item) {
-    return (item.effects.length === 1 && item.effects[0].code === Game_Action.EFFECT_COMMON_EVENT);
+NB_Interface.prototype._isCommonEventTrigger = function(schema) {
+    return (schema.effects.length === 1 && schema.effects[0].code === Game_Action.EFFECT_COMMON_EVENT);
 };
 
 // KEEP AN EYE ON THIS NEW FUNCTION!
-NB_Interface.prototype._triggerCommonEventAction = function(item) {
+NB_Interface.prototype._triggerCommonEventAction = function(schema) {
     // If there is ONLY one effect, and its a common event trigger, then it will work...
-    if (this._isCommonEventTrigger(item)) {
-        $gameTemp.reserveCommonEvent(item.effects[0].dataId);
+    if (this._isCommonEventTrigger(schema)) {
+        $gameTemp.reserveCommonEvent(schema.effects[0].dataId);
     }
-    
-    /*
-    // Old code here from charmenu! Actor was passed as an argument!
-    SoundManager.playOk();
-    var action = new Game_Action(actor);
-    action.setItemObject(skills[activeId]);
-    action.applyGlobal();
-    if ($gameTemp.isCommonEventReserved()) {
-        this._characterEntered = 4;
-        this._exit = true;
-    }
-    */
-    
     return $gameTemp.isCommonEventReserved();
 };
  

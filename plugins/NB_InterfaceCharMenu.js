@@ -72,10 +72,10 @@
             this._skillGrid.get(i).getLowerCanvasBitmap().clear();
         }
         
-        var skills = actor.skills();
+        var skills = actor.nbStats().getSkills();
         
         for (var i = 0; i < skills.length; i++) {
-            var iconIndex = skills[i].iconIndex + 1;
+            var iconIndex = this.getSkillSchema(skills[i]).iconIndex + 1;
             var sx = iconIndex % 16 * 32;
             var sy = Math.floor(iconIndex / 16) * 32;
             this._skillGrid.get(i).getLowerCanvasBitmap().blt(this._iconSet, sx, sy, 64, 64, 8, 8);
@@ -93,8 +93,8 @@
             this._currentCharUpdated = this._currentChar;
             // Gather data
             var actor = this._party[this._currentChar];
-            var actorData = $dataActors[actor.actorId()];
-            var bio = this._splitToLines(actorData.note);
+            var actorSchema = this.getActorSchema(actor.actorId());
+            var bio = this._splitToLines(actorSchema.note);
             var bmp = this._characterInfo.bitmap;
             // Set face
             this._characterFace.bitmap = ImageManager.loadInterfaceElement('menu_1/chars/', 'face'+actor.actorId());
@@ -127,14 +127,15 @@
             this._updatedSkillId = this._skillGrid.getActiveId();
             var bmp = this._skillInfo.bitmap;
             var actor = this._party[this._currentChar];
-            var skills = actor.skills();
+            var skills = actor.nbStats().getSkills();
             bmp.clear();
             if (this._updatedSkillId < skills.length) {
-                var skill = skills[this._updatedSkillId];
-                var desc = this._splitToLines($dataSkills[skill.id].note);
+                var skillId = skills[this._updatedSkillId];
+                var skillSchema = this.getSkillSchema(skillId);
+                var desc = this._splitToLines(skillSchema.note);
                 // Draw description
-                bmp.drawText('Name: ' + skill.name, 0, 0, null, NB_Interface.lineHeight, 'left');
-                bmp.drawText('Cost: ' + skill.mpCost, 220, 0, null, NB_Interface.lineHeight, 'left');
+                bmp.drawText('Name: ' + skillSchema.name, 0, 0, null, NB_Interface.lineHeight, 'left');
+                bmp.drawText('Cost: ' + skillSchema.mpCost, 220, 0, null, NB_Interface.lineHeight, 'left');
                 for (var i = 0; i < desc.length; i++) {
                     bmp.drawText(desc[i], 0, 35 + (i*22), null, NB_Interface.lineHeight, 'left');
                 }
@@ -294,10 +295,10 @@
     };
     
     NB_Interface_CharMenu.prototype._useSkill = function(actor, activeId) {
-        var skills = actor.skills();
+        var skills = actor.nbStats().getSkills();
         if (activeId < skills.length) {
             SoundManager.playOk();
-            if (this._triggerCommonEventAction(skills[activeId])) {
+            if (this._triggerCommonEventAction(this.getSkillSchema(skills[activeId]))) {
                 this._characterEntered = 4;
                 this._exit = true;
             }

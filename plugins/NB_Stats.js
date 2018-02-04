@@ -20,7 +20,7 @@
     aliases.Game_Actor_setup = Game_Actor.prototype.setup;
     Game_Actor.prototype.setup = function(actorId) {
         aliases.Game_Actor_setup.call(this, actorId);
-        this._nbStats.setup(this.mhp, this.mmp, this.atk, this.def, this.agi);
+        this._nbStats.setup(this.mhp, this.mmp, this.atk, this.def, this.agi, this.skills());
     };
     
     Game_Actor.prototype.nbStats = function() {
@@ -98,6 +98,19 @@
         return true;
     };
     
+    // Override!
+    // Change Skill
+    Game_Interpreter.prototype.command318 = function() {
+        this.iterateActorEx(this._params[0], this._params[1], function(actor) {
+            if (this._params[2] === 0) {
+                actor.nbStats().addSkill(this._params[3]);
+            } else {
+                actor.nbStats().removeSkill(this._params[3]);
+            }
+        }.bind(this));
+        return true;
+    };
+    
     /****************************************************************
      * Main stats system
      ****************************************************************/
@@ -121,14 +134,18 @@
         this._agi = 0;
         this._equipment = [null, null, null, null, null];
         this._statusEffects = [];
+        this._skills = [];
     };
     
-    NB_Stats.prototype.setup = function(hp, mp, atk, def, agi) {
+    NB_Stats.prototype.setup = function(hp, mp, atk, def, agi, skills) {
         this._mhp = hp;
         this._mmp = mp;
         this._atk = atk;
         this._def = def;
         this._agi = agi;
+        for (var i = 0; i < skills.length; i++) {
+            this.addSkill(skills[i].id);
+        }
         this.recover();
     };
     
@@ -237,7 +254,7 @@
     
     NB_Stats.prototype.hasStatusEffect = function(id) {
         for (var i = 0; i < this._statusEffects.length; i++) {
-            if (id == this._statusEffects[i].getId()) {
+            if (id === this._statusEffects[i].getId()) {
                 return i;
             }
         }
@@ -251,9 +268,35 @@
     };
     
     NB_Stats.prototype.removeStatusEffect = function(id) {
-        var effectId = this.hasStatusEffect(id);
-        if (effectId !== -1) {
-            this._statusEffects.splice(effectId, 1);
+        var pos = this.hasStatusEffect(id);
+        if (pos !== -1) {
+            this._statusEffects.splice(pos, 1);
+        }
+    };
+    
+    NB_Stats.prototype.getSkills = function(id) {
+        return this._skills;
+    };
+    
+    NB_Stats.prototype.hasSkill = function(id) {
+        for (var i = 0; i < this._skills.length; i++) {
+            if (id === this._skills[i]) {
+                return i;
+            }
+        }
+        return -1;
+    };
+    
+    NB_Stats.prototype.addSkill = function(id) {
+        if (this.hasSkill(id) === -1) {
+            this._skills.push(id);
+        }
+    };
+    
+    NB_Stats.prototype.removeSkill = function(id) {
+        var pos = this.hasSkill(id);
+        if (pos !== -1) {
+            this._skills.splice(pos, 1);
         }
     };
     
@@ -272,6 +315,7 @@ NB_ItemEffect.EFFECT_RECOVER_MP = 12;
 NB_ItemEffect.EFFECT_ADD_STATE = 21;
 NB_ItemEffect.EFFECT_REMOVE_STATE = 22;
 NB_ItemEffect.EFFECT_GROW = 42;
+NB_ItemEffect.EFFECT_LEARN_SKILL = 43;
 
 NB_ItemEffect.prototype.initialize = function(itemSchema) {
     this._hpChange = 0;
@@ -282,6 +326,7 @@ NB_ItemEffect.prototype.initialize = function(itemSchema) {
     this._defChange = 0;
     this._agiChange = 0;
     this._statusEffectsChange = [];
+    this._learnSkill = [];
     if (itemSchema) {
         for (var i = 0; i < itemSchema.effects.length; i++) {
             this.applyFromEffect(itemSchema.effects[i]);
@@ -301,7 +346,7 @@ NB_ItemEffect.prototype.applyFromEffect = function(effect) {
         this._statusEffectsChange.push(effect.dataId);
         break;
     case NB_ItemEffect.EFFECT_REMOVE_STATE:
-        console.log(effect);
+        this._statusEffectsChange.push(effect.dataId * -1);
         break;
     case NB_ItemEffect.EFFECT_GROW:
         switch(effect.dataId) {
@@ -321,6 +366,9 @@ NB_ItemEffect.prototype.applyFromEffect = function(effect) {
                 this._addAgiChange(effect.value1);
                 break;
         }
+        break;
+    case NB_ItemEffect.EFFECT_LEARN_SKILL:
+        this._learnSkill.push(effect.dataId);
         break;
     default:
         break;
@@ -364,7 +412,12 @@ NB_ItemEffect.prototype.apply = function(nbStats) {
     nbStats.changeDef(this._defChange);
     nbStats.changeAgi(this._agiChange);
     for (var i = 0; i < this._statusEffectsChange.length; i++) {
-        nbStats.addStatusEffect(this._statusEffectsChange[i]);
+        var id = this._statusEffectsChange[i];
+        if (id > 0) {
+            nbStats.addStatusEffect(id);
+        } else if (id < 0) {
+            nbStats.removeStatusEffect(-id);
+        }
     }
 };
 
