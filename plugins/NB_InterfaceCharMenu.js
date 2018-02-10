@@ -279,6 +279,17 @@
         this._equipmentList.invalidateAllButActive();
         this._equipmentNames.activate();
         this._equipmentNames.setActiveId(this._equipmentList.getActiveId());
+        
+        // Print the current item in this slot, for debugging reasons...
+        var iid = this._equipmentList.getActiveId();
+        var stats = this._party[this._currentChar].nbStats();
+        var currentItemId = stats.getEquipment(iid);
+        if (iid === 0) {
+            console.log(this.getWeaponSchema(currentItemId));
+        } else {
+            console.log(this.getArmorSchema(currentItemId));
+        }
+        
         this._equipmentNames.invalidateAllButActive();
         this._equipmentNames.deactivate();
         this._equipmentItems.removeAllElements();
