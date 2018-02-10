@@ -147,7 +147,7 @@
         for (var i = 0; i < skills.length; i++) {
             this.addSkill(skills[i].id);
         }
-        this._equipment = [1, 2, 1, 2, 1]; // REMOVE THIS
+        this._equipment = [null, null, null, null, null]; // set up starting equipment later!
         this.recover();
     };
     

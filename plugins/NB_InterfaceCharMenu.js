@@ -87,13 +87,17 @@
     NB_Interface_CharMenu.prototype._populateEquipment = function(actor) {
         var stats = actor.nbStats();
         for (var i = 0; i < 5; i++) {
-            var name = "";
-            if (i === 0) {
-                name = this.getWeaponSchema(stats.getEquipment(i)).name;
+            if (stats.getEquipment(i) !== null) {
+                var name = '';
+                if (i === 0) {
+                    name = this.getWeaponSchema(stats.getEquipment(i)).name;
+                } else {
+                    name = this.getArmorSchema(stats.getEquipment(i)).name;
+                }
+                this._equipmentNames.renameListElement(name, i);
             } else {
-                name = this.getArmorSchema(stats.getEquipment(i)).name;
+                this._equipmentNames.renameListElement('none', i);
             }
-            this._equipmentNames.renameListElement(name, i);
         }
     };
     
@@ -280,8 +284,9 @@
         this._equipmentNames.activate();
         this._equipmentNames.setActiveId(this._equipmentList.getActiveId());
         
-        // Print the current item in this slot, for debugging reasons...
         var iid = this._equipmentList.getActiveId();
+        // Print the current item in this slot, for debugging reasons...
+        /*
         var stats = this._party[this._currentChar].nbStats();
         var currentItemId = stats.getEquipment(iid);
         if (iid === 0) {
@@ -289,11 +294,12 @@
         } else {
             console.log(this.getArmorSchema(currentItemId));
         }
+        */
         
         this._equipmentNames.invalidateAllButActive();
         this._equipmentNames.deactivate();
         this._equipmentItems.removeAllElements();
-        this._addAllRelevantEquipmentToList();
+        this._addAllRelevantEquipmentToList(iid + 1); // To match the relevant item types. (1-5)
         this._equipmentItems.activate();
         this._characterEntered = 5;
     };
@@ -306,9 +312,9 @@
         this._characterEntered = 3;
     };
     
-    NB_Interface_CharMenu.prototype._addAllRelevantEquipmentToList = function() {
+    NB_Interface_CharMenu.prototype._addAllRelevantEquipmentToList = function(itemType) {
         this._equipmentSubjectData = [];
-        this._populateEquipmentItems(this._equipmentItems, this._equipmentSubjectData, 130);
+        this._populateEquipmentItems(this._equipmentItems, this._equipmentSubjectData, 130, itemType);
     };
     
     NB_Interface_CharMenu.prototype._mainInput = function() {
@@ -377,7 +383,20 @@
     
     NB_Interface_CharMenu.prototype._equipChangeInput = function() {
         this._equipmentItems.updateInput(this.isMouseActive());
-        if (this.backKeyTrigger()) {
+        if (this.okKeyTrigger(this._equipmentItems)) {
+            
+            // HERE WE CHANGE THE EQUIPMENT IF POSSIBLE
+            var selectedId = this._equipmentItems.getActiveId();
+            var data = this._equipmentSubjectData[selectedId];
+            var schema = null;
+            if (data.type === 1) {
+                schema = this.getWeaponSchema(data.id);
+            } else {
+                schema = this.getArmorSchema(data.id);
+            }
+            console.log(schema);
+            
+        } else if (this.backKeyTrigger()) {
             this._leaveEquipChangeTrigger();
         }
     };

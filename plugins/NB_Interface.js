@@ -360,15 +360,18 @@ NB_Interface.prototype._populateRegularAndKeyItems = function(regularList, keyLi
     }
 };
 
-NB_Interface.prototype._populateEquipmentItems = function(equipmentList, equipmentData, dist) {
+NB_Interface.prototype._populateEquipmentItems = function(equipmentList, equipmentData, dist, itemType) {
     var equips = this.getAllEquips();
     for (var i = 0; i < equips.length; i++) {
-        var equd = {};
-        equd['id'] = equips[i].id;
-        equd['count'] = this.countItem(equips[i]);
-        equd['type'] = equips[i].etypeId; 
-        equipmentList.addCountedListElement(equips[i].name, equd['count'], dist);
-        equipmentData.push(equd);
+        if (itemType == null || itemType === equips[i].etypeId) {
+            // if itemType is undefined, or matches the etypeId, add to the list...
+            var equd = {};
+            equd['id'] = equips[i].id;
+            equd['count'] = this.countItem(equips[i]);
+            equd['type'] = equips[i].etypeId; 
+            equipmentList.addCountedListElement(equips[i].name, equd['count'], dist);
+            equipmentData.push(equd);
+        }
     }
 };
  
